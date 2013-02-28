@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhpTracer", "PhpTracer.csproj", "{E472D2A4-89C9-40A5-8920-30BEBE97B5A2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E472D2A4-89C9-40A5-8920-30BEBE97B5A2}.Debug|x86.ActiveCfg = Debug|x86
+		{E472D2A4-89C9-40A5-8920-30BEBE97B5A2}.Debug|x86.Build.0 = Debug|x86
+		{E472D2A4-89C9-40A5-8920-30BEBE97B5A2}.Release|x86.ActiveCfg = Release|x86
+		{E472D2A4-89C9-40A5-8920-30BEBE97B5A2}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

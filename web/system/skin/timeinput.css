@@ -1,0 +1,23 @@
+.timeinput
+{
+	padding: 13px;
+	padding-top: 8px;
+	padding-right: 8px;
+	padding-bottom: 8px;
+	width: 335px;
+	border: 1px solid transparent;
+}
+
+.timeinput .container
+{
+	float: left;
+	width: 200px;
+	margin-right: 15px;
+}
+
+.timeinput .value
+{
+	float: right;
+	padding-top: 8px;
+	font-size: +2em;
+}

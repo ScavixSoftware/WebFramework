@@ -1,0 +1,13 @@
+.wdf_overlay
+{
+	background-color: black;
+	opacity: 0.3;
+}
+
+.wdf_overlay_anim
+{
+	opacity: 1;
+	background-image: url("loading.gif");
+	background-position: center;
+	background-repeat: no-repeat;
+}

@@ -1,0 +1,19 @@
+.ui-message > div
+{
+	padding: 0 .7em;
+}
+
+.ui-message .ui-icon-close
+{
+	float: right; 
+	margin-right: 0.3em; 
+	margin-top: 1em; 
+	cursor: pointer;
+}
+
+.ui-message p .ui-icon
+{
+	float: left; 
+	margin-right: 0.3em; 
+	margin-top: 0.1em;
+}

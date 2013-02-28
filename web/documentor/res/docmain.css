@@ -1,0 +1,29 @@
+*
+{ 
+	font-family: 'Courier New',Courier,monospace;
+}
+
+.summary
+{
+	border: 2px solid red;
+	padding: 25px;
+	font-size: 16px;
+}
+
+.file
+{
+	font-size: 16px;
+}
+
+.status
+{
+	font-size: 14px;
+	padding-left: 15px;
+}
+
+.warn
+{
+	color: darkgray;
+	font-size: 12px;
+	padding-left: 30px;
+}

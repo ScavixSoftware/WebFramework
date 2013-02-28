@@ -1,0 +1,31 @@
+.socialbookmarks
+{
+	margin-top: 25px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.socialbookmarks ul
+{
+	list-style-type: disc;
+	list-style-image: none;
+	list-style-position: outside;
+}
+
+.socialbookmarks ul li
+{
+	display: inline;
+	list-style-type: none;
+}
+
+.socialbookmarks ul li a img
+{
+	opacity: 0.5;
+	filter: alpha(opacity = 50);
+}
+
+.socialbookmarks ul li a:hover img
+{
+	opacity: 1;
+	filter: alpha(opacity = 100);
+}

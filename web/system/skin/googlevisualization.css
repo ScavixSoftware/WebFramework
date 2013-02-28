@@ -1,0 +1,14 @@
+.google_vis
+{
+	display: inline-block;
+	border: 1px solid lightgray;
+}
+
+.google_vis .loading
+{
+	background-image: url("loading.gif");
+	background-position: center;
+	background-repeat: no-repeat;
+	background-color: lightgray;
+	height: 100%;
+}

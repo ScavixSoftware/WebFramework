@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+
+	# redirect NoCache files to the real ones
+	SetEnv WDF_FEATURES_NOCACHE on
+	RewriteRule (.*)/nc([0-9]+)/(.*) $1/$3?_nc=$2 [L,QSA]
+
+	# redirect inexistant requests to index.php
+	SetEnv WDF_FEATURES_REWRITE on
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_URI} !index.php
+	RewriteRule (.*) index.php?wdf_route=$1 [L,QSA]
+</IfModule>

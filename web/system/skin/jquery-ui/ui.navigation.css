@@ -1,0 +1,49 @@
+.ui-navigation, .ui-subnavigation
+{
+	padding: 0;
+	border: 0 !important;
+	list-style: none outside none;
+}
+
+.ui-navigation > li
+{
+	float: left;
+	margin: 0 0.2em -1px 0;
+}
+
+.ui-navigation > li.nav_borderless
+{
+	border-bottom: 1px solid transparent;
+}
+
+.ui-navigation > li > a
+{
+	padding: 0.5em 1em;
+}
+
+.ui-subnavigation
+{
+	display: none;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.ui-subnavigation > li
+{
+	clear: both;
+}
+
+.ui-subnavigation > li > a,
+.ui-subnavigation > li > a:link,
+.ui-subnavigation > li > a:active,
+.ui-subnavigation > li > a:visited
+{
+	padding-left: 1em;
+	font-weight: normal;
+	width: 130px;
+	color: black;
+}
+.ui-subnavigation > li > a:hover
+{
+	text-decoration: underline;
+}
