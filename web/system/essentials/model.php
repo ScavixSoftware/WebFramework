@@ -121,15 +121,10 @@ function &model_datasource($name)
 
 	if( is_array($MODEL_DATABASES[$name]) )
 	{
-		list($dstype,$constr,$autoct,$debug,$usememcache) = $MODEL_DATABASES[$name];
+		list($dstype,$constr) = $MODEL_DATABASES[$name];
 		$model_db = new $dstype($name,$constr);
 		if( !$model_db )
 			WdfDbException::Raise("Unable to connect to database '$name'.");
-
-		if( $usememcache )
-		{
-			// todo: cleanup $autoct,$debug,$usememcache
-		}
 		$MODEL_DATABASES[$name] = $model_db;
 	}
 
