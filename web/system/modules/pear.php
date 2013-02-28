@@ -25,6 +25,8 @@
 
 /**
  * Initializes the pear module.
+ * 
+ * Note: We do not deliver any PEAR files. Please set the path there manually: <cfg_set>('pear','include_path','/path/to/pear')* * 
  * @return void
  */
 function pear_init()

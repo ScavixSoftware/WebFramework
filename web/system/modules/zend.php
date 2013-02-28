@@ -27,6 +27,7 @@
  * Initializes the zend module
  * 
  * This module provides access to the Zend framework from within the WDF.
+ * Note: We do not deliver a copy of the Zend Framework. Please set the path there manually: <cfg_set>('zend','include_path','/path/to/zend/fw')
  * @return void
  */
 function zend_init()
