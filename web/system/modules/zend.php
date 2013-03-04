@@ -38,7 +38,7 @@ function zend_init()
 	global $CONFIG;
 
 	if( !isset($CONFIG['zend']['include_path']) )
-		$CONFIG['zend']['include_path'] = dirname(__FILE__)."/zend";
+		$CONFIG['zend']['include_path'] = __DIR__."/zend";
 
 	$inc_path = ini_get("include_path");
 	ini_set("include_path", $CONFIG['zend']['include_path'].PATH_SEPARATOR.$inc_path);
@@ -69,5 +69,5 @@ function zend_load($module)
  */
 function zend_font_path()
 {
-	return dirname(__FILE__)."/zend/fonts/";
+	return __DIR__."/zend/fonts/";
 }

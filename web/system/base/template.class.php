@@ -265,7 +265,7 @@ class Template extends Renderable
 				$sub_template_content = ob_get_contents();
 				ob_end_clean();
 			}
-			$this->file = dirname(__FILE__)."/htmlpage.tpl.php";
+			$this->file = __DIR__."/htmlpage.tpl.php";
 		}
 
 		$__template_file = __autoload__template($this,$this->file);

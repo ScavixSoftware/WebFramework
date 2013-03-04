@@ -34,5 +34,5 @@
  */
 function oauth_load($classname)
 {
-	require_once(dirname(__FILE__)."/oauth_php/$classname.php");
+	require_once(__DIR__."/oauth_php/$classname.php");
 }

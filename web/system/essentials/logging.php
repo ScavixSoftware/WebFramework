@@ -62,10 +62,10 @@ function logging_init()
             $CONFIG['system']['modules'] = array_diff($CONFIG['system']['modules'],array('error'));
 	$GLOBALS["loaded_modules"]['error'] = __FILE__;
 	
-	require_once(dirname(__FILE__).'/logging/logentry.class.php');
-	require_once(dirname(__FILE__).'/logging/logreport.class.php');
-	require_once(dirname(__FILE__).'/logging/logger.class.php');
-	require_once(dirname(__FILE__).'/logging/tracelogger.class.php');
+	require_once(__DIR__.'/logging/logentry.class.php');
+	require_once(__DIR__.'/logging/logreport.class.php');
+	require_once(__DIR__.'/logging/logger.class.php');
+	require_once(__DIR__.'/logging/tracelogger.class.php');
 	
 	// default logger if nothing configured uses defined php error_log (see Logger constructor)
 	// no further limits and/or features are enabled, so plain logging is active

@@ -37,7 +37,7 @@ function session_init()
 {
 	global $CONFIG;
 
-	$CONFIG['class_path']['system'][]   = dirname(__FILE__).'/session/';
+	$CONFIG['class_path']['system'][]   = __DIR__.'/session/';
 	$GLOBALS['object_storage'] = array();
 
 	if( !isset($CONFIG['session']['session_name']) )

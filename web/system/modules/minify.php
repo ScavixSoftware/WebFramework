@@ -135,7 +135,7 @@ function use_minified_file($target_base_name,$kind,$base_uri)
  */
 function minify_js($paths,$target_file)
 {
-	require_once(dirname(__FILE__)."/minify/jsmin.php");
+	require_once(__DIR__."/minify/jsmin.php");
 	$files = minify_collect_files($paths, 'js');
 	log_debug("JS files to minify: ",$files);
 	//die("stopped");
@@ -170,7 +170,7 @@ function minify_js($paths,$target_file)
  */
 function minify_css($paths,$target_file,$nc_argument=false)
 {
-	require_once(dirname(__FILE__)."/minify/cssmin.php");
+	require_once(__DIR__."/minify/cssmin.php");
 	global $current_url;
 	$files = minify_collect_files($paths, 'css');
 	log_debug("CSS files to minify: ",$files);	

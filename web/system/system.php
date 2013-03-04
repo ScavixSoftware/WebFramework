@@ -178,7 +178,7 @@ function system_is_module_loaded($mod)
 function system_init($application_name, $skip_header = false, $logging_category=false)
 {
 	global $CONFIG;
-	$thispath = dirname(__FILE__);
+	$thispath = __DIR__;
 
 	if(!isset($_SESSION["system_internal_cache"]))
 		$_SESSION["system_internal_cache"] = array();

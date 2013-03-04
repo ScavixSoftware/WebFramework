@@ -48,8 +48,8 @@ function translation_init()
         if( !isset($CONFIG['translation']['sync']['datasource']) )
             $CONFIG['translation']['sync']['datasource'] = 'internal';
         
-        $CONFIG['class_path']['system'][] = dirname(__FILE__).'/translation/';
-        $CONFIG['class_path']['system'][] = dirname(__FILE__).'/translation/'.strtolower($CONFIG['translation']['sync']['provider']).'/';
+        $CONFIG['class_path']['system'][] = __DIR__.'/translation/';
+        $CONFIG['class_path']['system'][] = __DIR__.'/translation/'.strtolower($CONFIG['translation']['sync']['provider']).'/';
     }
     else
         $CONFIG['translation']['sync']['datasource'] = false;

@@ -1,5 +1,5 @@
 <?
-require_once(dirname(__FILE__)."/../system/system.php");
+require_once(__DIR__."/../system/system.php");
 
 switchToDev();
 system_init('sample');

@@ -35,8 +35,8 @@ function model_init()
 {
 	global $CONFIG;
 	
-	$CONFIG['class_path']['model'][]   = dirname(__FILE__).'/model/';
-	$CONFIG['class_path']['model'][]   = dirname(__FILE__).'/model/driver/';
+	$CONFIG['class_path']['model'][]   = __DIR__.'/model/';
+	$CONFIG['class_path']['model'][]   = __DIR__.'/model/driver/';
     
     // trick out the autoloader as it consults the cache which needs a model thus circular...
     require_once(__DIR__.'/model/pdolayer.class.php');

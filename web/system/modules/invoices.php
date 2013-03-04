@@ -35,7 +35,7 @@ function invoices_init()
 {
 	global $CONFIG;
 
-	$CONFIG['class_path']['model'][] = dirname(__FILE__).'/invoices/';
+	$CONFIG['class_path']['model'][] = __DIR__.'/invoices/';
 
 	system_load_module("modules/zend.php");
 	zend_load("Zend/Pdf.php");

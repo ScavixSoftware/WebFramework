@@ -107,7 +107,7 @@ function csv_detect_delimiter($csv,$terminator = "\n")
  */
 function ldif_valid($file)
 {
-	require_once(dirname(__FILE__).'/textdata/ldif2array.class.php');
+	require_once(__DIR__.'/textdata/ldif2array.class.php');
 	$ld = new ldif2array($file,true);
 	foreach( $ld->entries as $entry )
 		if( isset($entry['objectclass']) )
@@ -137,7 +137,7 @@ function ldif_valid($file)
  */
 function ldif_to_array($file, $fieldmaps = false, $add_groups = true)
 {
-	require_once(dirname(__FILE__).'/textdata/ldif2array.class.php');
+	require_once(__DIR__.'/textdata/ldif2array.class.php');
 	$ld = new ldif2array($file,true);
 	if( !$fieldmaps )
 		return $ld->entries;
@@ -194,7 +194,7 @@ function ldif_to_array($file, $fieldmaps = false, $add_groups = true)
  */
 function vcard_valid($file)
 {
-	require_once(dirname(__FILE__).'/textdata/vcard_convert.php');
+	require_once(__DIR__.'/textdata/vcard_convert.php');
 	$conv = new vcard_convert();
 	$conv->fromFile($file);
 	return isset($conv->cards) && (count($conv->cards) > 0);
@@ -219,7 +219,7 @@ function vcard_valid($file)
  */
 function vcard_to_array($file, $fieldmap=false)
 {
-	require_once(dirname(__FILE__).'/textdata/vcard_convert.php');
+	require_once(__DIR__.'/textdata/vcard_convert.php');
 	$conv = new vcard_convert();
 	$conv->fromFile($file);
 	

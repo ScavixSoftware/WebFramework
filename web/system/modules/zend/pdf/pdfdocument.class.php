@@ -177,7 +177,7 @@ class PdfDocument extends Zend_Pdf
          */
         if(0 < preg_match('/\p{Arabic}/u', $text))
         {
-            system_load_module(dirname(__FILE__)."/../../arabic.php");
+            system_load_module(__DIR__."/../../arabic.php");
             $arglyphs = new I18N_Arabic('Glyphs');
             $text = $arglyphs->utf8Glyphs($text);
         }

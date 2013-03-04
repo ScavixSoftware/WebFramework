@@ -38,7 +38,7 @@ function mail_init()
 	if( !isset($CONFIG['mail']['logging']) )
 		$CONFIG['mail']['logging'] = false;
 	
-	$CONFIG['class_path']['system'][] = dirname(__FILE__).'/mail/';
+	$CONFIG['class_path']['system'][] = __DIR__.'/mail/';
 
 // whatch out: setting this will only send the emails matching this array
 //	if( !isset($CONFIG['mail']['dev_whitelist']) )
@@ -59,8 +59,8 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 {
 	global $CONFIG;
 
-	require_once(dirname(__FILE__)."/mail/class.smtp.php");
-	require_once(dirname(__FILE__)."/mail/class.phpmailer.php");
+	require_once(__DIR__."/mail/class.smtp.php");
+	require_once(__DIR__."/mail/class.phpmailer.php");
 
 	if( isDev() && isset($CONFIG['mail']['dev_whitelist']))
 	{
@@ -83,7 +83,7 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 	}
 
 	$mail = new PHPMailer(true);
-	$mail->SetLanguage("en", dirname(__FILE__)."/mail/language/");
+	$mail->SetLanguage("en", __DIR__."/mail/language/");
 	$mail->CharSet = "utf-8";
 
 	$mail->IsSMTP();

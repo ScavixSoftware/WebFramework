@@ -415,7 +415,7 @@ class DatabaseTable extends Table
 	
 	protected function _exportExcel($format=self::EXPORT_FORMAT_XLSX)
 	{		
-		system_load_module(dirname(__FILE__).'/../../modules/mod_phpexcel.php');
+		system_load_module(__DIR__.'/../../modules/mod_phpexcel.php');
 		$xls = new PHPExcel();
 		$sheet = $xls->getActiveSheet();
 		$row = 1;

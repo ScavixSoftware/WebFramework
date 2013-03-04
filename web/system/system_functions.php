@@ -768,7 +768,7 @@ function classpath_add($path, $recursive=true, $part=false)
 /**
  * Find pathnames matching a pattern.
  * 
- * glob() cant be used directly in foreach when open_basedir is set.
+ * glob() cant be used directly in foreach when [open_basedir](http://www.php.net/manual/en/ini.core.php#ini.open-basedir) is set.
  * See https://bugs.php.net/bug.php?id=47358 and <glob>
  * @param string $pattern The pattern. No tilde expansion or parameter substitution is done.
  * @param int $flags Valid flags: see <glob>
@@ -809,6 +809,7 @@ function system_glob_rec($directory='',$pattern='*.*')
  * @return bool true or false
  */
 function can_rewrite(){ return array_val_is($_SERVER,'WDF_FEATURES_REWRITE','on'); }
+
 /**
  * Checks if WDF_FEATURES_NOCACHE is on
  * 

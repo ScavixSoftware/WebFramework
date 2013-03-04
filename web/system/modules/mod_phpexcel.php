@@ -33,7 +33,7 @@
  */
 function mod_phpexcel_init()
 {
-	define('PHPEXCEL_ROOT', dirname(__FILE__) . '/phpexcel/');
+	define('PHPEXCEL_ROOT', __DIR__ . '/phpexcel/');
 	require_once(PHPEXCEL_ROOT."PHPExcel.php");
 	// manually enable autoloading:
 	require_once(PHPEXCEL_ROOT.'PHPExcel/Autoloader.php');

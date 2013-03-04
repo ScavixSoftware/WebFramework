@@ -34,7 +34,7 @@
 function payment_init()
 {
 	global $CONFIG;
-	$CONFIG['class_path']['system'][] = dirname(__FILE__).'/payment/';
+	$CONFIG['class_path']['system'][] = __DIR__.'/payment/';
 	
 	$CONFIG['resources'][] = array
 	(
@@ -310,7 +310,7 @@ interface IShopOrderItem
 function payment_list_providers()
 {
 	$res = array();
-	foreach( system_glob(dirname(__FILE__).'/payment/*.class.php') as $file )
+	foreach( system_glob(__DIR__.'/payment/*.class.php') as $file )
 	{
 		$cn = basename($file,".class.php");
 		$cn = new $cn();

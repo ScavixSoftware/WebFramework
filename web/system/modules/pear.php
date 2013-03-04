@@ -37,7 +37,7 @@ function pear_init()
 	global $CONFIG;
 
 	if( !isset($CONFIG['pear']['include_path']) )
-		$CONFIG['pear']['include_path'] = dirname(__FILE__)."/pear";
+		$CONFIG['pear']['include_path'] = __DIR__."/pear";
 
 	$inc_path = explode(PATH_SEPARATOR,ini_get("include_path"));
 	foreach( $inc_path as $i=>$p )
