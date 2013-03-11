@@ -582,8 +582,7 @@ function translation_ensure_nt($text_potentially_named_like_a_constant)
  */
 function default_string($constant,$text)
 {
-	if( translation_string_exists($constant) )
-		cfg_set('translation','default_strings',$constant,$text);
+	cfg_set('translation','default_strings',$constant,$text);
 	return $constant;
 }
 
