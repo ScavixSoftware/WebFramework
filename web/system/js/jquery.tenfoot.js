@@ -37,6 +37,17 @@
 		return this;
 	};
 	
+	// We use this instead of focus() as empty elements like <a class='something'></a> will not trigger focus events
+	$.fn.setCurrent = function()
+	{
+		wdf.debug("setCurrent",this);
+		return this.each(function()
+		{
+			$('.'+settings['current_class']).removeClass(settings['current_class']);
+			$(this).addClass(settings['current_class']).focus();
+		});
+	}
+	
 	var tenfoot_init = function()
 	{
 		$(settings['selectables'])
@@ -47,26 +58,21 @@
 				tenfoot_nearest('up'   , $(this));
 				tenfoot_nearest('down' , $(this));
 			})
-			.focus(function()
-			{
-				$('.'+settings['current_class']).removeClass(settings['current_class']);
-				$(this).addClass(settings['current_class']);
-			})
-			.mouseover(function(){ $(this).focus(); })
-			
-		$(settings['selectables']+':focus').addClass(settings['current_class']);
+			.mouseover(function(){ $(this).setCurrent(); })
+			.first().setCurrent();
 			
 		$(document).keydown( function(e)
 		{
 			var elem = $('.'+settings['current_class']);
 			if( elem.length == 0 )
 				return;
+
 			switch( e.which )
 			{
-				case 37: if( elem.data('nav-left') ) elem.data('nav-left').focus(); break;
-				case 39: if( elem.data('nav-right') ) elem.data('nav-right').focus(); break;
-				case 38: if( elem.data('nav-up') ) elem.data('nav-up').focus(); break;
-				case 40: if( elem.data('nav-down') ) elem.data('nav-down').focus(); break;
+				case 37: if( elem.data('nav-left') ) elem.data('nav-left').setCurrent(); break;
+				case 39: if( elem.data('nav-right') ) elem.data('nav-right').setCurrent(); break;
+				case 38: if( elem.data('nav-up') ) elem.data('nav-up').setCurrent(); break;
+				case 40: if( elem.data('nav-down') ) elem.data('nav-down').setCurrent(); break;
 				
 				/* ENTER and SPACE */
 				case 13:
