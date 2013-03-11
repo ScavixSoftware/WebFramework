@@ -85,7 +85,9 @@ class Serializer
 				return "d:".$data->format('c')."\n";
 			if( $data instanceof Reflector )
 				return "y:".$data->getName()."\n";
-
+			if( $data instanceof SimpleXMLElement )
+				return "z:".addcslashes($data->asXML(),"\n")."\n";
+			
 			foreach( $this->Stack as $index=>&$val )
 				if( equals($this->Stack[$index], $data) )
 					return "r:$index\n";
@@ -184,6 +186,8 @@ class Serializer
 				return new DateTimeEx($line);
 			case 'y':
 				return new System_Reflector($line);
+			case 'z':
+				return simplexml_load_string(stripcslashes($line));
 			case 'o':
 				list($id,$len,$type,$datasource) = explode(':',$line);
 				$datasource = $datasource?model_datasource($datasource):null;
@@ -203,7 +207,7 @@ class Serializer
 						$this->Stack[$id]->__wakeup();
 					
 				}catch(Exception $ex){
-					WdfException::Log("Unserialise Exception in line '$line' ($id,$len,$type,$datasource)",$ex);
+					WdfException::Log("Unserialise Exception in line '$orig_line' ($id,$len,$type,$datasource)",$ex);
 					return null;
 				}
 				return $this->Stack[$id];
