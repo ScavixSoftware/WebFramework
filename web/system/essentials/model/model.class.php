@@ -1030,6 +1030,14 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	}
 	
 	/**
+	 * @shortcut <Model::olderThan>($property,0,'second')
+	 */
+	public function isPast($property)
+	{
+		return $this->olderThan($property, '0', 'second');
+	}
+		
+	/**
 	 * This is just a 'no operation' method.
 	 * 
 	 * You may use to ensure there's a valid query built by adding `1=1` to the conditions
