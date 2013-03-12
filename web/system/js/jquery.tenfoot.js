@@ -28,8 +28,9 @@
 	$.tenfoot = function( options )
 	{  
 		settings = $.extend( {
-			'current_class': 'focused',
-			'selectables'  : 'a, input, button'
+			'current_class'  : 'focused',
+			'selectables'    : 'a, input, button',
+			'container_class': 'body, .tenfoot_container'
 		}, options);
 		
 		tenfoot_init();
@@ -40,16 +41,29 @@
 	// We use this instead of focus() as empty elements like <a class='something'></a> will not trigger focus events
 	$.fn.setCurrent = function()
 	{
-		wdf.debug("setCurrent",this);
+		var elem = this;
 		return this.each(function()
 		{
 			$('.'+settings['current_class']).removeClass(settings['current_class']);
-			$(this).addClass(settings['current_class']).focus();
+			elem.addClass(settings['current_class']).focus().offsetParent().data('tenfoot_current',elem);
 		});
 	}
 	
 	var tenfoot_init = function()
 	{
+		var keyNav = function(elem,dir)
+		{
+			var nearest = elem.data('nav-'+dir);
+			if( nearest )
+			{
+				if( nearest.is('.tenfoot_element_container') )
+					nearest = tenfoot_calc_nearest(elem,dir,settings['selectables'],nearest);
+				if( nearest )
+					nearest.setCurrent();
+			}
+		};
+		
+		$(settings['selectables']).offsetParent().addClass('tenfoot_element_container');
 		$(settings['selectables'])
 			.each(function()
 			{
@@ -69,10 +83,10 @@
 
 			switch( e.which )
 			{
-				case 37: if( elem.data('nav-left') ) elem.data('nav-left').setCurrent(); break;
-				case 39: if( elem.data('nav-right') ) elem.data('nav-right').setCurrent(); break;
-				case 38: if( elem.data('nav-up') ) elem.data('nav-up').setCurrent(); break;
-				case 40: if( elem.data('nav-down') ) elem.data('nav-down').setCurrent(); break;
+				case 37: keyNav(elem,'left'); break;
+				case 39: keyNav(elem,'right'); break;
+				case 38: keyNav(elem,'up'); break;
+				case 40: keyNav(elem,'down'); break;
 				
 				/* ENTER and SPACE */
 				case 13:
@@ -89,11 +103,24 @@
 	var tenfoot_nearest = function(direction,elem)
 	{
 		var prop = 'nav-'+direction;
-		if( elem.data(prop) ) return;
+		var predef = elem.data(prop);
+		if( predef )
+		{
+			if( typeof predef == "string" )
+				elem.data(prop,$('#'+predef));
+			return;
+		}
 		
-		var from = {}, off = elem.offset(), 
-			min_dist = 999999,
-			nearest = false;
+		var nearest = tenfoot_calc_nearest(elem,direction,settings['selectables'],elem.offsetParent());
+		if( !nearest )
+			nearest = tenfoot_calc_nearest(elem,direction,'.tenfoot_element_container',$('body'));
+		if( nearest )
+			elem.data(prop,nearest);
+	};
+	
+	var tenfoot_calc_nearest = function(elem,direction,selector,parent)
+	{
+		var from = {}, off = elem.offset(), min_dist = 999999, nearest = false;
 			
 		switch( direction )
 		{
@@ -102,11 +129,11 @@
 			case 'up':    from.x = off.left + elem.width()/2; from.y = off.top;                   break;
 			case 'down':  from.x = off.left + elem.width()/2; from.y = off.top + elem.height();   break;
 		}
-		
-		$(settings['selectables']).not(elem).each(function()
+
+		$(selector,parent).not(elem).not(elem.offsetParent()).each(function()
 		{
 			var cur = $(this);
-			off = cur.offset();
+			var off = cur.offset();
 			switch( direction )
 			{
 				case 'left':  if( off.left + cur.width() > from.x ) return; break;
@@ -114,21 +141,21 @@
 				case 'up':    if( off.top + cur.height() > from.y ) return; break;
 				case 'down':  if( off.top < from.y ) return; break;
 			}
-			off.left += cur.width()/2;
-			off.top  += cur.height()/2;
-			
-			var dx = off.left - from.x;
-			var dy = off.top - from.y;
-			var dist = Math.sqrt( (dx*dx) + (dy*dy) );
-			if( dist < min_dist )
+
+			var dist = function(dx,dy)
 			{
-				min_dist = dist;
-				nearest = cur;
-			}
+				dx = off.left + dx - from.x;
+				dy = off.top + dy - from.y;
+				var dist = Math.sqrt( (dx*dx) + (dy*dy) );
+				if( dist < min_dist )
+				{
+					min_dist = dist;
+					nearest = cur;
+				}
+			};
+			dist(0,0); dist(cur.width(),0); dist(cur.width(),cur.height()); dist(0,cur.height());
 		});
-		
-		if( nearest )
-			elem.data(prop,nearest);
+		return nearest;
 	};
 	
 	/* some 10foot related helper functions */
