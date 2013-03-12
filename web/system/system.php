@@ -268,7 +268,11 @@ function system_parse_request_path()
 				{
 					$event = $path[1];
 					if( count($path)>2 )
-						$GLOBALS['routing_args'] = array_slice($path,2);
+					{
+						foreach( array_slice($path,2) as $ra )
+							if( $ra ) 
+								$GLOBALS['routing_args'][] = $ra;
+					}
 				}
 			}
 		}
