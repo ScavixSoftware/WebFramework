@@ -851,3 +851,30 @@ function force_array($data)
 		return array();
 	return is_array($data)?$data:array($data);
 }
+
+/**
+ * Casts an object to another type.
+ * 
+ * There are situations where PHP provides you with stdClasses where you want your own type.
+ * This function casts any object into another one:
+ * <code php>
+ * class SomeClass { var $someProperty; }
+ * class SomeOtherClass { }
+ * $std = json_decode('{"someProperty":"someValue"}');
+ * $typed = castObject($std,'SomeClass');
+ * $othertyped = castObject($typed,'SomeOtherClass');
+ * </code>
+ * See stackoverflow: [Convert/cast an stdClass object to another class](http://stackoverflow.com/questions/3243900/convert-cast-an-stdclass-object-to-another-class)
+ * @param object $instance Object of any type
+ * @param string $className Classname of the type you want
+ * @return object Typed object
+ */
+function castObject($instance, $className)
+{
+    return unserialize(sprintf(
+        'O:%d:"%s"%s',
+        strlen($className),
+        $className,
+        strstr(strstr(serialize($instance), '"'), ':')
+    ));
+}
