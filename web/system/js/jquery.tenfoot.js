@@ -46,6 +46,9 @@
 		{
 			$('.'+settings['current_class']).removeClass(settings['current_class']);
 			elem.addClass(settings['current_class']).focus().offsetParent().data('tenfoot_current',elem);
+					var op = elem.offsetParent(), pos = elem.position();
+					if( pos.left < 0 || pos.left+elem.width() > op.width() || pos.top<0 || pos.top+elem.height() > op.height() )
+						elem.get(0).scrollIntoView( pos.top<0 || pos.left<0 );
 		});
 	}
 	
@@ -59,7 +62,12 @@
 				if( nearest.is('.tenfoot_element_container') )
 					nearest = tenfoot_calc_nearest(elem,dir,settings['selectables'],nearest);
 				if( nearest )
+				{
 					nearest.setCurrent();
+//					var op = nearest.offsetParent(), pos = nearest.position();
+//					if( pos.left < 0 || pos.left+nearest.width() > op.width() || pos.top<0 || pos.top+nearest.height() > op.height() )
+//						nearest.get(0).scrollIntoView( dir=='left' || dir=='up' );
+				}
 			}
 		};
 		
