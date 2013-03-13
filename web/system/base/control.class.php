@@ -381,6 +381,33 @@ class Control extends Renderable
 		$this->_content = array();
 		return $this;
 	}
+	
+	/**
+	 * Gets the content at index $index.
+	 * 
+	 * @param int $index Zerao based index of content to get
+	 * @return mixed Content at index $index
+	 */
+	function get($index)
+	{
+		return $this->_content[$index];
+	}
+	
+	/**
+	 * @shortcut <Control::get>(0);
+	 */
+	function first()
+	{
+		return $this->_content[0];
+	}
+	
+	/**
+	 * @shortcut <Control::get>(&ltlast_index;&gt;);
+	 */
+	function last()
+	{
+		return $this->_content[count($this->_content)-1];
+	}
 
 	/**
 	 * Checks whether this control needs a closing tag (in HTML code).
