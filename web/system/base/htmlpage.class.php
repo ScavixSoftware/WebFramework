@@ -32,6 +32,7 @@ default_string('ERR_JAVASCRIPT_AND_COOKIES_REQUIRED','This page requires JavaScr
  * 
  * Will perform all rendering and collect js, css, meta and more.
  * @attribute[Resource('jquery.js')]
+ * @attribute[Resource('jquery.json.js')]
  * @attribute[Resource('htmlpage.js')]
  */
 class HtmlPage extends Template implements ICallable
@@ -90,7 +91,9 @@ class HtmlPage extends Template implements ICallable
 		}
 		if( isDevOrBeta() )
 			$init_data['log_to_console'] = true;
-
+		if( $GLOBALS['CONFIG']['system']['ajax_debug_argument'] ) 
+			$init_data['log_to_server'] = $GLOBALS['CONFIG']['system']['ajax_debug_argument'];
+		
 		$this->set("wdf_init","wdf.init(".json_encode($init_data).");");
 		$this->set("docready",$this->docready);
 		$this->set("plaindocready",$this->plaindocready);
