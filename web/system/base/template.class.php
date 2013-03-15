@@ -107,6 +107,17 @@ class Template extends Renderable
 	}
 	
 	/**
+	 * @internal Magic method __get.
+	 * See [Member overloading](http://ch2.php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.members)
+	 */
+	function __get($name)
+	{
+		if( isset($this->_data[$name]) )
+			return $this->_data[$name];
+		return null;
+	}
+	
+	/**
 	 * Will be executed on HOOK_PRE_RENDER.
 	 * 
 	 * Prepares the template for output.

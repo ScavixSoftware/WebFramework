@@ -589,7 +589,7 @@ class Control extends Renderable
 		if( is_array($value) || is_object($value) )
 			$this->_data_attributes[$name] = system_to_json($value);
 		else
-			$this->_data_attributes[$name]= $value;
+			$this->_data_attributes[$name] = $value;
 		return $this;
 	}
 	
