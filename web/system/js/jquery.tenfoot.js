@@ -28,13 +28,22 @@
 	$.tenfoot = function( options )
 	{  
 		settings = $.extend( {
-			'current_class'  : 'focused',
-			'selectables'    : 'a, input, button',
-			'container_class': 'body, .tenfoot_container'
+			current_class  : 'focused',
+			selectables    : 'a, input, button',
+			container_class: 'body, .tenfoot_container',
+			onselect       : false,
+			client         : 'browser'
 		}, options);
 		
+		window.start = new Date().getTime();
+		window.track = function(text)
+		{
+			var d = new Date().getTime();
+			text = "["+(d-window.start)+"ms] "+text;
+//			wdf.debug(text);
+		}
+		tenfoot_init_keys();
 		tenfoot_init();
-		
 		return this;
 	};
 	
@@ -44,116 +53,171 @@
 		var elem = this;
 		return this.each(function()
 		{
-			$('.'+settings['current_class']).removeClass(settings['current_class']);
-			elem.addClass(settings['current_class']).focus().offsetParent().data('tenfoot_current',elem);
-					var op = elem.offsetParent(), pos = elem.position();
-					if( pos.left < 0 || pos.left+elem.width() > op.width() || pos.top<0 || pos.top+elem.height() > op.height() )
-						elem.get(0).scrollIntoView( pos.top<0 || pos.left<0 );
+			$('.'+settings.current_class).removeClass(settings.current_class);
+			elem.addClass(settings.current_class).focus();
+			
+			if( settings.client != 'browser' )
+			{
+				var rect = function(elem,scroll)
+				{
+					var res = elem.position();
+					res.width = elem.width();
+					res.height= elem.height();
+					if( scroll ) { res.left=elem.scrollLeft(); res.top=elem.scrollTop() }
+					res.right = res.left + res.width;
+					res.bottom = res.top + res.height;
+					return res;
+				}
+				var op = elem.parents('.tenfoot_element_container'),
+					re = rect(elem), 
+					rp = rect(op,true);
+
+				if( re.top < rp.top )
+					op.scrollTop(re.top);
+				else if( re.bottom > rp.bottom )
+					op.scrollTop( rp.top + elem.outerHeight(true) );
+
+				if( re.left < rp.left )
+					op.scrollTop(re.left);
+				else if( re.right > rp.right )
+					op.scrollTop( rp.left + elem.outerWidth(true) );
+			}
+			if( settings.onselect )
+				settings.onselect(elem);
 		});
-	}
+	};
 	
 	var tenfoot_init = function()
 	{
+		window.track("tenfoot 0");
 		var keyNav = function(elem,dir)
 		{
-			var nearest = elem.data('nav-'+dir);
+			var nearest = tenfoot_nearest(elem,dir,elem.parents('.tenfoot_element_container'));
 			if( nearest )
-			{
-				if( nearest.is('.tenfoot_element_container') )
-					nearest = tenfoot_calc_nearest(elem,dir,settings['selectables'],nearest);
-				if( nearest )
-				{
-					nearest.setCurrent();
-//					var op = nearest.offsetParent(), pos = nearest.position();
-//					if( pos.left < 0 || pos.left+nearest.width() > op.width() || pos.top<0 || pos.top+nearest.height() > op.height() )
-//						nearest.get(0).scrollIntoView( dir=='left' || dir=='up' );
-				}
-			}
+				nearest.setCurrent();
 		};
 		
-		$(settings['selectables']).offsetParent().addClass('tenfoot_element_container');
-		$(settings['selectables'])
-			.each(function()
+		window.track("tenfoot 1");
+		$(settings.selectables).mouseover(function(){ $(this).setCurrent(); })
+			.offsetParent().addClass('tenfoot_element_container');
+		$(settings.selectables)
+//			.each(function()
+//			{
+//				var elem = $(this), cont = elem.parents('.tenfoot_element_container');
+//				//window.track('start searching for '+$(this).attr('id'));
+//				tenfoot_nearest(elem, 'left' , cont);
+//				tenfoot_nearest(elem, 'right', cont);
+//				tenfoot_nearest(elem, 'up'   , cont);
+//				tenfoot_nearest(elem, 'down' , cont);
+//			})
+		window.track("tenfoot 2");
+		
+		$(document)
+			.keydown(function(e)
 			{
-				tenfoot_nearest('left' , $(this));
-				tenfoot_nearest('right', $(this));
-				tenfoot_nearest('up'   , $(this));
-				tenfoot_nearest('down' , $(this));
-			})
-			.mouseover(function(){ $(this).setCurrent(); })
-			.first().setCurrent();
+				switch( e.which )
+				{
+					case settings.keys.left : 
+					case settings.keys.right: 
+					case settings.keys.up   : 
+					case settings.keys.down : 
+						$(document).one('keypress',function(e){ e.preventDefault(); });
+						e.preventDefault();
+						break;
+				}
+			});
 			
-		$(document).keydown( function(e)
+		window.track("tenfoot 3");
+		$(document).keyup( function(e)
 		{
-			var elem = $('.'+settings['current_class']);
+			var elem = $('.'+settings.current_class);
 			if( elem.length == 0 )
 				return;
-
+			
 			switch( e.which )
 			{
-				case 37: keyNav(elem,'left'); break;
-				case 39: keyNav(elem,'right'); break;
-				case 38: keyNav(elem,'up'); break;
-				case 40: keyNav(elem,'down'); break;
+				case settings.keys.left : e.preventDefault(); keyNav(elem,'left');  break;
+				case settings.keys.right: e.preventDefault(); keyNav(elem,'right'); break;
+				case settings.keys.up   : e.preventDefault(); keyNav(elem,'up');    break;
+				case settings.keys.down : e.preventDefault(); keyNav(elem,'down');  break;
 				
-				/* ENTER and SPACE */
-				case 13:
-				case 32:
+				case settings.keys.back:
+					break;
+				
+				case settings.keys.enter:
+				case settings.keys.space:
 					// trigger click for a elements without href attribute
 					if( elem.is('a') && !elem.attr('href') )
 						elem.click();
 					break;
-				default: wdf.debug('key: '+e.which); break;
+				default: wdf.debug('unhandled key: '+e.which); break;
 			}
 		});
+		window.track("tenfoot 4");
+		
+		setTimeout(function(){ if( $('.'+settings.current_class).length==0 ) $(settings.selectables).first().setCurrent(); },3000);
 	};
 	
-	var tenfoot_nearest = function(direction,elem)
+	var tenfoot_nearest = function(elem,direction,container)
 	{
 		var prop = 'nav-'+direction;
 		var predef = elem.data(prop);
 		if( predef )
 		{
 			if( typeof predef == "string" )
-				elem.data(prop,$('#'+predef));
-			return;
+			{
+				if( predef == 'none' )
+					return false;
+				predef = $('#'+predef);
+				if( predef.is('.tenfoot_element_container') )
+					predef = tenfoot_nearest_from_candidates(elem,direction,$(settings.selectables,predef) );
+				if( predef )
+					elem.data(prop,predef);
+			}
+			return predef;
 		}
 		
-		var nearest = tenfoot_calc_nearest(elem,direction,settings['selectables'],elem.offsetParent());
+		var nearest = tenfoot_nearest_from_candidates(elem,direction,$(settings.selectables,container));
 		if( !nearest )
-			nearest = tenfoot_calc_nearest(elem,direction,'.tenfoot_element_container',$('body'));
+			nearest = tenfoot_nearest_from_candidates(elem,direction,$('.tenfoot_element_container').not(container).find(settings.selectables) );
+		else if( nearest.is('.tenfoot_element_container') )
+			nearest = tenfoot_nearest_from_candidates(elem,direction,$(settings.selectables,nearest) );
+		
 		if( nearest )
 			elem.data(prop,nearest);
+		else
+			elem.data(prop,'none');
+		return nearest;
 	};
 	
-	var tenfoot_calc_nearest = function(elem,direction,selector,parent)
+	var tenfoot_nearest_from_candidates = function(elem,direction,candidates)
 	{
-		var from = {}, off = elem.offset(), min_dist = 999999, nearest = false;
+		window.track("tenfoot_nearest_from_candidates "+elem.attr('id')+" "+direction);
+		var from = elem.offset(), min_dist = 999999, nearest = false;
 			
 		switch( direction )
 		{
-			case 'left':  from.x = off.left;                  from.y = off.top + elem.height()/2; break;
-			case 'right': from.x = off.left + elem.width();   from.y = off.top + elem.height()/2; break;
-			case 'up':    from.x = off.left + elem.width()/2; from.y = off.top;                   break;
-			case 'down':  from.x = off.left + elem.width()/2; from.y = off.top + elem.height();   break;
+			case 'left':  from.top += elem.height()/2; break;
+			case 'right': from.left += elem.width(); from.top += elem.height()/2; break;
+			case 'up':    from.left += elem.width()/2; break;
+			case 'down':  from.left += elem.width()/2; from.top += elem.height(); break;
 		}
 
-		$(selector,parent).not(elem).not(elem.offsetParent()).each(function()
+		candidates.not(elem).each(function()
 		{
-			var cur = $(this);
-			var off = cur.offset();
+			var cur = $(this), off=cur.offset(), curw=cur.width(), curh=cur.height();
 			switch( direction )
 			{
-				case 'left':  if( off.left + cur.width() > from.x ) return; break;
-				case 'right': if( off.left < from.x ) return; break;
-				case 'up':    if( off.top + cur.height() > from.y ) return; break;
-				case 'down':  if( off.top < from.y ) return; break;
+				case 'left':  if( off.left + curw > from.left ) return; break;
+				case 'right': if( off.left < from.left ) return; break;
+				case 'up':    if( off.top + curh > from.top ) return; break;
+				case 'down':  if( off.top < from.top ) return; break;
 			}
 
 			var dist = function(dx,dy)
 			{
-				dx = off.left + dx - from.x;
-				dy = off.top + dy - from.y;
+				dx = off.left + dx - from.left;
+				dy = off.top + dy - from.top;
 				var dist = Math.sqrt( (dx*dx) + (dy*dy) );
 				if( dist < min_dist )
 				{
@@ -161,9 +225,33 @@
 					nearest = cur;
 				}
 			};
-			dist(0,0); dist(cur.width(),0); dist(cur.width(),cur.height()); dist(0,cur.height());
+			dist(0,0); dist(curw,0); dist(curw,curh); dist(0,curh);
 		});
+		window.track("tenfoot_nearest_from_candidates 2");
 		return nearest;
+	};
+	
+	var tenfoot_init_keys = function()
+	{
+		switch( settings.client )
+		{
+			case 'nettv':
+				settings.keys = {
+					left : 132, right: 133,
+					up   : 130, down : 131,
+					enter: 13 , space: 32 ,
+					back : 8
+				};
+				break;
+			default:
+				settings.keys = {
+					left : 37, right: 39,
+					up   : 38, down : 40,
+					enter: 13, space: 32,
+					back : 8
+				};
+				break;
+		}
 	};
 	
 	/* some 10foot related helper functions */
