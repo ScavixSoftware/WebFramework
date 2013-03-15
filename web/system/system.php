@@ -105,6 +105,7 @@ function system_config_default($reset = true)
 
 	$CONFIG['system']['hook_logging'] = false;
 	$CONFIG['system']['attach_session_to_ajax'] = false;
+	$CONFIG['system']['ajax_debug_argument'] = false;
 	
 	$CONFIG['system']['header']['Content-Type'] = "text/html; charset=utf-8";
 	$CONFIG['system']['header']['X-XSS-Protection'] = "1; mode=block";
@@ -122,6 +123,9 @@ function system_config_default($reset = true)
 	$CONFIG['system']['admin']['enabled']  = false;
 	$CONFIG['system']['admin']['username'] = false;
 	$CONFIG['system']['admin']['password'] = false;
+	
+	$CONFIG['system']['htmlpage']['doctype'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "ce-html-1.0-transitional.dtd">';
+	$CONFIG['system']['htmlpage']['render_noscript'] = true;
 }
 
 /**
@@ -337,6 +341,22 @@ function system_execute()
 		session_keep_alive();
 		execute_hooks(HOOK_PING_RECIEVED);
 		die("PONG");
+	}
+	
+	// respond to DEBUG requests
+	if( $GLOBALS['CONFIG']['system']['ajax_debug_argument'] )
+	{
+		$data = Args::request($GLOBALS['CONFIG']['system']['ajax_debug_argument'],false);
+		if( $data )
+		{
+			logging_add_category("JS");
+			$data = json_decode($data,true);
+			if( is_array($data) && count($data)>0 )
+				log_write(Args::request('sev',''),array_shift($data),$data);
+			else
+				log_write(Args::request('sev',''),$data);
+			die('"OK"');
+		}
 	}
 
 	Args::strip_tags();
@@ -1361,6 +1381,9 @@ function system_call_user_func_array_byref(&$object, $funcname, &$args)
  */
 function system_method_exists($object_or_classname,$method_name)
 {
+	if( is_array($object_or_classname) || (is_scalar($object_or_classname) && !is_string($object_or_classname)) )
+		return false;
+	
 	$key = (is_string($object_or_classname)?$object_or_classname:get_class($object_or_classname)).'.'.$method_name;
 	$ret = cache_get("method_exists_$key");
 	if( $ret !== false )

@@ -124,6 +124,7 @@ $.ajaxSetup({cache:false});
 				}
 			}
 			
+			//win.onerror = function(a){ server_debug(a); };
 			this.resetPing();
 			this.setCallbackDefault('exception', function(msg){ alert(msg); });
 			this.ready.fire();
@@ -191,8 +192,13 @@ $.ajaxSetup({cache:false});
 					if( s.dataType == 'json' || s.dataType == 'script' )
 						return wdf.original_ajax(s);
 
-					if( s.data && s.data.PING )
-						return wdf.original_ajax(s);
+					if( s.data  )
+					{
+						if( s.data.PING )
+							return wdf.original_ajax(s);
+						if( wdf.settings.log_to_server && typeof s.data[wdf.settings.log_to_server] != 'undefined' )
+							return wdf.original_ajax(s);
+					}
 
 					if( s.success )
 						s.original_success = s.success;
@@ -302,13 +308,44 @@ $.ajaxSetup({cache:false});
 		
 		initLogging: function()
 		{
-			for( var method in {'log':1,'debug':1,'warn':1,'error':1,'info':1} )
+			var perform_logging = function(severity,data)
 			{
-				if( console[method] === undefined || !this.settings.log_to_console )
-					this[method] = function(){ /* just a dummy */ };
-				else
-					this[method] = console[method];
-			}
+				if( wdf.settings.log_to_console )
+				{
+					if( typeof console != 'undefined' && typeof console[severity] != 'undefined' )
+						console[severity].apply(console,data);
+				}
+
+				if( wdf.settings.log_to_server )
+				{
+					var d = {sev:severity};
+					d[wdf.settings.log_to_server] = [];
+					for(var i=0; i<data.length; i++) 
+						d[wdf.settings.log_to_server].push(data[i]);
+					if( d[wdf.settings.log_to_server].length == 1 )
+						d[wdf.settings.log_to_server] = d[wdf.settings.log_to_server][0]
+					d[wdf.settings.log_to_server] = $.toJSON(d[wdf.settings.log_to_server]);
+					//wdf.server_logger_entries.push(d);
+					wdf.post('',d,function(){});
+				}
+			};
+			this.log = function(){ perform_logging('log',arguments); };
+			this.debug = function(){ perform_logging('debug',arguments); };
+			this.warn = function(){ perform_logging('warn',arguments); };
+			this.error = function(){ perform_logging('error',arguments); };
+			this.info = function(){ perform_logging('info',arguments); };
+
+//			wdf.server_logger_entries = [];
+//			wdf.server_logger = function()
+//			{
+//				if( wdf.server_logger_entries.length > 0 )
+//				{
+//					var entry = wdf.server_logger_entries.shift();
+//					wdf.post('',entry,function(){});
+//				}
+//				setTimeout(wdf.server_logger,100);
+//			}
+//			wdf.server_logger();
 		}
 	};
 	

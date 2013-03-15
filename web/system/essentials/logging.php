@@ -225,6 +225,15 @@ function logging_set_user($object_storage_id='user',$fieldname='username')
 }
 
 /**
+ * @shortcut Logs to specified severity
+ */
+function log_write($severity,$a1=null,$a2=null,$a3=null,$a4=null,$a5=null,$a6=null,$a7=null,$a8=null,$a9=null,$a10=null)
+{
+	foreach( $GLOBALS['logging_logger'] as $l )
+		$l->write(strtoupper($severity),false,$a1,$a2,$a3,$a4,$a5,$a6,$a7,$a8,$a9,$a10);
+}
+
+/**
  * @shortcut Logs to severity TRACE
  */
 function log_trace($a1=null,$a2=null,$a3=null,$a4=null,$a5=null,$a6=null,$a7=null,$a8=null,$a9=null,$a10=null)

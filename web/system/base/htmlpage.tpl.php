@@ -27,9 +27,10 @@
  */
 
 $js_cookie_error = '<div style="display: block !important; font-weight:bold; text-align: center;"><br/>ERR_JAVASCRIPT_AND_COOKIES_REQUIRED</div>';
+$render_noscript_block = isset($render_noscript_block)?$render_noscript_block:$GLOBALS['CONFIG']['system']['htmlpage']['render_noscript'];
+$doctype = isset($doctype)?$doctype:$GLOBALS['CONFIG']['system']['htmlpage']['doctype'];
 
-echo '<?xml version="1.0" encoding="UTF-8" ?>'."\n";?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+echo '<?xml version="1.0" encoding="UTF-8" ?>'."\n$doctype\n";?>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title><?=$title?></title>
@@ -56,12 +57,14 @@ $(function(){
 </script>
 </head>
 <body<?=isset($isrtl)?"$isrtl":""?><?=isset($bodyClass)?" class='$bodyClass'":""?>>
+<? if( $render_noscript_block ): ?>
 <noscript>
 	<style type="text/css">
 		body>*:not(noscript) { display:none !important; }
 	</style>
 	<?=$js_cookie_error?>
 </noscript>
+<? endif; ?>
 <?
 if( isset($sub_template_content) )
 	echo $sub_template_content;
