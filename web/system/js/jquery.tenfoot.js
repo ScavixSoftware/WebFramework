@@ -28,7 +28,6 @@
 	$.tenfoot = function( options )
 	{  
 		settings = $.extend( {
-			current_class  : 'focused',
 			selectables    : 'a, input, button',
 			container_class: 'body, .tenfoot_container',
 			onselect       : false,
@@ -47,14 +46,14 @@
 		return this;
 	};
 	
-	// We use this instead of focus() as empty elements like <a class='something'></a> will not trigger focus events
-	$.fn.setCurrent = function()
+	$.fn.setCurrent = function(in_focus_event)
 	{
 		var elem = this;
+		
 		return this.each(function()
 		{
-			$('.'+settings.current_class).removeClass(settings.current_class);
-			elem.addClass(settings.current_class).focus();
+			if( !in_focus_event && elem.is(':not(:focus)') )
+				elem.focus();
 			
 			if( settings.client != 'browser' )
 			{
@@ -89,73 +88,66 @@
 	
 	var tenfoot_init = function()
 	{
-		window.track("tenfoot 0");
-		var keyNav = function(elem,dir)
+		var selectable_elements = $(settings.selectables);
+		selectable_elements.offsetParent().addClass('tenfoot_element_container');
+		
+		switch( settings.client )
 		{
-			var nearest = tenfoot_nearest(elem,dir,elem.parents('.tenfoot_element_container'));
-			if( nearest )
-				nearest.setCurrent();
-		};
-		
-		window.track("tenfoot 1");
-		$(settings.selectables).mouseover(function(){ $(this).setCurrent(); })
-			.offsetParent().addClass('tenfoot_element_container');
-		$(settings.selectables)
-//			.each(function()
-//			{
-//				var elem = $(this), cont = elem.parents('.tenfoot_element_container');
-//				//window.track('start searching for '+$(this).attr('id'));
-//				tenfoot_nearest(elem, 'left' , cont);
-//				tenfoot_nearest(elem, 'right', cont);
-//				tenfoot_nearest(elem, 'up'   , cont);
-//				tenfoot_nearest(elem, 'down' , cont);
-//			})
-		window.track("tenfoot 2");
-		
-		$(document)
-			.keydown(function(e)
-			{
-				switch( e.which )
+			case 'nettv':
+				wdf.debug("tenfoot_init NETTV");
+				selectable_elements.focus(function(){ $(this).setCurrent(true); });
+				break;
+			default:
+				wdf.debug("tenfoot_init default: "+settings.client);
+				var keyNav = function(elem,dir)
 				{
-					case settings.keys.left : 
-					case settings.keys.right: 
-					case settings.keys.up   : 
-					case settings.keys.down : 
-						$(document).one('keypress',function(e){ e.preventDefault(); });
-						e.preventDefault();
-						break;
-				}
-			});
-			
-		window.track("tenfoot 3");
-		$(document).keyup( function(e)
-		{
-			var elem = $('.'+settings.current_class);
-			if( elem.length == 0 )
-				return;
-			
-			switch( e.which )
-			{
-				case settings.keys.left : e.preventDefault(); keyNav(elem,'left');  break;
-				case settings.keys.right: e.preventDefault(); keyNav(elem,'right'); break;
-				case settings.keys.up   : e.preventDefault(); keyNav(elem,'up');    break;
-				case settings.keys.down : e.preventDefault(); keyNav(elem,'down');  break;
-				
-				case settings.keys.back:
-					break;
-				
-				case settings.keys.enter:
-				case settings.keys.space:
-					// trigger click for a elements without href attribute
-					if( elem.is('a') && !elem.attr('href') )
-						elem.click();
-					break;
-				default: wdf.debug('unhandled key: '+e.which); break;
-			}
-		});
-		window.track("tenfoot 4");
-		
-		setTimeout(function(){ if( $('.'+settings.current_class).length==0 ) $(settings.selectables).first().setCurrent(); },3000);
+					var nearest = tenfoot_nearest(elem,dir,elem.parents('.tenfoot_element_container'));
+					if( nearest )
+						nearest.setCurrent();
+				};
+
+				selectable_elements.mouseover(function(){ $(this).setCurrent(); });
+
+				$(document).keydown(function(e)
+				{
+					switch( e.which )
+					{
+						case settings.keys.left : 
+						case settings.keys.right: 
+						case settings.keys.up   : 
+						case settings.keys.down : 
+							$(document).one('keypress',function(e){ e.preventDefault(); });
+							e.preventDefault();
+							break;
+					}
+				}).keyup( function(e)
+				{
+					var elem = $(':focus');
+					if( elem.length == 0 )
+						return;
+
+					switch( e.which )
+					{
+						case settings.keys.left : e.preventDefault(); keyNav(elem,'left');  break;
+						case settings.keys.right: e.preventDefault(); keyNav(elem,'right'); break;
+						case settings.keys.up   : e.preventDefault(); keyNav(elem,'up');    break;
+						case settings.keys.down : e.preventDefault(); keyNav(elem,'down');  break;
+
+						case settings.keys.back:
+							break;
+
+						case settings.keys.enter:
+						case settings.keys.space:
+							// trigger click for a elements without href attribute
+							if( elem.is('a') && !elem.attr('href') )
+								elem.click();
+							break;
+						default: wdf.debug('unhandled key: '+e.which); break;
+					}
+				});
+				break;
+		}
+		setTimeout(function(){ if( $(':focus').length==0 ) selectable_elements.first().setCurrent(); },250);
 	};
 	
 	var tenfoot_nearest = function(elem,direction,container)

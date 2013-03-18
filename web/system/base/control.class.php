@@ -390,7 +390,9 @@ class Control extends Renderable
 	 */
 	function get($index)
 	{
-		return $this->_content[$index];
+		if( isset($this->_content[$index]) )
+			return $this->_content[$index];
+		return log_return("Control::get($index) is empty",new Control());
 	}
 	
 	/**
@@ -398,7 +400,9 @@ class Control extends Renderable
 	 */
 	function first()
 	{
-		return $this->_content[0];
+		if( isset($this->_content[0]) )
+			return $this->_content[0];
+		return log_return("Control::first() is empty",new Control());
 	}
 	
 	/**
@@ -406,7 +410,9 @@ class Control extends Renderable
 	 */
 	function last()
 	{
-		return $this->_content[count($this->_content)-1];
+		if( count($this->_content)>0 )
+			return $this->_content[count($this->_content)-1];
+		return log_return("Control::last() is empty",new Control());
 	}
 
 	/**
