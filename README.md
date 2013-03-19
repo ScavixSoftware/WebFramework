@@ -1,7 +1,9 @@
 WebFramework
 ============
 
-Scavix Software Web Development Framework
+Scavix Software Web Development Framework.      
+There's a nice article over at codeproject describing how to use: 
+[Ultra-Rapid PHP Application Development](http://www.codeproject.com/Articles/553018/Ultra-Rapid-PHP-Application-Development)
 
 Folders
 -------
