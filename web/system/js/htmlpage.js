@@ -153,6 +153,9 @@ $.ajaxSetup({cache:false});
 			}
 			href = this.validateHref(href);
 			
+			if( !href.match(/\/\//) )
+				href = this.settings.site_root + href;
+			
 			if( typeof data == 'object' )
 				href += (this.settings.rewrite?"?":"&")+$.param(data);
 			
