@@ -31,6 +31,7 @@
 			selectables    : 'a, input, button',
 			container_class: 'body, .tenfoot_container',
 			onselect       : false,
+			onspecialkey   : false,
 			client         : 'browser'
 		}, options);
 		
@@ -90,7 +91,32 @@
 	{
 		var selectable_elements = $(settings.selectables);
 		selectable_elements.offsetParent().addClass('tenfoot_element_container');
-		
+
+		$(document).keydown( function(e)
+		{
+			if( settings.onspecialkey )
+			{
+				switch( e.which )
+				{
+					case settings.keys.red     : settings.onspecialkey('red');      break;
+					case settings.keys.green   : settings.onspecialkey('green');    break;
+					case settings.keys.yellow  : settings.onspecialkey('yellow');   break;
+					case settings.keys.blue    : settings.onspecialkey('blue');     break;
+					case settings.keys.settings: settings.onspecialkey('settings'); break;
+				}
+			}
+			switch( e.which )
+			{
+				case settings.keys.red: 
+				case settings.keys.green: 
+				case settings.keys.yellow: 
+				case settings.keys.blue: 
+				case settings.keys.settings: 
+					e.stopImmediatePropagation();
+					return false;
+			}
+		});
+
 		switch( settings.client )
 		{
 			case 'nettv':
@@ -108,24 +134,14 @@
 
 				selectable_elements.mouseover(function(){ $(this).setCurrent(); });
 
-				$(document).keydown(function(e)
-				{
-					switch( e.which )
-					{
-						case settings.keys.left : 
-						case settings.keys.right: 
-						case settings.keys.up   : 
-						case settings.keys.down : 
-							$(document).one('keypress',function(e){ e.preventDefault(); });
-							e.preventDefault();
-							break;
-					}
-				}).keyup( function(e)
+				$(document).keydown( function(e)
 				{
 					var elem = $(':focus');
 					if( elem.length == 0 )
+					{
+						selectable_elements.first().setCurrent();
 						return;
-
+					}
 					switch( e.which )
 					{
 						case settings.keys.left : e.preventDefault(); keyNav(elem,'left');  break;
@@ -232,7 +248,9 @@
 					left : 132, right: 133,
 					up   : 130, down : 131,
 					enter: 13 , space: 32 ,
-					back : 8
+					back : 8,
+					red  : 403, green: 404, yellow : 502, blue : 406,
+					settings: 463
 				};
 				break;
 			default:
@@ -240,7 +258,9 @@
 					left : 37, right: 39,
 					up   : 38, down : 40,
 					enter: 13, space: 32,
-					back : 8
+					back : 8,
+					red  : 112, green: 113, yellow: 114, blue: 115, // F1, F2, F3, F4
+					settings: 120 // F9
 				};
 				break;
 		}
