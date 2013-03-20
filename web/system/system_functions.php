@@ -871,10 +871,13 @@ function force_array($data)
  */
 function castObject($instance, $className)
 {
-    return unserialize(sprintf(
+    $res = unserialize(sprintf(
         'O:%d:"%s"%s',
         strlen($className),
         $className,
         strstr(strstr(serialize($instance), '"'), ':')
     ));
+	if( system_method_exists($res,'__casted') )
+		$res->__casted();
+	return $res;
 }

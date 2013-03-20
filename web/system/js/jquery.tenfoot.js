@@ -28,7 +28,7 @@
 	$.tenfoot = function( options )
 	{  
 		settings = $.extend( {
-			selectables    : 'a, input, button',
+			selectables    : 'a, input, button, iframe',
 			container_class: 'body, .tenfoot_container',
 			onselect       : false,
 			onspecialkey   : false,
@@ -53,8 +53,14 @@
 		
 		return this.each(function()
 		{
+			$('iframe.focused').removeClass('focused');
+			
 			if( !in_focus_event && elem.is(':not(:focus)') )
+			{
 				elem.focus();
+				if( elem.is('iframe') )
+					elem.addClass('focused');
+			}
 			
 			if( settings.client != 'browser' )
 			{
@@ -133,6 +139,28 @@
 				};
 
 				selectable_elements.mouseover(function(){ $(this).setCurrent(); });
+				
+				$('iframe').one('load',function()
+				{
+					var frame = $(this);
+					var doc = $(frame.get(0).contentWindow.document).keyup( function(e)
+					{
+						//var doc = $(this);
+						switch( e.which )
+						{
+							case settings.keys.left : if( doc.scrollLeft() == 0 ) keyNav(frame,'left'); break;
+							case settings.keys.up   : if( doc.scrollTop() == 0 ) keyNav(frame,'up'); break;
+							case settings.keys.right: 
+								if( frame.width() >= doc.outerWidth(true) || doc.scrollLeft()+frame.width() >= doc.outerWidth(true) ) 
+									keyNav(frame,'right'); 
+								break;
+							case settings.keys.down : 
+								if( frame.height() >= doc.outerHeight(true) || doc.scrollTop()+frame.height() >= doc.outerHeight(true) ) 
+									keyNav(frame,'down'); 
+								break;
+						}
+					});
+				});
 
 				$(document).keydown( function(e)
 				{
@@ -142,6 +170,7 @@
 						selectable_elements.first().setCurrent();
 						return;
 					}
+
 					switch( e.which )
 					{
 						case settings.keys.left : e.preventDefault(); keyNav(elem,'left');  break;
