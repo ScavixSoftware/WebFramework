@@ -877,7 +877,5 @@ function castObject($instance, $className)
         $className,
         strstr(strstr(serialize($instance), '"'), ':')
     ));
-	if( system_method_exists($res,'__casted') )
-		$res->__casted();
 	return $res;
 }
