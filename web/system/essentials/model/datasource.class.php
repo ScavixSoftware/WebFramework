@@ -123,16 +123,10 @@ class DataSource
 				$this->Driver = $ds->Driver;
 			}
 			else
-			{
-				error_log("hahahahah");
 				register_hook(HOOK_POST_INITSESSION,$this,'__wakeup_extended');
-			}
 		}
 		else
-		{
-			error_log(var_export(debug_backtrace(),true));
 			register_hook(HOOK_POST_INITSESSION,$this,'__wakeup_extended');
-		}
 	}
 	
 	function __wakeup_extended()
