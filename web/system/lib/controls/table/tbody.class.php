@@ -132,6 +132,16 @@ class TBody extends Control
 	}
 	
 	/**
+	 * Return the current row, if any.
+	 * 
+	 * @return Tr The last added row object or false
+	 */
+	function GetCurrentRow()
+	{
+		return $this->current_row;
+	}
+	
+	/**
 	 * Returns the maximum cell count.
 	 * 
 	 * Loops thru all rows and finds the maximum count of cells in a row.

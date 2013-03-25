@@ -193,6 +193,18 @@ class Table extends Control
 		$this->current_cell = $this->current_row_group->NewCell($content);
         return $this->current_cell;
     }
+	
+	/**
+	 * Returns the current row, if any.
+	 * 
+	 * @return Tr The current row object or false
+	 */
+	function GetCurrentRow()
+	{
+		if( !$this->current_row_group )
+            $this->NewRowGroup();
+		return $this->current_row_group->GetCurrentRow();
+	}
 
 	/**
 	 * @override
