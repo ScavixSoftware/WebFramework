@@ -1,8 +1,9 @@
 ﻿/**
- * PamConsult Web Development Framework
+ * Scavix Web Development Framework
  *
  * Copyright (c) 2007-2012 PamConsult GmbH
- *
+ * Copyright (c) since 2013 Scavix Software Ltd. & Co. KG
+ * 
  * This library is free software; you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General
  * Public License as published by the Free Software Foundation;
@@ -19,6 +20,8 @@
  *
  * @author PamConsult GmbH http://www.pamconsult.com <info@pamconsult.com>
  * @copyright 2007-2012 PamConsult GmbH
+ * @author Scavix Software Ltd. & Co. KG http://www.scavix.com <info@scavix.com>
+ * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 using System;
@@ -34,7 +37,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Drawing;
 
-namespace PhpTracer
+namespace WdfTracer
 {
     static class Program
     {
