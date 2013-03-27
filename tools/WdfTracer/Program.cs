@@ -53,8 +53,8 @@ namespace WdfTracer
                 IsSingleInstance = true;
                 StartupNextInstance += this_StartupNextInstance;
 #if !DEBUG
-                SetAssociation(".trace", "PHP_Tracer_File", Application.ExecutablePath, "PHP Tracer file");
-                SetAssociation(".trace.gz", "PHP_Tracer_File_GZ", Application.ExecutablePath, "Archived PHP Tracer file");
+                SetAssociation(".trace", "Wdf_Tracer_File", Application.ExecutablePath, "WdfTracer file");
+                SetAssociation(".trace.gz", "Wdf_Tracer_File_GZ", Application.ExecutablePath, "Archived WdfTracer file");
 #endif
                 searchViewer = new Thread(new ThreadStart(SearchViewer));
                 searchViewer.Start();
@@ -173,7 +173,7 @@ namespace WdfTracer
             if (debug == null)
             {
                 bool deleted = false;
-                logfile_name = Path.Combine(Path.GetTempPath(), "php_tracer.log");
+                logfile_name = Path.Combine(Path.GetTempPath(), "wdf_tracer.log");
                 if (File.Exists(logfile_name))
                 {
                     FileInfo fi = new FileInfo(logfile_name);
