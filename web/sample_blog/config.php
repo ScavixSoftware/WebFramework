@@ -1,14 +1,15 @@
 <?
 
-// Defaults
+// Pages are PHP classes extending HtmlPage 
 $CONFIG['system']['default_page']  = "Blog";
+// Events are mapped to PHP class methods
 $CONFIG['system']['default_event'] = "Index";
 
-// Classpath
+// Application specific classpath
 classpath_add(__DIR__.'/controller');
 classpath_add(__DIR__.'/templates');
 
-// Database
+// Database connection, a DSN passed to the PDO constructor
 $CONFIG['model']['system']['connection_string'] = "sqlite:sample.db";
 
 // Logger Config
