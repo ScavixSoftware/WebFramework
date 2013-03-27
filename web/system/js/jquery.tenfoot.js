@@ -43,13 +43,22 @@
 //			wdf.debug(text);
 		}
 		tenfoot_init_keys();
-		tenfoot_init();
+		tenfoot_init(document);
+		return this;
+	};
+	
+	$.fn.tenfoot = function( options )
+	{  
+		settings = $.extend(settings, options);
+		tenfoot_init_keys();
+		tenfoot_init(this);
 		return this;
 	};
 	
 	$.fn.setCurrent = function(in_focus_event)
 	{
 		var elem = this;
+		wdf.debug("setCurrent "+elem.text());
 		
 		return this.each(function()
 		{
@@ -93,12 +102,12 @@
 		});
 	};
 	
-	var tenfoot_init = function()
+	var tenfoot_init = function(parent)
 	{
-		var selectable_elements = $(settings.selectables);
+		var selectable_elements = $(settings.selectables,parent)
 		selectable_elements.offsetParent().addClass('tenfoot_element_container');
 
-		$(document).keydown( function(e)
+		$(parent).keydown( function(e)
 		{
 			if( settings.onspecialkey )
 			{
@@ -122,23 +131,45 @@
 					return false;
 			}
 		});
-
+		
 		switch( settings.client )
 		{
 			case 'nettv':
 				wdf.debug("tenfoot_init NETTV");
-				selectable_elements.focus(function(){ $(this).setCurrent(true); });
-				break;
+				$(parent)
+					.keydown( function(e){ top.last_key = e.which; wdf.debug("keydown "+top.last_key); } )
+					.keypress( function(e)
+					{
+						switch( top.last_key )
+						{
+							case settings.keys.left:
+							case settings.keys.up:
+							case settings.keys.right:
+							case settings.keys.down:
+								wdf.debug("keypress.preventDefault "+top.last_key);
+								e.preventDefault();
+								e.stopPropagation();
+								break;
+						}
+					});
+				selectable_elements.focus(function()
+				{ 
+					try{ grslmpf.dont.exist+=0; } catch(ex)
+					{
+						if( ex.message )
+							wdf.debug(ex.message);
+						if( ex.stack )
+							wdf.debug(ex.stack);
+						if( ex.stacktrace )
+							wdf.debug(ex.stacktrace);
+					}
+				});
+//				break;
 			default:
 				wdf.debug("tenfoot_init default: "+settings.client);
-				var keyNav = function(elem,dir)
-				{
-					var nearest = tenfoot_nearest(elem,dir,elem.parents('.tenfoot_element_container'));
-					if( nearest )
-						nearest.setCurrent();
-				};
 
-				selectable_elements.mouseover(function(){ $(this).setCurrent(); });
+				if( settings.client == 'browser' )
+					selectable_elements.mouseover(function(){ $(this).setCurrent(); });
 				
 				$('iframe').one('load',function()
 				{
@@ -162,8 +193,20 @@
 					});
 				});
 
-				$(document).keydown( function(e)
+				var keyNav = function(elem,dir)
 				{
+					var nearest = tenfoot_nearest(elem,dir,elem.parents('.tenfoot_element_container'),parent==document);
+					if( nearest )
+						nearest.setCurrent();
+				};
+
+				if( !selectable_elements ) 
+					selectable_elements = $(settings.selectables,parent);
+
+				$(parent).keydown( function(e)
+				{
+					e.stopPropagation();
+					
 					var elem = $(':focus');
 					if( elem.length == 0 )
 					{
@@ -195,7 +238,7 @@
 		setTimeout(function(){ if( $(':focus').length==0 ) selectable_elements.first().setCurrent(); },250);
 	};
 	
-	var tenfoot_nearest = function(elem,direction,container)
+	var tenfoot_nearest = function(elem,direction,container,break_out_allowed)
 	{
 		var prop = 'nav-'+direction;
 		var predef = elem.data(prop);
@@ -215,10 +258,13 @@
 		}
 		
 		var nearest = tenfoot_nearest_from_candidates(elem,direction,$(settings.selectables,container));
-		if( !nearest )
-			nearest = tenfoot_nearest_from_candidates(elem,direction,$('.tenfoot_element_container').not(container).find(settings.selectables) );
-		else if( nearest.is('.tenfoot_element_container') )
-			nearest = tenfoot_nearest_from_candidates(elem,direction,$(settings.selectables,nearest) );
+		if( break_out_allowed )
+		{
+			if( !nearest )
+				nearest = tenfoot_nearest_from_candidates(elem,direction,$('.tenfoot_element_container').not(container).find(settings.selectables) );
+			else if( nearest.is('.tenfoot_element_container') )
+				nearest = tenfoot_nearest_from_candidates(elem,direction,$(settings.selectables,nearest) );
+		}
 		
 		if( nearest )
 			elem.data(prop,nearest);
@@ -270,6 +316,8 @@
 	
 	var tenfoot_init_keys = function()
 	{
+		if( settings.keys )
+			return;
 		switch( settings.client )
 		{
 			case 'nettv':
