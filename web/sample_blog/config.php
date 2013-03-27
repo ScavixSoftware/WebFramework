@@ -10,7 +10,7 @@ classpath_add(__DIR__.'/controller');
 classpath_add(__DIR__.'/templates');
 
 // Database connection, a DSN passed to the PDO constructor
-$CONFIG['model']['system']['connection_string'] = "sqlite:sample.db";
+$CONFIG['model']['system']['connection_string'] = "sqlite:../sample.db";
 
 // Logger Config
 ini_set("error_log", __DIR__.'/log/fallback_error.log');
