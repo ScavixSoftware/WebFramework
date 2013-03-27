@@ -265,6 +265,8 @@ function system_parse_request_path()
 
 		if( count($path)>0 )
 		{
+			if( $path[0]=='~' ) $path[0] = cfg_get('system','default_page');
+			
 			if( class_exists($path[0]) || in_object_storage($path[0]) )
 			{
 				$controller = $path[0];
@@ -281,7 +283,7 @@ function system_parse_request_path()
 			}
 		}
 	}
-	
+
 	if( !isset($controller) || !$controller )
 		$controller = Args::request('page', cfg_get('system','default_page')); // really oldschool
 	if( !isset($event) || !$event )

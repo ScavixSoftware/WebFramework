@@ -69,7 +69,7 @@ $.ajaxSetup({cache:false});
 			settings.route = settings.rewrite
 				?settings.route.split("/")
 				:this.arg('wdf_route').split("/");
-			settings.controller = settings.route[0] || '';
+			settings.controller = settings.route[0] || '~';
 			settings.method = settings.route[1] || '';
 			settings.route = settings.rewrite
 				?settings.controller+"/"+settings.method+"/"
