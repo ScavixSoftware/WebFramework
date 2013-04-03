@@ -28,7 +28,7 @@ wdf.ready.add(function()
     $('table.new_string input.create').click( function()
     { 
         var term = $(this).data('term');
-        var text = $('textarea.'+term).val()||'';
+        var text = encodeURIComponent($('textarea.'+term).val()||'');
         wdf.controller.post('CreateString',{term:term,text:text},function()
         {
 			$('table.'+term).fadeOut( function(){ $('table.'+term).remove(); } );
@@ -42,6 +42,19 @@ wdf.ready.add(function()
         {
             $('table.'+term).fadeOut( function(){ $('table.'+term).remove(); } );
         });
+    });
+	
+	$('.translations input.save').click( function()
+    { 
+		var btn = $(this).attr('disabled',true);
+		var lang = $('.translations').data('lang');
+        var term = btn.data('term');
+		var text = encodeURIComponent($('textarea.'+term).val()||'');
+        wdf.controller.post('SaveString',{lang:lang,term:term,text:text},function()
+		{
+			btn.val('Saved').addClass('ok');
+			setTimeout(function(){ btn.removeAttr('disabled').val('Save').removeClass('ok err'); },2000);
+		});
     });
 	
 	wdf.exception.add( function(msg){ alert(msg); } );

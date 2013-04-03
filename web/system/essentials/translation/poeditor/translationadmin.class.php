@@ -28,7 +28,7 @@
  * 
  * @attribute[NoMinify]
  */
-class TranslationAdmin extends SysAdmin
+class TranslationAdmin extends TranslationAdminBase
 {
 	var $Lasterror = "";
 	
@@ -165,6 +165,7 @@ class TranslationAdmin extends SysAdmin
         
         if( $text )
         {
+			$text = urldecode($text);
             $data = array(array(
                 'term' => array('term'=>$term),
                 'definition' => array('forms'=>array($text),'fuzzy'=>0)
@@ -177,32 +178,5 @@ class TranslationAdmin extends SysAdmin
         }
         
         return $this->DeleteString($term);
-    }
-	
-    /**
-	 * @internal New string page
-     */
-    function NewStrings()
-    {
-        $this->_contentdiv->content("<h1>New strings</h1>");
-        $ds = model_datasource($GLOBALS['CONFIG']['translation']['sync']['datasource']);
-		foreach( $ds->Query('wdf_unknown_strings')->all() as $row )
-        {
-			$ns = Template::Make('translationnewstring');
-			foreach( $row->GetColumnNames() as $col )
-				$ns->set($col,$row->$col);
-            $this->_contentdiv->content($ns);
-        }
-    }
-    
-    /**
-	 * @internal Delete a string
-     * @attribute[RequestParam('term','string')]
-     */
-    function DeleteString($term)
-    {
-        $ds = model_datasource($GLOBALS['CONFIG']['translation']['sync']['datasource']);
-        $ds->ExecuteSql("DELETE FROM wdf_unknown_strings WHERE term=?",$term);
-        return AjaxResponse::None();
     }
 }

@@ -201,3 +201,19 @@ body.sysadmin a:visited
 {
     color: #484848;
 }
+
+body.sysadmin .translations .td,
+body.sysadmin .translations textarea
+{
+	vertical-align: top;
+}
+
+body.sysadmin .translations .td .ok
+{
+	color: green;
+}
+
+body.sysadmin .translations textarea:empty
+{
+	border: 1px solid orange;
+}
