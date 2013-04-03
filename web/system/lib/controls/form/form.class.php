@@ -62,6 +62,7 @@ class Form extends Control
 				$inp = new HiddenInput($value, $name);
 				break;
 			case "file":
+				$this->enctype = "multipart/form-data";
 				$inp = new FileInput($name);
 				break;
 			case "checkbox":
@@ -111,7 +112,10 @@ class Form extends Control
 	 * @param string $label Label of the button
 	 * @return SubmitButton The created button
 	 */
-    function AddSubmit($label){ return $this->content( new SubmitButton($label) ); }
+    function AddSubmit($label)
+	{
+		return $this->content( new SubmitButton($label) );
+	}
 	
 	/**
 	 * Creates a standard AJAX submit action

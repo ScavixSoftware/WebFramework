@@ -82,10 +82,6 @@ function translation_init()
 	$GLOBALS['__translate_regpattern'] = $reg;
     
     system_ensure_path_ending($CONFIG['translation']['data_path']);
-
-	admin_register_handler('Translations','TranslationAdmin','Index');
-//	admin_register_handler('New strings','TranslationAdmin','NewStrings');
-//	admin_register_handler('Fetch strings','TranslationAdmin','Fetch');
 }
 
 /**

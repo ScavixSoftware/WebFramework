@@ -34,7 +34,6 @@ class TranslationAdmin extends TranslationAdminBase
 	
 	function __initialize($title = "", $body_class = false)
     {
-		admin_register_handler('Translate','TranslationAdmin','Translate');
         parent::__initialize($title, $body_class);
         if( isset($GLOBALS['CONFIG']['translation']['sync']['scavix_datasource']) && $GLOBALS['CONFIG']['translation']['sync']['scavix_datasource'] )
 			$this->ds = model_datasource($GLOBALS['CONFIG']['translation']['sync']['scavix_datasource']);
@@ -48,6 +47,9 @@ class TranslationAdmin extends TranslationAdminBase
 				`id` VARCHAR(100) NULL,
 				`content` TEXT NULL,
 				PRIMARY KEY (`lang`, `id`) );");
+		
+		$this->subnav('Translate', 'TranslationAdmin', 'Translate');
+		$this->subnav('Import', 'TranslationAdmin', 'Import');
     }
 	
 	private function fetchTerms($lang_code,$defaults = false)
@@ -62,6 +64,15 @@ class TranslationAdmin extends TranslationAdminBase
         }
         return $res;
     }
+	
+	private function _languageSelect($lang)
+	{
+		$sel = new Select();
+		$sel->SetCurrentValue($lang);
+		foreach( Localization::get_language_names() as $code=>$name )
+			$sel->AddOption($code,$name);
+		return $sel;
+	}
 	
     /**
 	 * @internal Fetch action handler
@@ -147,29 +158,32 @@ class TranslationAdmin extends TranslationAdminBase
 	
 	/**
 	 * @attribute[RequestParam('lang','string',false)]
+	 * @attribute[RequestParam('offset','int',0)]
 	 */
-	function Translate($lang)
+	function Translate($lang,$offset)
 	{
 		global $CONFIG;
 		$lang = $lang?$lang:$CONFIG['localization']['default_language'];
 		
-		$sel = $this->content( new Select() );
-		$sel->SetCurrentValue($lang)
+		$this->content( $this->_languageSelect($lang) )
 			->script("$('#{self}').change(function(){ wdf.redirect({lang:$(this).val()}); });");
-		foreach( Localization::get_language_names() as $code=>$name )
-			$sel->AddOption($code,$name);
 
 		$tab = Table::Make()->addClass('translations')
 			->SetHeader('Term','Default','Content','')
 			->setData('lang',$lang)
 			->appendTo($this);
-			;
-		foreach( $this->ds->Query('wdf_translations')->eq('lang',$CONFIG['localization']['default_language']) as $term )
+		
+		$translated = array();
+		foreach( $this->ds->ExecuteSql("SELECT id,content FROM wdf_translations WHERE lang=?",$lang) as $row )
+			$translated[$row['id']] = $row['content'];
+		
+		$rs = $this->ds->Query('wdf_translations')->eq('lang',$CONFIG['localization']['default_language'])->page($offset,20);
+		foreach( $rs as $term )
 		{
 			if( $lang == $CONFIG['localization']['default_language'] )
 				$translation = $term->content;
 			else
-				$translation = $this->ds->ExecuteScalar("SELECT content FROM wdf_translations WHERE lang=? AND id=?",array($lang,$term->id));
+				$translation = isset($translated[$term->id])?$translated[$term->id]:'';
 			
 			$ta = new TextArea($translation);
 			$ta->class = $term->id;
@@ -177,6 +191,18 @@ class TranslationAdmin extends TranslationAdminBase
 			$btn->addClass('save')->setData('term',$term->id);
 			
 			$tab->AddNewRow($term->id,$term->content,$ta,$btn);
+		}
+		
+		$pi = $rs->GetPagingInfo();
+		for($page=1;$page<$pi['total_pages'];$page++)
+		{
+			$offset = ($page-1) * $pi['rows_per_page'];
+			$label = ($offset+1)."-".($page*$pi['rows_per_page']);
+			if( $page == $pi['current_page'] )
+				$this->content("<b>$label</b>");
+			else
+				$this->content(new Anchor(buildQuery('TranslationAdmin','Translate',"lang=$lang&offset=$offset"),"$label"));
+			$this->content("&nbsp;");
 		}
 	}
 	
@@ -195,5 +221,36 @@ class TranslationAdmin extends TranslationAdminBase
 			$this->ds->ExecuteSql("DELETE FROM wdf_translations WHERE lang=? AND id=?",array($lang,$term));
         cache_del('lang_'.$term);
 		return AjaxResponse::None();
+	}
+	
+	/**
+	 * @attribute[RequestParam('lang','string',false)]
+	 */
+	function Import($lang)
+	{
+		global $CONFIG;
+		$lang = $lang?$lang:$CONFIG['localization']['default_language'];
+		
+		if( isset($_FILES['json_file']) )
+		{
+			$json_string = file_get_contents($_FILES['json_file']['tmp_name']);
+			log_debug("Import($lang,)",strlen($json_string));
+			unlink($_FILES['json_file']['tmp_name']);
+			$count = 0;
+			foreach( json_decode($json_string,true) as $entry )
+			{
+				$entry = array_values($entry);
+				if( count($entry) < 2 || !$entry[1] )
+					continue;
+				$this->ds->ExecuteSql("REPLACE INTO wdf_translations(lang,id,content)VALUES(?,?,?)",array($lang,$entry[0],$entry[1]));
+				$count++;
+			}
+			$this->content("<h2>$count terms imported</h2>");
+		}
+		
+		$form = $this->content( new Form() );
+		$form->content($this->_languageSelect($lang));
+		$form->AddFile('json_file');
+		$form->AddSubmit('Import');		
 	}
 }

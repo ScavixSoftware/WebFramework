@@ -208,6 +208,16 @@ body.sysadmin .translations textarea
 	vertical-align: top;
 }
 
+body.sysadmin .translations .td:nth-child(1){ width: 10%; }
+body.sysadmin .translations .td:nth-child(2){ width: 10%; }
+body.sysadmin .translations .td:nth-child(3){ width: 70%; }
+body.sysadmin .translations .td:nth-child(4){ width: 10%; }
+
+body.sysadmin .translations textarea
+{
+	width: 100%;
+}
+
 body.sysadmin .translations .td .ok
 {
 	color: green;

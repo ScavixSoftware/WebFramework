@@ -30,9 +30,11 @@
  */
 abstract class TranslationAdminBase extends SysAdmin
 {
-	function Index()
+	function __initialize($title = "", $body_class = false)
 	{
-		
+		parent::__initialize($title, $body_class);
+		$this->subnav('New strings', get_class($this), 'NewStrings');
+		$this->subnav('Fetch strings', get_class($this), 'Fetch');
 	}
 	
     /**

@@ -36,6 +36,7 @@ class SysAdmin extends HtmlPage
 		'lang_','method_','ref_attr_','resource_','filemtime_','doccomment_','DB_Cache_');
     
     protected $_contentdiv = false;
+	protected $_subnav = false;
 	
 	function __initialize($title = "", $body_class = false)
     {
@@ -70,9 +71,12 @@ class SysAdmin extends HtmlPage
 			}
             $nav->content( new Anchor(buildQuery('SysAdmin','Cache'),'Cache') )
                 ->content( new Anchor(buildQuery('SysAdmin','PhpInfo'),'PHP info') )
+                ->content( new Anchor(buildQuery('TranslationAdmin','NewStrings'),'Translations') )
                 ->content( new Anchor(buildQuery('SysAdmin','Testing'),'Testing') )
                 ->content( new Anchor(buildQuery('',''),'Back to app') )
                 ->content( new Anchor(buildQuery('SysAdmin','Logout'),'Logout', 'logout') );
+			
+			$this->_subnav = parent::content(new Control('div'));
         }
         
         $this->_contentdiv = parent::content(new Control('div'))->addClass('content');
@@ -94,6 +98,15 @@ class SysAdmin extends HtmlPage
 	function content($content)
 	{
 		return $this->_contentdiv->content($content);
+	}
+	
+	function subnav($label,$controller,$method)
+	{
+		if( $this->_subnav )
+		{
+			$this->_subnav->content( new Anchor(buildQuery($controller,$method),$label) );
+			$this->_subnav->class = "navigation";
+		}
 	}
 	
 	/**
