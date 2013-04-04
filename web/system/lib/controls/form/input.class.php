@@ -72,7 +72,7 @@ class Input extends Control
 	 */
 	function setValue($value)
 	{
-		if( $value )
+		if( $value !== false )
 			$this->value = $value;
 		return $this;
 	}
