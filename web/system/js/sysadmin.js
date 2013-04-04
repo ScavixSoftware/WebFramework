@@ -62,5 +62,10 @@ wdf.ready.add(function()
         wdf.controller.post('Rename',{term:$(this).data('term')});
     });
 	
+	$('.translations .remove').click( function()
+    { 
+        wdf.controller.post('Remove',{term:$(this).data('term')});
+    });
+	
 	wdf.exception.add( function(msg){ alert(msg); } );
 });

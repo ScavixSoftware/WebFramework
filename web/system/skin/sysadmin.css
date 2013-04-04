@@ -228,7 +228,7 @@ body.sysadmin .translations textarea:empty
 	border: 1px solid orange;
 }
 
-body.sysadmin .translations .rename
+body.sysadmin .translations .term_action
 {
 	color: gray;
 	cursor: pointer;
@@ -236,4 +236,4 @@ body.sysadmin .translations .rename
 	margin-right: 10px;
 }
 
-body.sysadmin .translations .rename:hover { text-decoration: underline; }
+body.sysadmin .translations .term_action:hover { text-decoration: underline; }

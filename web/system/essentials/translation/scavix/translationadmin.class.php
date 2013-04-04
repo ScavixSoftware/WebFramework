@@ -226,7 +226,10 @@ class TranslationAdmin extends TranslationAdminBase
 			$tab->AddNewRow($term->id,htmlspecialchars($term->content),$ta,$btn);
 			
 			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
-				->addClass('rename')->setData('term', $term->id)->content('rename');
+				->addClass('term_action rename')->setData('term', $term->id)->content('rename');
+			$tab->GetCurrentRow()->GetCell(0)->content("&nbsp;");
+			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
+				->addClass('term_action remove')->setData('term', $term->id)->content('remove');
 		}
 		
 		$pi = $rs->GetPagingInfo();
@@ -326,6 +329,25 @@ class TranslationAdmin extends TranslationAdminBase
 			return $dlg;
 		}
 		$this->ds->ExecuteSql("UPDATE wdf_translations SET id=? WHERE id=?",array($new_term,$term));
+		return AjaxResponse::Redirect('TranslationAdmin','Translate', array(
+			'lang' => $_SESSION['trans_admin_lang'],
+			'offset' => $_SESSION['trans_admin_offset'],
+			'search' => $_SESSION['trans_admin_search'],
+		));
+	}
+	
+	/**
+	 * @attribute[RequestParam('term','string')]
+	 */
+	function Remove($term)
+	{
+		default_string("TITLE_REMOVE_TERM","Remove term");
+		default_string("TXT_REMOVE_TERM","Do you really want to remove this term? This cannot be undone!");
+		
+		if( !AjaxAction::IsConfirmed("REMOVE_TERM") )
+			return AjaxAction::Confirm("REMOVE_TERM", 'TranslationAdmin', 'Remove', array('term'=>$term));
+		
+		$this->ds->ExecuteSql("DELETE FROM wdf_translations WHERE id=?",$term);
 		return AjaxResponse::Redirect('TranslationAdmin','Translate', array(
 			'lang' => $_SESSION['trans_admin_lang'],
 			'offset' => $_SESSION['trans_admin_offset'],
