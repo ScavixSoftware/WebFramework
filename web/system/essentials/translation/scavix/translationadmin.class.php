@@ -52,17 +52,13 @@ class TranslationAdmin extends TranslationAdminBase
 		$this->subnav('Import', 'TranslationAdmin', 'Import');
     }
 	
-	private function fetchTerms($lang_code,$defaults = false)
+	private function fetchTerms($lang_code,$defaults = array())
     {
         $rs = $this->ds->ExecuteSql("SELECT id,content FROM wdf_translations WHERE lang=?",$lang_code);
-        $res = array();
+        $res = $defaults;
         foreach( $rs as $lang )
-        {
             $res[$lang['id']] = isset($lang['content'])&&$lang['content']?$lang['content']:'';
-            if( !$res[$lang['id']] && $defaults )
-                $res[$lang['id']] = $defaults[$lang['id']];
-        }
-        return $res;
+		return $res;
     }
 	
 	private function _languageSelect($lang)
