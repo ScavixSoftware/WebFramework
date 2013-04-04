@@ -98,25 +98,47 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * @implements <ArrayAccess::offsetSet>
 	 */
 	public function offsetSet($offset, $value)
-	{ $this->__ensureResults(); $this->_results[$offset] = $value; }
+	{
+		$this->__ensureResults();
+		if( $this->_query )
+			$this->_results[$offset] = $value;
+		else
+			$this->$offset = $value;
+	}
 	
 	/**
 	 * @implements <ArrayAccess::offsetExists>
 	 */
     public function offsetExists($offset)
-	{ $this->__ensureResults(); return isset($this->_results[$offset]); }
+	{
+		$this->__ensureResults();
+		if( $this->_query )
+			return isset($this->_results[$offset]);
+		return isset($this->$offset);
+	}
 	
 	/**
 	 * @implements <ArrayAccess::offsetUnset>
 	 */
     public function offsetUnset($offset)
-	{ $this->__ensureResults(); unset($this->_results[$offset]); }
+	{
+		$this->__ensureResults();
+		if( $this->_query )
+			unset($this->_results[$offset]);
+		else
+			unset($this->$offset);
+	}
 	
 	/**
 	 * @implements <ArrayAccess::offsetGet>
 	 */
     public function offsetGet($offset)
-	{ $this->__ensureResults(); return isset($this->_results[$offset]) ? $this->_results[$offset] : null; }
+	{
+		$this->__ensureResults();
+		if( $this->_query )
+			return isset($this->_results[$offset]) ? $this->_results[$offset] : null;
+		return isset($this->$offset) ? $this->$offset : null;
+	}
 
 	/**
 	 * Returns the amount of results in the current query.
