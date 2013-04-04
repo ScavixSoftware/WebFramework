@@ -209,32 +209,36 @@ function __translate($text)
 		$text = substr($text, 0, -4);
 
 	if( count($__unknown_constants) > 0 )
-    {
-        if( $CONFIG['translation']['sync']['datasource'] )
-        {
-            $ds = model_datasource($CONFIG['translation']['sync']['datasource']);
-			$ds->ExecuteSql("CREATE TABLE IF NOT EXISTS wdf_unknown_strings (
-				term VARCHAR(255) NOT NULL,
-				last_hit DATETIME NOT NULL,
-				hits INT DEFAULT 0,
-				default_val TEXT,
-				PRIMARY KEY (term))");
-			
-            $now = $ds->Driver->Now();
-            $sql1 = "INSERT OR IGNORE INTO wdf_unknown_strings(term,last_hit,hits,default_val)VALUES(?,$now,0,?);";
-            $sql2 = "UPDATE wdf_unknown_strings SET last_hit=$now, hits=hits+1 WHERE term=?;";
-            foreach( $__unknown_constants as $uc )
-            {
-				$def = cfg_getd('translation','default_strings',$uc,'');
-                $ds->Execute($sql1,array($uc,$def));
-                $ds->Execute($sql2,$uc);
-            }
-        }
-        else
-            log_debug("Unknown text constants: ".render_var(array_values($__unknown_constants)));
-    }
+		translation_add_unknown_strings($__unknown_constants);
 
 	return $text;
+}
+
+function translation_add_unknown_strings($unknown_constants)
+{
+	global $CONFIG;
+	if( $CONFIG['translation']['sync']['datasource'] )
+	{
+		$ds = model_datasource($CONFIG['translation']['sync']['datasource']);
+		$ds->ExecuteSql("CREATE TABLE IF NOT EXISTS wdf_unknown_strings (
+			term VARCHAR(255) NOT NULL,
+			last_hit DATETIME NOT NULL,
+			hits INT DEFAULT 0,
+			default_val TEXT,
+			PRIMARY KEY (term))");
+
+		$now = $ds->Driver->Now();
+		$sql1 = "INSERT OR IGNORE INTO wdf_unknown_strings(term,last_hit,hits,default_val)VALUES(?,$now,0,?);";
+		$sql2 = "UPDATE wdf_unknown_strings SET last_hit=$now, hits=hits+1 WHERE term=?;";
+		foreach( $unknown_constants as $uc )
+		{
+			$def = cfg_getd('translation','default_strings',$uc,'');
+			$ds->Execute($sql1,array($uc,$def));
+			$ds->Execute($sql2,$uc);
+		}
+	}
+	else
+		log_debug("Unknown text constants: ".render_var(array_values($unknown_constants)));
 }
 
 function __noTranslate_callback($matches)
