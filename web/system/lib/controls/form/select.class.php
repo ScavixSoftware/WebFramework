@@ -64,10 +64,10 @@ class Select extends Control
 	 * @param mixed $value The value
 	 * @param mixed $label An optional label
 	 * @param bool $selected True if selected (hint: use <Select::SetCurrentValue> instead of evaluating selected state for each option)
-	 * @param string $htmlextra This is so dirty that i'd say: deprecated
+	 * @param Control $opt_group If given the option will be added to this optgroup element. Create one via <Select::CreateGroup>.
 	 * @return Select `$this`
 	 */
-	function AddOption($value, $label = "", $selected = false, $htmlextra = "")
+	function AddOption($value, $label = "", $selected = false, $opt_group=false)
 	{
 		$label = $label==""?$value:$label;
 		$this->_options[$value] = $label;
@@ -77,8 +77,11 @@ class Select extends Control
 		if( !$selected && $this->_current )
 			$selected = $value == $this->_current;
 		$selected = $selected?" selected='selected'":"";
-		$opt = "<option value='$value'$selected".($htmlextra != "" ? " ".$htmlextra : "").">".htmlspecialchars($label)."</option>\r\n";
-		$this->content($opt);
+		$opt = "<option value='$value'$selected>".htmlspecialchars($label)."</option>\r\n";
+		if( $opt_group )
+			$opt_group->content($opt);
+		else
+			$this->content($opt);
 		return $this;
 	}
 
@@ -94,6 +97,23 @@ class Select extends Control
 		$opt = "<optgroup label=\"".str_replace("\"", "&quot;", $label)."\"".($disabled ? "disabled=\"disabled\"" : "")."></optgroup>\r\n";
 		$this->content($opt);
 		return $this;
+	}
+	
+	/**
+	 * Creates an optgroup element and returns it.
+	 * 
+	 * Same as <Select::AddGroup>, but return the OptGroup <Control> instead to `$this`.
+	 * @param string $label The label text
+	 * @param bool $disabled True if disabled
+	 * @return Control OptGroup element
+	 */
+	function CreateGroup($label = "", $disabled = false)
+	{
+		$opt = new Control('optgroup');
+		$opt->label = $label;
+		if( $disabled )
+			$opt->disabled = 'disabled';
+		return $this->content($opt);
 	}
 }
 
