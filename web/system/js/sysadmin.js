@@ -57,5 +57,10 @@ wdf.ready.add(function()
 		});
     });
 	
+	$('.translations .rename').click( function()
+    { 
+        wdf.controller.post('Rename',{term:$(this).data('term')});
+    });
+	
 	wdf.exception.add( function(msg){ alert(msg); } );
 });

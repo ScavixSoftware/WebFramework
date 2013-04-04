@@ -227,3 +227,13 @@ body.sysadmin .translations textarea:empty
 {
 	border: 1px solid orange;
 }
+
+body.sysadmin .translations .rename
+{
+	color: gray;
+	cursor: pointer;
+	float: right;
+	margin-right: 10px;
+}
+
+body.sysadmin .translations .rename:hover { text-decoration: underline; }

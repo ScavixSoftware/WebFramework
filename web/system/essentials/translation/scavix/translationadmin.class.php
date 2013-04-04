@@ -182,6 +182,9 @@ class TranslationAdmin extends TranslationAdminBase
 	{
 		global $CONFIG;
 		$lang = $lang?$lang:$CONFIG['localization']['default_language'];
+		$_SESSION['trans_admin_lang'] = $lang;
+		$_SESSION['trans_admin_offset'] = $offset;
+		$_SESSION['trans_admin_search'] = $search;
 		
 		$form = $this->content( new Form() );
 		$form->css('margin-bottom','20px')->action = buildQuery('TranslationAdmin','Translate');				
@@ -207,7 +210,7 @@ class TranslationAdmin extends TranslationAdminBase
 			foreach( $rs as $row )
 				$translated[$row['id']] = $row['content'];
 		}
-		$rs = $this->_searchQuery($CONFIG['localization']['default_language'],$search)->page($offset,20);
+		$rs = $this->_searchQuery($CONFIG['localization']['default_language'],$search)->page($offset,10);
 		foreach( $rs as $term )
 		{
 			if( isset($translated) )
@@ -221,6 +224,9 @@ class TranslationAdmin extends TranslationAdminBase
 			$btn->addClass('save')->setData('term',$term->id);
 			
 			$tab->AddNewRow($term->id,htmlspecialchars($term->content),$ta,$btn);
+			
+			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
+				->addClass('rename')->setData('term', $term->id)->content('rename');
 		}
 		
 		$pi = $rs->GetPagingInfo();
@@ -228,6 +234,7 @@ class TranslationAdmin extends TranslationAdminBase
 		{
 			$offset = ($page-1) * $pi['rows_per_page'];
 			$label = ($offset+1)."-".($page*$pi['rows_per_page']);
+			$label = "$page";
 			if( $page == $pi['current_page'] )
 				$this->content("<b>$label</b>");
 			else
@@ -260,13 +267,18 @@ class TranslationAdmin extends TranslationAdminBase
 	{
 		global $CONFIG;
 		$lang = $lang?$lang:$CONFIG['localization']['default_language'];
+		$is_default = $lang == $CONFIG['localization']['default_language'];
 		
 		if( isset($_FILES['json_file']) )
 		{
 			$json_string = file_get_contents($_FILES['json_file']['tmp_name']);
-			log_debug("Import($lang,)",strlen($json_string));
 			unlink($_FILES['json_file']['tmp_name']);
-			$count = 0;
+			$count = 0; $unknowns = "";
+			
+			if( !$is_default ) 
+				$knowns = $this->ds->ExecuteSql("SELECT DISTINCT id FROM wdf_translations WHERE lang=?",$CONFIG['localization']['default_language'])
+					->Enumerate('id',false);
+			
 			foreach( json_decode($json_string,true) as $entry )
 			{
 				$entry = array_values($entry);
@@ -274,7 +286,21 @@ class TranslationAdmin extends TranslationAdminBase
 					continue;
 				$this->ds->ExecuteSql("REPLACE INTO wdf_translations(lang,id,content)VALUES(?,?,?)",array($lang,$entry[0],$entry[1]));
 				$count++;
+				
+				if( !$is_default && !in_array($entry[0],$knowns) )
+				{
+					$unknowns[] = $entry[0];
+					default_string($entry[0],"Imported from $lang: ".$entry[1]);
+				}
 			}
+			if( $is_default )
+				$this->ds->ExecuteSql("DELETE FROM wdf_unknown_strings WHERE term IN(SELECT id FROM wdf_translations WHERE lang=?)",$lang);
+			else
+			{
+				log_debug($unknowns);
+				translation_add_unknown_strings($unknowns);
+			}
+			
 			$this->content("<h2>$count terms imported</h2>");
 		}
 		
@@ -282,5 +308,28 @@ class TranslationAdmin extends TranslationAdminBase
 		$form->content($this->_languageSelect($lang))->name = 'lang';
 		$form->AddFile('json_file');
 		$form->AddSubmit('Import');		
+	}
+	
+	/**
+	 * @attribute[RequestParam('term','string')]
+	 * @attribute[RequestParam('new_term','string',false)]
+	 */
+	function Rename($term,$new_term)
+	{
+		if( !$new_term )
+		{
+			$dlg = new uiDialog('Rename term');
+			$dlg->content("Enter new term: ");
+			$ti = $dlg->content(new TextInput($term));
+			$dlg->AddButton('Rename', "function(){ wdf.controller.post('Rename',{term:'$term',new_term:$('#{$ti->id}').val()}); }");
+			$dlg->AddCloseButton('Cancel');
+			return $dlg;
+		}
+		$this->ds->ExecuteSql("UPDATE wdf_translations SET id=? WHERE id=?",array($new_term,$term));
+		return AjaxResponse::Redirect('TranslationAdmin','Translate', array(
+			'lang' => $_SESSION['trans_admin_lang'],
+			'offset' => $_SESSION['trans_admin_offset'],
+			'search' => $_SESSION['trans_admin_search'],
+		));
 	}
 }
