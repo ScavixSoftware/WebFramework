@@ -73,7 +73,7 @@ $.widget( "ui.selectmenu", {
 			href: "#" + this.ids.id,
 			tabindex: ( tabindex ? tabindex : this.options.disabled ? -1 : 0 ),
 			id: this.ids.button,
-			width: this.element.outerWidth(),
+			width: this.element.outerWidth() + 50,
 			role: "combobox",
 			"aria-expanded": false,
 			"aria-autocomplete": "list",
@@ -117,7 +117,7 @@ $.widget( "ui.selectmenu", {
 		// wrap menu
 		this.menuWrap = $( "<div>", {
 				"class": "ui-selectmenu-menu",
-				width: this.button.outerWidth()
+				width: this.button.outerWidth() + 50
 			})
 			.append( this.menu )
 			.appendTo( this._appendTo() );
