@@ -961,7 +961,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->orderBy('rand()','');
+		$res->_query->orderBy('{SPECIAL}','rand()');
 		return $res;
 	}
 

@@ -89,7 +89,10 @@ class SelectQuery extends Query
 		{
 			$tmp = array();
 			foreach( $this->_orderBy as $k=>$d )
-				$tmp[] = "`$k` $d";
+				if( $k != '{SPECIAL}' )
+					$tmp[] = "`$k` $d";
+				else
+					$tmp[] = "$d";
 
 			$sql .= " ORDER BY ".implode(",",$tmp);
 		}
