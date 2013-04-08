@@ -27,7 +27,7 @@ $.fn.table = function()
 {
 	return this.each( function()
 	{
-		var self = this, current_row;
+		var self = $(this), current_row;
 
 		var actions = $('.ui-table-actions .ui-icon',self);
 		if( actions.length > 0 )
