@@ -95,7 +95,10 @@ class Table extends Control
 		$this->current_row_group = false;
 		$this->current_row = false;
 		$this->current_cell = false;
-		$this->_content = array();
+		if( $this->_actions )
+			$this->content($this->_actions,true);
+		else
+			$this->_content = array();
 		return $this;
 	}
 
@@ -452,10 +455,7 @@ class Table extends Control
 	function AddRowAction($icon,$label,$handler=false,$method=false)
 	{
 		if( !$this->_actions )
-		{
 			$this->_actions = $this->content(new Control('div'))->css('display','none')->css('position','absolute')->addClass('ui-table-actions');
-			//$this->_actions->addClass('ui-state-default');
-		}
 		
 		$ra = new Control('span');
 		$ra->class = "ui-icon ui-icon-$icon";
@@ -467,7 +467,7 @@ class Table extends Control
 		
 		if( $handler && $method )
 			$this->_actionHandler[$icon] = array($handler,$method);
-		
+
 		store_object($this);
 		return $this;
 	}
