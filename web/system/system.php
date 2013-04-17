@@ -286,17 +286,12 @@ function system_parse_request_path()
 
 	if( !isset($controller) || !$controller )
 		$controller = Args::request('page', cfg_get('system','default_page')); // really oldschool	
-	if( !isset($event) || !$event || !system_method_exists($controller, $event) )
+	if( !isset($event) || !$event )
 		$event = Args::request('event', cfg_get('system','default_event')); // really oldschool
 	
 	$pattern = "/[^A-Za-z0-9\-_]/";
 	$controller = substr(preg_replace($pattern, "", $controller), 0, 256);
 	$event = substr(preg_replace($pattern, "", $event), 0, 256);
-	if( !isset($GLOBALS['wdf_route']) )
-	{
-		$GLOBALS['wdf_route'] = array($controller,$event);
-		return $GLOBALS['wdf_route'];
-	}
 	return array($controller,$event);
 }
 
@@ -372,6 +367,14 @@ function system_execute()
 	list($current_controller,$current_event) = system_parse_request_path();
 
 	$current_controller = system_instanciate_controller($current_controller);
+	if( !(system_method_exists($current_controller,$current_event) || 
+		(system_method_exists($current_controller,'__method_exists') && $current_controller->__method_exists($current_event) )) )
+	{
+		$current_event = cfg_get('system','default_event');
+	}
+	
+	if( !isset($GLOBALS['wdf_route']) )
+		$GLOBALS['wdf_route'] = array($current_controller,$current_event);
 
 	if( system_method_exists($current_controller,$current_event) || 
 		(system_method_exists($current_controller,'__method_exists') && $current_controller->__method_exists($current_event) ) )
