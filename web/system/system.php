@@ -259,7 +259,7 @@ function system_parse_request_path()
 {
 	if( isset($_REQUEST['wdf_route']) )
 	{
-		$path = explode("/",$_REQUEST['wdf_route'],3);
+		$GLOBALS['wdf_route'] = $path = explode("/",$_REQUEST['wdf_route'],3);
 		unset($_REQUEST['wdf_route']);
 		unset($_GET['wdf_route']);
 
@@ -285,13 +285,18 @@ function system_parse_request_path()
 	}
 
 	if( !isset($controller) || !$controller )
-		$controller = Args::request('page', cfg_get('system','default_page')); // really oldschool
-	if( !isset($event) || !$event )
+		$controller = Args::request('page', cfg_get('system','default_page')); // really oldschool	
+	if( !isset($event) || !$event || !system_method_exists($controller, $event) )
 		$event = Args::request('event', cfg_get('system','default_event')); // really oldschool
 	
 	$pattern = "/[^A-Za-z0-9\-_]/";
 	$controller = substr(preg_replace($pattern, "", $controller), 0, 256);
 	$event = substr(preg_replace($pattern, "", $event), 0, 256);
+	if( !isset($GLOBALS['wdf_route']) )
+	{
+		$GLOBALS['wdf_route'] = array($controller,$event);
+		return $GLOBALS['wdf_route'];
+	}
 	return array($controller,$event);
 }
 
