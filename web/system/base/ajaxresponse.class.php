@@ -30,6 +30,7 @@ class AjaxResponse
 {
 	var $_data = false;
 	var $_text = false;
+	private $_translated = false;
 	
 	/**
 	 * This is a valid Noop return.
@@ -107,7 +108,9 @@ class AjaxResponse
 			else
 				$wrapped->dep_js[] = $r;
 		}
-		return AjaxResponse::Json($wrapped);
+		$res = AjaxResponse::Json($wrapped);
+		$res->_translated = true;
+		return $res;
 	}
 	
 	/**
@@ -151,6 +154,6 @@ class AjaxResponse
 			$res = json_encode($this->_text);
 		else
 			return '""'; // return an empty string JSON encoded to not kill the app JS side
-		return system_is_module_loaded("translation")?__translate($res):$res;
+		return !$this->_translated&&system_is_module_loaded("translation")?__translate($res):$res;
 	}
 }
