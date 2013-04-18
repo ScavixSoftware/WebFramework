@@ -53,8 +53,7 @@ class AjaxResponse
 	public static function Js($script=false,$abort_handling=false)
 	{
 		$data = new stdClass();
-		$data->script = is_array($script)?implode("\n",$script):$script;
-		$data->script = "<script>{$data->script}</script>";
+		$data->script = force_array($script);
 		$data->abort = $abort_handling;
 		return AjaxResponse::Json($data);
 	}
@@ -149,11 +148,26 @@ class AjaxResponse
 	function Render()
 	{
 		if( $this->_data )
+		{
+			if( isset($this->_data->script) )
+				$this->_data->script = "<script>".implode("\n",$this->_data->script)."</script>";
 			$res = system_to_json($this->_data);
+		}
 		elseif( $this->_text )
 			$res = json_encode($this->_text);
 		else
 			return '""'; // return an empty string JSON encoded to not kill the app JS side
 		return !$this->_translated&&system_is_module_loaded("translation")?__translate($res):$res;
+	}
+	
+	function AddScript($script)
+	{
+		if( !$this->_data )
+			WdfException::Raise("Cannot add script code to AJAX response of type text");
+		
+		if( !isset($this->_data->script) )
+			$this->_data->script = force_array($script);
+		else
+			$this->_data->script = array_merge($this->_data->script,force_array($script));
 	}
 }
