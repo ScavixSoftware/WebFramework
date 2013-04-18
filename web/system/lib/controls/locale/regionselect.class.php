@@ -50,13 +50,13 @@ class RegionSelect extends Select
 				$lang = $current_language_code->ResolveToLanguage();
 			else
 				$lang = Localization::getLanguageCulture($current_language_code);
-			$regions = $lang->GetRegions(true);
+			$regions = $lang->GetRegions(false);
 			
 			if( !$current_region_code )
 				$current_region_code = $lang->DefaultRegion()->Code;
 		}
 		else
-			$regions = Localization::get_all_regions(true);
+			$regions = Localization::get_all_regions(false);
 		
 		if( $current_region_code )
 		{
@@ -69,8 +69,12 @@ class RegionSelect extends Select
 		if( count($regions)>0 )
 		{
 			$sorted = array();
-			foreach($regions as $code)
-				$sorted[$code] = array("name"=>getString("TXT_COUNTRY_".strtoupper($code)),"code",$code);
+			foreach($regions as $reg)
+			{
+				if( !$reg ) continue;
+				$code = $reg->Code;
+				$sorted[$code] = array("name"=>tds("TXT_COUNTRY_".strtoupper($code),$reg->EnglishName),"code",$code);
+			}
 			uasort($sorted, "RegionSelect::compareCountryNames");
 
 			foreach($sorted as $code=>$item)
