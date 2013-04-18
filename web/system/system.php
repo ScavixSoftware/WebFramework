@@ -124,7 +124,7 @@ function system_config_default($reset = true)
 	$CONFIG['system']['admin']['username'] = false;
 	$CONFIG['system']['admin']['password'] = false;
 	
-	$CONFIG['system']['htmlpage']['doctype'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "ce-html-1.0-transitional.dtd">';
+	$CONFIG['system']['htmlpage']['doctype'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
 	$CONFIG['system']['htmlpage']['render_noscript'] = true;
 }
 
