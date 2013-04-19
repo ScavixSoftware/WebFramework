@@ -68,13 +68,15 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 		// on dev server, only domains/recipients in the whitelist are allowed
 		foreach($CONFIG['mail']['dev_whitelist'] as $needle)
 		{
+			if( !isset($CONFIG['mail']['dev_recipient']) )
+				$CONFIG['mail']['dev_recipient'] = $needle;				
 			if(stripos($recipient, $needle) !== false)
 			{
 				$isvalidrecipient = true;
 				break;
 			}
 		}
-		if(!$isvalidrecipient)
+		if(!$isvalidrecipient && isset($CONFIG['mail']['dev_recipient']) )
 		{
 			// if not found in whitelist, send to predefined recipient
 			$recipient = $CONFIG['mail']['dev_recipient'];
@@ -88,7 +90,7 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 
 	$mail->IsSMTP();
 	$mail->Host     = $CONFIG['mail']['smtp_server'];
-	if ($CONFIG['mail']['smtp_auth'])
+	if( isset($CONFIG['mail']['smtp_auth']) && $CONFIG['mail']['smtp_auth'] )
 	{
 		$mail->SMTPAuth = true;
 		$mail->Username = $CONFIG['mail']['smtp_user'];
