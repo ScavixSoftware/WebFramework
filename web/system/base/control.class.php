@@ -678,4 +678,46 @@ class Control extends Renderable
 			WdfException::Raise("Target must be of type Control or HtmlPage");
 		return $this;
 	}
+	
+	/**
+	 * Attribute handling.
+	 * 
+	 * This method may be used in four different ways:
+	 * 1. to get all attributes
+	 * 2. to get one attribute
+	 * 3. to set one attribute
+	 * 4. to set many attributes
+	 * 
+	 * To achieve this pass different parameters into like this:
+	 * 1. $c->attr() returns all attributes
+	 * 2. $c->attr('name') returns the 'name' attributes value
+	 * 3. $c->attr('name','mycontrol') sets the 'name' attribute values
+	 * 4. $c->attr(array('name'=>'myname','href'=>'my.domain')) sets 'name' and 'href' attribute values
+	 * 
+	 * Note: Will return `$this` in cases 3. and 4. (the set cases).
+	 * @return mixed `$this`, an attribute value or an array of attribute values
+	 */
+	function attr()
+	{
+		$cnt = func_num_args();
+		switch( $cnt )
+		{
+			case 0:
+				return $this->_attributes;
+			case 1: 
+				$name = func_get_arg(0);
+				if( is_array($name) )
+				{
+					foreach( $name as $n=>$v )
+						$this->attr($n,$v);
+					return $this;
+				}
+				return $this->$name;
+			case 2: 
+				$name = func_get_arg(0);
+				$this->$name = func_get_arg(1);
+				return $this;
+		}
+		WdfException::Raise("Control::attr needs 0,1 or 2 parameters");
+	}
 }
