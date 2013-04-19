@@ -179,7 +179,6 @@ $.ajaxSetup({cache:false});
 						var tmp = {};
 						for(var i=0; i<s.data.length; i++)
 							tmp[s.data[i].name] = s.data[i].value;
-						wdf.log("remapped serialized data",s.data,tmp);
 						s.data = tmp;
 					}
 					s.data.request_id = wdf.request_id;
