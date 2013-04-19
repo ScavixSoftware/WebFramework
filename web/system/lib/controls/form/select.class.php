@@ -47,6 +47,19 @@ class Select extends Control
 	}
 	
 	/**
+	 * Sets the name attribute.
+	 * 
+	 * @param string $name The type
+	 * @return Select `$this`
+	 */
+	function setName($name)
+	{
+		if( $name )
+			$this->name = $name;
+		return $this;
+	}
+	
+	/**
 	 * Sets the current value.
 	 * 
 	 * @param mixed $value The current value
