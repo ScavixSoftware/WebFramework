@@ -64,6 +64,23 @@ abstract class TranslationAdminBase extends SysAdmin
         return AjaxResponse::None();
     }
 	
+	/**
+	 * Fetch strings from the translation system into the project.
+	 * 
+	 * They will be stored in the strings directory as PHP files for easy inclusion.
+	 * @param array $languages Array of language codes to be fetched
+	 * @return void
+	 */
 	abstract function Fetch($languages = false);
+	
+	/**
+	 * Creates a new string from unknowns table.
+	 * 
+	 * This transforms an unknown string (found in sourcecode) into a full translation term that can be 
+	 * edited in the translation system.
+	 * @param string $term The identifier (like TXT_MYSTRING1)
+	 * @param string $text Content, in the default application language
+	 * @return void
+	 */
 	abstract function CreateString($term,$text);
 }

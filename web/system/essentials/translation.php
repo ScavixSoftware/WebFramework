@@ -214,6 +214,9 @@ function __translate($text)
 	return $text;
 }
 
+/**
+ * @internal Used to add some new/unknown strings to the translation system
+ */
 function translation_add_unknown_strings($unknown_constants)
 {
 	global $CONFIG;

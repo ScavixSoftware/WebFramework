@@ -174,6 +174,7 @@ class TranslationAdmin extends TranslationAdminBase
 	}
 	
 	/**
+	 * @internal Entry point for translation admin.
 	 * @attribute[RequestParam('lang','string',false)]
 	 * @attribute[RequestParam('offset','int',0)]
 	 * @attribute[RequestParam('search','text','')]
@@ -264,6 +265,24 @@ class TranslationAdmin extends TranslationAdminBase
 	}
 	
 	/**
+	 * @internal Imports a file with translations into the translation system.
+	 * 
+	 * File must contain vaid JSON data with key-value pairs of strings in an array.
+	 * Sample:
+	 * <code javascript>
+	 * [
+	 *   {"term":"TXT_TERM1","content":"My contents of terms 1"},
+	 *   {"or":"TXT_TERM2","can_be":"My contents of terms 2"},
+	 *   {"whatever":"TXT_TERM3","wtf_too":"My contents of terms 3"}
+	 * ]
+	 * </code>
+	 * Notes:
+	 * - The key names will be ignored, only the order counts
+	 * - The contents must be in the language defined by the `$lang` parameter
+	 * - The uploaded file must be given as 'json_file' (`$_FILES['json_file']`)
+	 * @param string $lang The language the contents are given in
+	 * @return void
+	 * 
 	 * @attribute[RequestParam('lang','string',false)]
 	 */
 	function Import($lang)
@@ -314,6 +333,12 @@ class TranslationAdmin extends TranslationAdminBase
 	}
 	
 	/**
+	 * @internal Renames a term.
+	 * 
+	 * Sometimes you may want to correct a terms name, so use this one.
+	 * @param string $term The original term
+	 * @param string $new_term The new term name
+	 * @return void
 	 * @attribute[RequestParam('term','string')]
 	 * @attribute[RequestParam('new_term','string',false)]
 	 */
@@ -337,6 +362,11 @@ class TranslationAdmin extends TranslationAdminBase
 	}
 	
 	/**
+	 * @internal Removes a term.
+	 * 
+	 * Removes a term from all translations.
+	 * @param string $term The term to remove
+	 * @return void
 	 * @attribute[RequestParam('term','string')]
 	 */
 	function Remove($term)

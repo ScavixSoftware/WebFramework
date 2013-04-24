@@ -160,6 +160,14 @@ class AjaxResponse
 		return !$this->_translated&&system_is_module_loaded("translation")?__translate($res):$res;
 	}
 	
+	/**
+	 * Allows addition of scripts to responses.
+	 * 
+	 * Sometimes it is useful to add JS codes for immediate execution. In plain HTML request this
+	 * would be done with for example <Control::script>() which adds the script to the parent pages init method,
+	 * but for AJAX requests we need to go this way.
+	 * @param string|array $script script code or array of script codes to be added.
+	 */
 	function AddScript($script)
 	{
 		if( !$this->_data )

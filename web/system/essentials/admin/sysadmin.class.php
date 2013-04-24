@@ -100,7 +100,7 @@ class SysAdmin extends HtmlPage
 		return $this->_contentdiv->content($content);
 	}
 	
-	function subnav($label,$controller,$method)
+	protected function subnav($label,$controller,$method)
 	{
 		if( $this->_subnav )
 		{
