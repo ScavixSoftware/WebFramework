@@ -167,6 +167,7 @@ class AjaxResponse
 	 * would be done with for example <Control::script>() which adds the script to the parent pages init method,
 	 * but for AJAX requests we need to go this way.
 	 * @param string|array $script script code or array of script codes to be added.
+	 * @return void
 	 */
 	function AddScript($script)
 	{
