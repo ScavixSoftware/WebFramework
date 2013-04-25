@@ -34,7 +34,6 @@
  */
 class System_Reflector extends ReflectionClass
 {
-	var $_attribute_cache = array();
 	protected $Instance = false;
 	protected $Classname = false;
 
@@ -115,22 +114,15 @@ class System_Reflector extends ReflectionClass
 		return $CONFIG['session']['session_name']."-".$key;
 	}
 
-	private function _setCached(&$cache,$name,$filter,$value)
+	private function _setCached($name,$filter,$value)
 	{
 		$key = $this->_getCacheKey($name,$filter);
-		$cache[$key] = $value;
-//		log_debug("_setCached: $key",$value);
 		cache_set("ref_attr_$key",$value);
 	}
 
-	private function _getCached(&$cache,$name,$filter)
+	private function _getCached($name,$filter)
 	{
 		$key = $this->_getCacheKey($name,$filter);
-		if( isset($cache[$key]) )
-		{
-			//log_debug("using ref cache $key");
-			return $cache[$key];
-		}
 		return cache_get("ref_attr_$key");
 	}
 
@@ -285,13 +277,13 @@ class System_Reflector extends ReflectionClass
 		if( !is_array($filter) )
 			$filter = array($filter);
 		
-		$res = $this->_getCached($this->_attribute_cache,$this->Classname,$filter);
+		$res = $this->_getCached($this->Classname,$filter);
 		if( $res )
 			return $res;
 
 		$comment = $this->_getComment();
 		$res = $this->_getAttributes($comment,$filter,$this->Instance,false,false,$allowAttrInheritance);
-		$this->_setCached($this->_attribute_cache,"",$filter,$res);
+		$this->_setCached("",$filter,$res);
 		
 		return $res;
 	}
@@ -308,7 +300,7 @@ class System_Reflector extends ReflectionClass
 	public function GetMethodAttributes($method_name, $filter=array(), $allowAttrInheritance=true)
 	{
 		$cache_key = $this->Classname."::".$method_name;
-		$res = $this->_getCached($this->_attribute_cache,$cache_key,$filter);
+		$res = $this->_getCached($cache_key,$filter);
 		if( $res !== false )
 		{
 //			die("cached ".render_var($res));
@@ -324,7 +316,7 @@ class System_Reflector extends ReflectionClass
 					$res = $ref2->GetMethodAttributes($method_name, $filter);
 					if( $res && count($res) > 0 )
 					{
-						$this->_setCached($this->_attribute_cache,$cache_key,$filter,$res);
+						$this->_setCached($cache_key,$filter,$res);
 						return $res;
 					}
 				}
@@ -339,7 +331,7 @@ class System_Reflector extends ReflectionClass
 		$comment = $this->_getComment($method_name);
 
 		$res = $this->_getAttributes($comment,$filter,$this->Instance,$method_name,false,$allowAttrInheritance);
-		$this->_setCached($this->_attribute_cache,$cache_key,$filter,$res);
+		$this->_setCached($cache_key,$filter,$res);
 		return $res;
 	}
 
