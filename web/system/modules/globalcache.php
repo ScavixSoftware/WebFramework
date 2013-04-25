@@ -185,7 +185,7 @@ function globalcache_set($key, $value, $ttl = false)
 				break;
 
 			case globalcache_CACHE_APC:
-//				log_error("setting $key = $value");
+//				log_debug("globalcache_set",$key,$value);
 				return apc_store($GLOBALS["globalcache_key_prefix"].$key, $value, $ttl);
 				break;
 

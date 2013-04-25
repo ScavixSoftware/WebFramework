@@ -49,4 +49,10 @@ class System_Attribute
 	var $Method = null;
 	var $Field = null;
 	function __construct() {}
+	
+	function __sleep()
+	{
+		$this->Reflector = $this->Object = null;
+		return array_keys(get_object_vars($this));
+	}
 }
