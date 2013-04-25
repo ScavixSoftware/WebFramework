@@ -348,6 +348,8 @@ function getString($constant, $arreplace = null, $unbuffered = false, $encoding 
 	if( !$arreplace )
 		return getStringOrig($constant,$arreplace,$unbuffered,$encoding);
 	$n = array();
+	if( $arreplace instanceof Model )
+		$arreplace = $arreplace->AsArray();
 	foreach( $arreplace as $k=>$v )
 		if( $k[0] == '{' ) $n[$k] = $v; else $n['{'.$k.'}'] = $v;
 	return getStringOrig($constant,$n,$unbuffered,$encoding);
@@ -373,6 +375,9 @@ function getStringOrig($constant, $arreplace = null, $unbuffered = false, $encod
 		detect_language();
 	if( !isset($GLOBALS['translation']['included_language']) || $GLOBALS['translation']['included_language'] != $GLOBALS['current_language'] )
 		translation_do_includes();
+	
+	if( $arreplace instanceof Model )
+		$arreplace = $arreplace->AsArray();
 	
 	if( !$unbuffered )
 	{
