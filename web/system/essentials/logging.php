@@ -385,7 +385,7 @@ function logging_render_var($content,&$stack=array(),$indent="")
 	foreach( $stack as $s )
 	{
 		if( $s === $content )
-			return "*RECURSION*";
+			return "*RECURSION".(is_object($content)?"[".get_class($content)."]*":"*");
 	}
 	$res = array();
 	if( is_array($content) )
