@@ -61,6 +61,8 @@ $.fn.table = function()
 
 			$('.tbody .tr .td:last-child',self).css('padding-right',w)
 		}
+		
+		$('.pager',self).each( function(){ $(this).width($(this).parent().width());});
 	});
 };
 
