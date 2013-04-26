@@ -227,15 +227,15 @@ class SysAdmin extends HtmlPage
 					$cb->value = $key;
 					
 					$del = new Anchor('','delete');					
-					$del->onclick = "$.post('$q',{key:'".addslashes($key)."'},function(){ $('#{$del->id}').parents('tr').fadeOut(function(){ $(this).remove(); }); })";
+					$del->onclick = "$.post('$q',{key:'".addslashes($key)."'},function(){ $('#{$del->id}').parents('.tr').fadeOut(function(){ $(this).remove(); }); })";
 					$tab->AddNewRow($cb,$key,$del);
 				}
 			}
 			$footer = $tab->Footer()->NewCell();
 			$footer->colspan = 2;
-			$footer->content( new Anchor('','all') )->onclick = "$('#{$tab->id} .tbody input').attr('checked',true)";
+			$footer->content( new Anchor('','all') )->onclick = "$('#{$tab->id} .tbody input').prop('checked',true);";
 			$footer->content('&nbsp;');
-			$footer->content( new Anchor('','none') )->onclick = "$('#{$tab->id} .tbody input').removeAttr('checked')";
+			$footer->content( new Anchor('','none') )->onclick = "$('#{$tab->id} .tbody input').prop('checked',false)";
 			
 			$footer = $tab->Footer()->NewCell();
 			$footer->content( new Anchor('','delete') )->onclick = "$('#{$tabform->id}').submit()";
