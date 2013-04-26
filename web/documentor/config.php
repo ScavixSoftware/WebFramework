@@ -12,14 +12,14 @@ classpath_add(__DIR__.'/templates');
 $CONFIG['model']['system']['connection_string'] = "sqlite:doc.db";
 
 // Logger Config
-ini_set("error_log", __DIR__.'/log/fallback_error.log');
+ini_set("error_log", __DIR__.'/../logs/doc_php_error.log');
 $CONFIG['system']['logging'] = array
 (
 	'full_trace' => array
 	(
 		'class' => 'TraceLogger',
-		'path' => __DIR__.'/log/',
-		'filename_pattern' => 'php_error.trace',
+		'path' => __DIR__.'/../logs/',
+		'filename_pattern' => 'doc_wdf.trace',
 		'log_severity' => true,
 		'max_trace_depth' => 2,
 		'max_filesize' => 10*1024*1024,
