@@ -371,7 +371,7 @@ function globalcache_delete($key)
 			break;
 
 		case globalcache_CACHE_APC:
-			return apc_fetch($GLOBALS["globalcache_key_prefix"].$key);
+			return apc_delete($GLOBALS["globalcache_key_prefix"].$key);
 			break;
 
 		case globalcache_CACHE_ZEND:
