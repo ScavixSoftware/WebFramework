@@ -1,7 +1,7 @@
 <?
 
 // Pages are PHP classes extending HtmlPage 
-$CONFIG['system']['default_page']  = "Blog";
+$CONFIG['system']['default_page']  = "Products";
 // Events are mapped to PHP class methods
 $CONFIG['system']['default_event'] = "Index";
 
@@ -10,16 +10,16 @@ classpath_add(__DIR__.'/controller');
 classpath_add(__DIR__.'/templates');
 
 // Database connection, a DSN passed to the PDO constructor
-$CONFIG['model']['system']['connection_string'] = "sqlite:../blog.db";
+$CONFIG['model']['system']['connection_string'] = "sqlite:../shop.db";
 
 // Logger Config
-ini_set("error_log", __DIR__.'/../logs/blog_php_error.log');
+ini_set("error_log", __DIR__.'/../logs/shop_php_error.log');
 $CONFIG['system']['logging'] = array
 (
 	'human_readable' => array
 	(
 		'path' => __DIR__.'/../logs/',
-		'filename_pattern' => 'blog_wdf.log',
+		'filename_pattern' => 'shop_wdf.log',
 		'log_severity' => true,
 		'max_filesize' => 10*1024*1024,
 		'keep_for_days' => 5,
@@ -29,7 +29,7 @@ $CONFIG['system']['logging'] = array
 	(
 		'class' => 'TraceLogger',
 		'path' => __DIR__.'/../logs/',
-		'filename_pattern' => 'blog_wdf.trace',
+		'filename_pattern' => 'shop_wdf.trace',
 		'log_severity' => true,
 		'max_trace_depth' => 10,
 		'max_filesize' => 10*1024*1024,
@@ -45,11 +45,16 @@ $CONFIG['resources'][] = array
 	'url' => 'res/',
 	'append_nc' => true,
 );
-// If you put WDF into a separate folder next to the app (like here), that folder must be externaly accessible.
-// So maybe you'll have to set up a subdomain for it and set that to 'resources_system_url_root'.
-// For now we just rely on the built in router that will output the resource contents via readfile().
-$CONFIG['resources_system_url_root'] = false;
-//$CONFIG['resources_system_url_root'] = 'http://wdf.domain.com/'; // <- sample
+
+// this is products image folder. 
+// setting it up as resource folder allows us to simply use resFile() to reference a products image.
+$CONFIG['resources'][] = array
+(
+	'ext' => 'png|jpg|jpeg|gif',
+	'path' => realpath(__DIR__.'/images/'),
+	'url' => 'images/',
+	'append_nc' => true,
+);
 
 // some essentials
 $CONFIG['system']['modules'] = array();

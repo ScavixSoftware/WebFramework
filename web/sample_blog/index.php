@@ -2,7 +2,7 @@
 require_once(__DIR__."/../system/system.php");
 
 switchToDev();
-system_init('sample');
+system_init('blog');
 
 if( isset($_GET['clear']) )
 {
