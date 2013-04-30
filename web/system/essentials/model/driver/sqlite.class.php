@@ -181,7 +181,23 @@ class SqLite implements IDatabaseDriver
 	 * @implements <IDatabaseDriver::getDeleteStatement>
 	 */
 	function getDeleteStatement($model,&$args)
-	{ ToDoException::Raise("implement SqLite->getDeleteStatement()"); }
+	{
+		$pks = $model->GetPrimaryColumns();
+		$cols = array();		
+		foreach( $pks as $col )
+		{
+			if( isset($model->$col) )
+			{
+				$cols[] = "`$col`=:$col";
+				$args[":$col"] = $model->$col;
+			}
+		}
+		if( count($cols) == 0 )
+			return false;
+		
+		$sql = "DELETE FROM `".$model->GetTableName()."` WHERE ".implode(" AND ",$cols);
+		return new ResultSet($this->_ds, $this->_pdo->prepare($sql));
+	}
 	
 	/**
 	 * @implements <IDatabaseDriver::getPagedStatement>
