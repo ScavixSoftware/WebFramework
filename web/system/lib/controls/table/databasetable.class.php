@@ -304,9 +304,9 @@ class DatabaseTable extends Table
 		}
         else
         {
-            foreach( $this->ResultSet as $row )
+            foreach( $this->ResultSet as $raw_row )
             {
-				$row = $this->_preProcessData($row);
+				$row = $this->_preProcessData($raw_row);
 
                 if( !$this->header )
                     if( $this->OnAddHeader )
@@ -318,6 +318,8 @@ class DatabaseTable extends Table
                     $this->OnAddRow[0]->{$this->OnAddRow[1]}($this, $row);
                 else
                     $this->AddRow($row);
+				
+				$this->AddDataToRow($raw_row);
             }
 			if( $this->ItemsPerPage )
 			{
