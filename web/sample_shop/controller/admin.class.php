@@ -36,8 +36,8 @@ class Admin extends ShopBase
 	function Index()
 	{
 		$this->_login();
-		
-		$tab = $this->content(new uiDatabaseTable(model_datasource('system'),false,'products'));
+		$this->content(new uiDatabaseTable(model_datasource('system'),false,'products'))
+			->AddRowAction('trash', 'Delete', $this, 'DelProduct');
 		$this->content(uiButton::Make('Add product'))->onclick = AjaxAction::Post('Admin', 'AddProduct');
 	}
 	
@@ -49,13 +49,15 @@ class Admin extends ShopBase
 	 */
 	function AddProduct($title,$tagline,$body,$price)
 	{
-		log_debug("AddProduct($title,$tagline,$body,$price)",$_FILES);
 		if( $title && $tagline && $body && $price )
 		{
-			if( isset($_FILES['image']) )
+			if( isset($_FILES['image']) && $_FILES['image']['name'] )
 			{
-				$image = tempnam(__DIR__.'/../images/', 'upload_');
-				move_uploaded_file($_FILES['image']['tempnam'], $image);
+				$i = 1;
+				$image = __DIR__.'/../images/'.$_FILES['image']['name'];
+				while( file_exists($image) )
+					$image = __DIR__.'/../images/'.($i++).'_'.$_FILES['image']['name'];
+				move_uploaded_file($_FILES['image']['tmp_name'], $image);
 				$image = basename($image);
 			}
 			else $image='';
@@ -70,5 +72,28 @@ class Admin extends ShopBase
 		$dlg->AddButton('Add product', "$('#frm_add_product').submit()");
 		$dlg->AddCloseButton("Cancel");
 		return $dlg;
+	}
+	
+	/**
+	 * @attribute[RequestParam('table','string',false)]
+	 * @attribute[RequestParam('action','string',false)]
+	 * @attribute[RequestParam('model','array',false)]
+	 * @attribute[RequestParam('row','string',false)]
+	 */
+	function DelProduct($table,$action,$model,$row)
+	{
+		if( !AjaxAction::IsConfirmed('DELPRODUCT') )
+			return AjaxAction::Confirm('DELPRODUCT', 'Admin', 'DelProduct', array('model'=>$model));
+		$ds = model_datasource('system');
+		$prod = $ds->Query('products')->eq('id',$model['id'])->current();
+		$prod->Delete();
+		
+		if( $prod->image )
+		{
+			$image = __DIR__.'/../images/'.$prod->image;
+			if( file_exists($image) )
+				unlink($image);
+		}
+		return AjaxResponse::Redirect('Admin');
 	}
 }

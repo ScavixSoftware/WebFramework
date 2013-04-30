@@ -1,4 +1,4 @@
-<form id="frm_add_product" method="post" action="<?=buildQuery('Admin','AddProduct')?>" enctype="multipart/formdata">
+<form id="frm_add_product" method="post" action="<?=buildQuery('Admin','AddProduct')?>" enctype="multipart/form-data">
 	<table>
 		<tr>
 			<td>Title</td>
