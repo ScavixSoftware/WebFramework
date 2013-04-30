@@ -49,27 +49,30 @@ class Admin extends ShopBase
 	 */
 	function AddProduct($title,$tagline,$body,$price)
 	{
+		// This is a quite simple condition: You MUST provide each of the variables
 		if( $title && $tagline && $body && $price )
 		{
+			// store the uploaded image if present
 			if( isset($_FILES['image']) && $_FILES['image']['name'] )
 			{
-				$i = 1;
-				$image = __DIR__.'/../images/'.$_FILES['image']['name'];
+				$i = 1; $image = __DIR__.'/../images/'.$_FILES['image']['name'];
 				while( file_exists($image) )
 					$image = __DIR__.'/../images/'.($i++).'_'.$_FILES['image']['name'];
 				move_uploaded_file($_FILES['image']['tmp_name'], $image);
 				$image = basename($image);
 			}
-			else $image='';
+			else 
+				$image = '';
 			$ds = model_datasource('system');
 			$ds->ExecuteSql("INSERT INTO products(title,tagline,body,image,price)VALUES(?,?,?,?,?)",
 				array($title,$tagline,$body,$image,$price));
 			
 			redirect('Admin');
 		}
+		// create a dialog and put a template on it.
 		$dlg = new uiDialog('Add product',array('width'=>600,'height'=>450));
 		$dlg->content( Template::Make('admin_product_add') );
-		$dlg->AddButton('Add product', "$('#frm_add_product').submit()");
+		$dlg->AddButton('Add product', "$('#frm_add_product').submit()"); // frm_add_product is defined in the template
 		$dlg->AddCloseButton("Cancel");
 		return $dlg;
 	}
@@ -82,8 +85,14 @@ class Admin extends ShopBase
 	 */
 	function DelProduct($table,$action,$model,$row)
 	{
+		// we use the ajax confirm features of the framework which require some translated string, so we set them up here
+		// normally we would start the sysadmin and create some, but for this sample we ignore that.
+		default_string('TITLE_DELPRODUCT','Delete Product');
+		default_string('TXT_DELPRODUCT','Do you really want to remove this product? This cannot be undone!');
+		
 		if( !AjaxAction::IsConfirmed('DELPRODUCT') )
 			return AjaxAction::Confirm('DELPRODUCT', 'Admin', 'DelProduct', array('model'=>$model));
+		
 		$ds = model_datasource('system');
 		$prod = $ds->Query('products')->eq('id',$model['id'])->current();
 		$prod->Delete();
