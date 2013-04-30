@@ -4,7 +4,8 @@ class Admin extends ShopBase
 {
 	private function _login()
 	{
-		if( $_SESSION['logged_in'] )
+		// check only the fact that somebody logged in
+		if( $_SESSION['logged_in'] ) 
 			return true;
 		
 		redirect('Admin','Login');
@@ -18,13 +19,16 @@ class Admin extends ShopBase
 	{
 		if( $username && $password )
 		{
+			// hardcoded credentials are okay for now
 			if( $username=='admin' && $password=='admin')
 			{
-				$_SESSION['logged_in'] = true;
+				$_SESSION['logged_in'] = true; // check only the fact that somebody logged in
 				redirect('Admin');
 			}
 			$this->content(uiMessage::Error("Unknown username/passsword"));
 		}
+		// putting it together as control here. other ways would be to create a new class 
+		// derived from Control or a Template (anonymous or with an own class)
 		$form = $this->content(new Form());
 		$form->content("Username:");
 		$form->AddText('username', '');
@@ -89,14 +93,15 @@ class Admin extends ShopBase
 		// normally we would start the sysadmin and create some, but for this sample we ignore that.
 		default_string('TITLE_DELPRODUCT','Delete Product');
 		default_string('TXT_DELPRODUCT','Do you really want to remove this product? This cannot be undone!');
-		
 		if( !AjaxAction::IsConfirmed('DELPRODUCT') )
 			return AjaxAction::Confirm('DELPRODUCT', 'Admin', 'DelProduct', array('model'=>$model));
-		
+
+		// load and delete the product dataset
 		$ds = model_datasource('system');
 		$prod = $ds->Query('products')->eq('id',$model['id'])->current();
 		$prod->Delete();
 		
+		// delete the image too if present
 		if( $prod->image )
 		{
 			$image = __DIR__.'/../images/'.$prod->image;
