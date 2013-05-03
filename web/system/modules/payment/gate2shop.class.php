@@ -42,7 +42,7 @@ class Gate2Shop extends PaymentProvider
 		if(!isset($CONFIG["payment"]) || !isset($CONFIG["payment"]["gate2shop"]))
 			WdfException::Raise("Gate2Shop payment provider not configured");
 		
-		$this->small_image = resFile("gate2shop.png");
+		$this->small_image = resFile("payment/gate2shop.png");
 	}
 	
 	private function EnsureCurrency($order)
@@ -249,9 +249,9 @@ class Gate2Shop extends PaymentProvider
 		$order_id = $ipndata["invoice_id"];
 		if(starts_with($order_id, $CONFIG["invoices"]["invoice_id_prefix"]))
 			$order_id = trim(str_replace($CONFIG["invoices"]["invoice_id_prefix"], "", $order_id));		
-		$ds = model_datasource('system');
-		$order = $ds->CreateInstance("ShopOrder");
-		if(!$order->Load("id=?", $order_id))
+		
+		$order = $this->LoadOrder($order_id);
+		if( !$order )
 			return "Order id $order_id not found";   // order not found
 		
 		if(!$this->CheckIPNCall($order, $ipndata))

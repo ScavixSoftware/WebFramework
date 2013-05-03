@@ -36,13 +36,8 @@ function payment_init()
 	global $CONFIG;
 	$CONFIG['class_path']['system'][] = __DIR__.'/payment/';
 	
-	$CONFIG['resources'][] = array
-	(
-		'ext' => 'png|jpg|gif',
-		'path' => realpath(__DIR__.'/../skin/payment/'),
-		'url' => $CONFIG['system']['system_uri'].'skin/payment/',
-		'append_nc' => true,
-	);
+	if( !isset($CONFIG["payment"]["order_model"]) || !$CONFIG["payment"]["order_model"] )
+		WdfException::Raise('Please configure an order_model for the payment module');
 }
 
 /**
@@ -61,6 +56,11 @@ abstract class PaymentProvider
 	const PROCESSOR_PAYPAL		= 1; //"paypal";
 	const PROCESSOR_GATE2SHOP	= 2; //"gate2shop";
 	const PROCESSOR_TESTING		= 3; //"test";
+	
+	protected function LoadOrder($order_id)
+	{
+		return call_user_func("{$GLOBALS['CONFIG']["payment"]["order_model"]}::FromOrderId",$order_id);
+	}
 	
 	/**
 	 * Sets data for the PaymentProvider.
@@ -178,6 +178,12 @@ abstract class PaymentProvider
 interface IShopOrder
 {
 	/**
+	 * Creates an instance from an order id.
+	 * @return IShopOrder The new/loaded order <Model>
+	 */
+	static function FromOrderId($order_id);
+	
+	/**
 	 * Gets the invoice ID.
 	 * @return mixed Invoice identifier
 	 */
@@ -231,8 +237,8 @@ interface IShopOrder
 	function GetTotalVat();
     
     /**
-	 * Return the total VAT (if VAT applies for the given country). 
-	 * @return float VAT in order currency
+	 * Return the total VAT percent (if VAT applies for the given country). 
+	 * @return float VAT percent
 	 */
 	function GetVatPercent();
 }
@@ -240,7 +246,27 @@ interface IShopOrder
 /**
  * Prototype of an Address Model.
  * 
- * Your own address <Model> must inherit from this.
+ * Your own address class must inherit from this. Usually this data is stored alongside the order itself
+ * so a typical <IShopOrder::GetAddress> method would just create a new <ShopOrderAddress> object and assign all
+ * properties from itself.
+ * <code php>
+ * class MyShopOrder implements IShopOrder
+ * {
+ *     public function GetAddress()
+ *     {
+ *         $res = new ShopOrderAddress();
+ *         $res->Firstname = $this->fname;
+ *         $res->Lastname = $this->lname;
+ *         $res->Address1 = $this->street;
+ *         $res->Zip = $this->zip;
+ *         $res->City = $this->city;
+ *         $res->Email = $this->email;
+ *         return $res;
+ *     }
+ * 
+ *     // more methods
+ * }
+ * </code>
  */
 class ShopOrderAddress
 {

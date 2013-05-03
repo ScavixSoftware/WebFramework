@@ -42,7 +42,7 @@ class PayPal extends PaymentProvider
 		if(!isset($CONFIG["payment"]) || !isset($CONFIG["payment"]["paypal"]))
 			WdfException::Raise("PayPal payment provider not configured");
 		
-		$this->small_image = resFile("paypal.gif");
+		$this->small_image = resFile("payment/paypal.gif");
 	}
 	
 	private function EnsureCurrency($order)
@@ -266,9 +266,8 @@ class PayPal extends PaymentProvider
 		$payment_status = strtolower($ipndata["payment_status"]);
 		$transaction_id = $ipndata["txn_id"];
 
-		$ds = model_datasource('system');
-		$order = $ds->CreateInstance("ShopOrder");
-		if(!$order->Load("id=?", $order_id))
+		$order = $this->LoadOrder($order_id);
+		if( !$order )
 		{
 			// order not found
 			return "Order id $order_id not found";
