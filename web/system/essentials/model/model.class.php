@@ -199,9 +199,19 @@ abstract class Model implements Iterator, Countable, ArrayAccess
     {
 		$this->_className = get_class($this);
 		$this->_isInherited = $this->_className != "Model";
-		if( !$datasource && self::$DefaultDatasource )
-			$this->__initialize(self::$DefaultDatasource);
-		elseif( $datasource )
+		if( !$datasource )
+		{
+			if( !self::$DefaultDatasource )
+			{
+				$aliases = array_keys($GLOBALS['MODEL_DATABASES']);
+				self::$DefaultDatasource = model_datasource(array_pop($aliases));
+			}
+			if( self::$DefaultDatasource )
+				$this->__initialize(self::$DefaultDatasource);
+			else
+				$this->__initialize();
+		}
+		else
 			$this->__initialize($datasource);
 	}
 	
