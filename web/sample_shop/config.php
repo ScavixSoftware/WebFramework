@@ -8,6 +8,7 @@ $CONFIG['system']['default_event'] = "Index";
 // Application specific classpath
 classpath_add(__DIR__.'/controller');
 classpath_add(__DIR__.'/templates');
+classpath_add(__DIR__.'/model');
 
 // Database connection, a DSN passed to the PDO constructor
 $CONFIG['model']['system']['connection_string'] = "sqlite:../shop.db";
@@ -57,5 +58,10 @@ $CONFIG['resources'][] = array
 );
 
 // some essentials
-$CONFIG['system']['modules'] = array();
+$CONFIG['system']['modules'] = array('payment');
 date_default_timezone_set("Europe/Berlin");
+
+// configure payment module with some dummy data
+$CONFIG["payment"]["order_model"] = 'SampleShopOrder';
+$CONFIG["payment"]["gate2shop"] = array();
+$CONFIG["payment"]["paypal"] = array();
