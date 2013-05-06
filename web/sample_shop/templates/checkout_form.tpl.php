@@ -28,6 +28,6 @@
 	<h2>Payment provider:</h2>
 	<input id="rbPaypal" type="radio" name="provider" value="paypal"/><label for="rbPaypal">PayPal</label><br/>
 	<input id="rbGate2Shop" type="radio" name="provider" value="gate2shop"/><label for="rbGate2Shop">Gate2Shop</label><br/>
-	<input id="rbTesting" checked="checked" type="radio" name="provider" value="testing"/><label for="rbTesting">Testing</label><br/>
-	<input type="submit" value="Start checkout"/>
+	<input id="rbTesting" checked="checked" type="radio" name="provider" value="testingpaymentprovider"/><label for="rbTesting">Testing</label><br/>
+	<input type="submit" value="Buy now"/>
 </form>

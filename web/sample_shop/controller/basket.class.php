@@ -108,7 +108,7 @@ class Basket extends ShopBase
 		{
 			$prod = $ds->Query('products')->eq('id',$id)->current();
 			$item = new SampleShopOrderItem();
-			$item->oder_id = $order->id;
+			$item->order_id = $order->id;
 			$item->price = $prod->price;
 			$item->amount = $amount;
 			$item->title = $prod->title;
@@ -119,8 +119,17 @@ class Basket extends ShopBase
 			$order->price_total += $amount * $prod->price;
 		}
 		$order->Save();
+		$_SESSION['basket'] = array();
 		
+		log_debug("Handing control over to payment provider '$provider'");
 		$p = new $provider();
-		//$p->StartCheckout($order);
+		$p->StartCheckout($order,buildQuery('Basket','PostPayment'));
+	}
+	
+	function PostPayment()
+	{
+		log_debug("PostPayment",$_REQUEST);
+		$this->content("<h1>Payment processed</h1>");
+		$this->content("Provider returned this data:<br/><pre>".render_var($_REQUEST)."</pre>");
 	}
 }
