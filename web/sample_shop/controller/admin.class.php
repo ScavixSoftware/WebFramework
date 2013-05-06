@@ -40,9 +40,22 @@ class Admin extends ShopBase
 	function Index()
 	{
 		$this->_login();
+		
+		$this->content("<h1>Products</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'products'))
+			->AddPager(10)
 			->AddRowAction('trash', 'Delete', $this, 'DelProduct');
 		$this->content(uiButton::Make('Add product'))->onclick = AjaxAction::Post('Admin', 'AddProduct');
+		
+		$this->content("<h1>Orders</h1>");
+		$this->content(new uiDatabaseTable(model_datasource('system'),false,'orders'))
+			->AddPager(10)
+			->OrderBy = 'id DESC';
+		
+		$this->content("<h1>Customers</h1>");
+		$this->content(new uiDatabaseTable(model_datasource('system'),false,'customers'))
+			->AddPager(10)
+			->OrderBy = 'id DESC';
 	}
 	
 	/**

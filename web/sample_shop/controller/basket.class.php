@@ -92,15 +92,19 @@ class Basket extends ShopBase
 		if( !$fname || !$lname || !$street || !$zip || !$city || !$email )
 			redirect('Basket','Index',array('error'=>'Missing some data'));
 		
+		$cust = new SampleCustomer();
+		$cust->fname = $fname;
+		$cust->lname = $lname;
+		$cust->street = $street;
+		$cust->zip = $zip;
+		$cust->city = $city;
+		$cust->email = $email;
+		$cust->price_total = 0;
+		$cust->Save();
+
 		$order = new SampleShopOrder();
+		$order->customer_id = $cust->id;
 		$order->created = 'now()';
-		$order->fname = $fname;
-		$order->lname = $lname;
-		$order->street = $street;
-		$order->zip = $zip;
-		$order->city = $city;
-		$order->email = $email;
-		$order->price_total = 0;
 		$order->Save();
 		
 		$ds = model_datasource('system');
