@@ -144,9 +144,11 @@ abstract class PaymentProvider
 	 * Starts the checkout process
 	 * 
 	 * @param IShopOrder $order The order to start checkout for
+	 * @param string $ok_url URL to be redirected to after payment
+	 * @param string $cancel_url URL to be redirected to when user cancels payment
 	 * @return Form Must return a <Form> control 
 	 */
-	abstract public function StartCheckout(IShopOrder $order);
+	abstract public function StartCheckout(IShopOrder $order, $ok_url=false, $cancel_url=false);
 	
 	/**
 	 * Correct the status from the arguments passed by the PP.
@@ -241,6 +243,60 @@ interface IShopOrder
 	 * @return float VAT percent
 	 */
 	function GetVatPercent();
+	
+	/**
+	 * Called when the order has been paid.
+	 * 
+	 * This is a callback from the payment processor. Will be called when the customer has paid the order.
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
+	function SetPaid($payment_provider_type, $transaction_id, $statusmsg = false);
+	
+	/**
+	 * Called when the order has reached pending state.
+	 * 
+	 * This is a callback from the payment processor. Will be called when the customer has paid the order but the
+	 * payment has not yet been finished/approved by the provider.
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
+	function SetPending($payment_provider_type, $transaction_id, $statusmsg = false);
+	
+	/**
+	 * Called when the order has failed.
+	 * 
+	 * This is a callback from the payment processor. Will be called when there was an error in the payment process.
+	 * This can be synchronous (when cutsomer aborts in then initial payment ui) or asynchronous when something goes wrong
+	 * later in the payment processors processes.
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
+	function SetFailed($payment_provider_type, $transaction_id, $statusmsg = false);
+	
+	/**
+	 * Called when the order has been refunded.
+	 * 
+	 * This is a callback from the payment processor. Will be called when the payment was refunded for any reason.
+	 * This can be reasons from the provider and/or from the customer (when he cancels the payment later).
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
+	function SetRefunded($payment_provider_type, $transaction_id, $statusmsg = false);
+	
+	/**
+	 * Checks if VAT needs to be paid.
+	 * @return boolean true or false
+	 */
+	function DoAddVat();
 }
 
 /**

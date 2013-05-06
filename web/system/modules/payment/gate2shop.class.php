@@ -39,8 +39,15 @@ class Gate2Shop extends PaymentProvider
 	{
 		global $CONFIG;
 		parent::__construct();
-		if(!isset($CONFIG["payment"]) || !isset($CONFIG["payment"]["gate2shop"]))
-			WdfException::Raise("Gate2Shop payment provider not configured");
+		
+		if( !isset($CONFIG["payment"]["gate2shop"]["merchant_id"]) )
+			WdfException::Raise("Gate2Shop: Missing merchant_id");
+
+		if( !isset($CONFIG["payment"]["gate2shop"]["merchant_site_id"]) )
+			WdfException::Raise("Gate2Shop: Missing merchant_site_id");
+		
+		if( !isset($CONFIG["payment"]["gate2shop"]["secret_key"]) )
+			WdfException::Raise("Gate2Shop: Missing secret_key");
 		
 		$this->small_image = resFile("payment/gate2shop.png");
 	}
@@ -143,9 +150,13 @@ class Gate2Shop extends PaymentProvider
 	/**
 	 * @override
 	 */
-	public function StartCheckout(IShopOrder $order)
+	public function StartCheckout(IShopOrder $order, $ok_url=false, $cancel_url=false)
 	{
 		global $CONFIG;
+		
+		if( $ok_url )
+			log_info('Gate2Shop does not allow to pass a return URL, so ignoring it.');
+		
 		// merchant details
 		$this->SetVar('merchant_id', $CONFIG["payment"]["gate2shop"]["merchant_id"]);
 		$this->SetVar('merchant_site_id', $CONFIG["payment"]["gate2shop"]["merchant_site_id"]);

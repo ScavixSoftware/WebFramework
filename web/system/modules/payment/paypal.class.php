@@ -39,8 +39,18 @@ class PayPal extends PaymentProvider
 	{
 		global $CONFIG;
 		parent::__construct();
-		if(!isset($CONFIG["payment"]) || !isset($CONFIG["payment"]["paypal"]))
-			WdfException::Raise("PayPal payment provider not configured");
+		
+		if( !isset($CONFIG["payment"]["paypal"]["paypal_id"]))
+			WdfException::Raise("PayPal: Missing paypal_id");
+		
+		if( !isset($CONFIG["payment"]["paypal"]["ipnurl"]))
+			WdfException::Raise("PayPal: Missing ipnurl");
+		
+		if( !isset($CONFIG["payment"]["paypal"]["use_sandbox"]) )
+			$CONFIG["payment"]["paypal"]["use_sandbox"] = false;
+		
+		if( !isset($CONFIG["payment"]["paypal"]["custom"]) )
+			$CONFIG["payment"]["paypal"]["custom"] = "";
 		
 		$this->small_image = resFile("payment/paypal.gif");
 	}
@@ -87,9 +97,14 @@ class PayPal extends PaymentProvider
 	/**
 	 * @override
 	 */
-	public function StartCheckout(IShopOrder $order)
+	public function StartCheckout(IShopOrder $order, $ok_url=false, $cancel_url=false)
 	{
 		global $CONFIG;
+		
+		if( !$ok_url )
+			WdfException::Raise('PayPal needs a return URL');
+		if( !$cancel_url ) 
+			$cancel_url = $ok_url;
 		
 		$invoice_id = false;
 		if( $tmp = $order->GetInvoiceId() )
@@ -115,8 +130,14 @@ class PayPal extends PaymentProvider
 		$this->SetVar('business', $CONFIG["payment"]["paypal"]["paypal_id"]);
 		$this->SetVar('custom', $CONFIG["payment"]["paypal"]["custom"]);
 		
-		$this->SetVar('return', $CONFIG["payment"]["paypal"]["returnurl"].($invoice_id ? (strpos($CONFIG["payment"]["paypal"]["returnurl"], "?") === false ? "?" : "&")."order_id=$invoice_id" : ""));
-		$this->SetVar('cancel_return', $CONFIG["payment"]["paypal"]["cancelreturnurl"].($invoice_id ? (strpos($CONFIG["payment"]["paypal"]["cancelreturnurl"], "?") === false ? "?" : "&")."order_id=$invoice_id" : ""));
+		if( $invoice_id )
+		{
+			$ok_url .= ((stripos($ok_url,'?')!==false)?'&':'?')."order_id=$invoice_id";
+			$cancel_url .= ((stripos($cancel_url,'?')!==false)?'&':'?')."order_id=$invoice_id";
+		}
+		
+		$this->SetVar('return', $ok_url);
+		$this->SetVar('cancel_return', $cancel_url);
 		$params = array("provider" => "paypal");
 		$notify_url = buildQuery("Shopping", "PPNotification", $params, $CONFIG["payment"]["paypal"]["ipnurl"]);
 		$this->SetVar('notify_url', $notify_url);

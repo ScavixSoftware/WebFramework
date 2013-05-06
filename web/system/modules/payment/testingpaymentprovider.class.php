@@ -51,12 +51,17 @@ class TestingPaymentProvider extends PaymentProvider
 	/**
 	 * @override Testing provider only sets order paid and forwards to dashboard
 	 */
-	public function StartCheckout(IShopOrder $order)
+	public function StartCheckout(IShopOrder $order, $ok_url=false, $cancel_url=false)
 	{
 		$order->SetPaid(PaymentProvider::PROCESSOR_TESTING, -1);
 		$order->Save();
 		
-		redirect("LicenseManager", "BackFromPP", array("provider" => $this->type_name, "status" => "ok", "invoice_id" => $order->GetInvoiceId()));
+		if( $ok_url )
+		{
+			$data = http_build_query(array("provider" => $this->type_name, "status" => "ok", "invoice_id" => $order->GetInvoiceId()));
+			$ok_url .= (stripos($ok_url,'?')!==false?'&':'?').$data;
+			redirect($ok_url);
+		}
 
 		return true;
 	}
