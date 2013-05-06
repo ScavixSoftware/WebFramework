@@ -175,7 +175,76 @@ class SqLite implements IDatabaseDriver
 	 * @implements <IDatabaseDriver::getSaveStatement>
 	 */
 	function getSaveStatement($model,&$args)
-	{ ToDoException::Raise("implement SqLite->getSaveStatement()"); }
+	{
+		$cols = array();
+		$pks = $model->GetPrimaryColumns();
+		$all = array();
+		$vals = array();
+		$pkcols = array();
+
+		foreach( $pks as $col )
+		{
+			if( isset($model->$col) )
+			{
+				$pkcols[] = "`$col`=:$col";
+				$all[] = "`$col`";
+				$vals[] = ":$col";
+				$args[":$col"] = $model->$col;
+			}
+		}
+
+		foreach( $model->GetColumnNames(true) as $col )
+		{
+			if( in_array($col,$pks) )
+				continue;
+			
+			// isset returns false too if $this->$col is set to NULL, so we need some more logic here
+			if( !isset($model->$col) )
+			{
+				if( !isset($ovars) )
+					$ovars = get_object_vars($model);
+				
+				if( !array_key_exists($col,$ovars) )
+					continue;
+			}
+			
+			$tv = $model->TypedValue($col);
+			if( is_string($tv) && strtolower($tv)=="now()" )
+			{
+				$cols[] = "`$col`=datetime('now')";
+				$all[] = "`$col`";
+				$vals[] = "datetime('now')";
+			}
+			else
+			{
+				$cols[] = "`$col`=:$col";
+				$all[] = "`$col`";
+				$vals[] = ":$col";
+				$args[":$col"] = $tv;
+			
+				if( $args[":$col"] instanceof DateTime )
+					$args[":$col"] = $args[":$col"]->format("c");
+			}
+		}
+		
+		if( $model->_saved )
+		{
+			if( count($cols) == 0 )
+				return false;
+			
+			$sql  = "UPDATE `".$model->GetTableName()."`";
+			$sql .= " SET ".implode(",",$cols);
+			$sql .= " WHERE ".implode(" AND ",$pkcols);
+		}
+		else
+		{
+			if( count($all) == 0 )
+				$sql = "INSERT INTO `".$model->GetTableName()."`";
+			else
+				$sql  = "INSERT INTO `".$model->GetTableName()."`(".implode(",",$all).")VALUES(".implode(',',$vals).")";
+		}		
+		return new ResultSet($this->_ds, $this->_pdo->prepare($sql));
+	}
 	
 	/**
 	 * @implements <IDatabaseDriver::getDeleteStatement>
