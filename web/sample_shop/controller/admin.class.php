@@ -31,6 +31,7 @@ class Admin extends ShopBase
 		if( $_SESSION['logged_in'] ) 
 			return true;
 		
+		// redirect to login. this terminates the script execution.
 		redirect('Admin','Login');
 	}
 	
@@ -40,6 +41,7 @@ class Admin extends ShopBase
 	 */
 	function Login($username,$password)
 	{
+		// if credentials are given, try to log in
 		if( $username && $password )
 		{
 			// hardcoded credentials are okay for now
@@ -64,17 +66,20 @@ class Admin extends ShopBase
 	{
 		$this->_login();
 		
+		// add products table and a button to create a new product
 		$this->content("<h1>Products</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'products'))
 			->AddPager(10)
 			->AddRowAction('trash', 'Delete', $this, 'DelProduct');
 		$this->content(uiButton::Make('Add product'))->onclick = AjaxAction::Post('Admin', 'AddProduct');
 		
+		// add orders table
 		$this->content("<h1>Orders</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'orders'))
 			->AddPager(10)
 			->OrderBy = 'id DESC';
 		
+		// add customers table
 		$this->content("<h1>Customers</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'customers'))
 			->AddPager(10)
@@ -103,6 +108,8 @@ class Admin extends ShopBase
 			}
 			else 
 				$image = '';
+			
+			// store the new product into the database
 			$ds = model_datasource('system');
 			$ds->ExecuteSql("INSERT INTO products(title,tagline,body,image,price)VALUES(?,?,?,?,?)",
 				array($title,$tagline,$body,$image,$price));

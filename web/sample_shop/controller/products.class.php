@@ -26,6 +26,7 @@
 class Products extends ShopBase
 {
 	/**
+	 * Lists all products.
 	 * @attribute[RequestParam('error','string',false)]
 	 */
 	function Index($error)
@@ -46,6 +47,7 @@ class Products extends ShopBase
 	}
 	
 	/**
+	 * Shows product details
 	 * @attribute[RequestParam('id','int')]
 	 */
 	function Details($id)

@@ -26,13 +26,16 @@
 class Basket extends ShopBase
 {
 	/**
+	 * Lists all items in the basket.
 	 * @attribute[RequestParam('error','string',false)]
 	 */
 	function Index($error)
 	{
+		// display any given error message
 		if( $error )
 			$this->content(uiMessage::Error($error));
 		
+		// prepare basket variable
 		if( !isset($_SESSION['basket']) )
 			$_SESSION['basket'] = array();
 		
@@ -40,12 +43,14 @@ class Basket extends ShopBase
 			$this->content(uiMessage::Hint('Basket is empty'));
 		else
 		{
+			// list all items in the basket ...
 			$ds = model_datasource('system');
 			$price_total = 0;
 			foreach( $_SESSION['basket'] as $id=>$amount )
 			{
 				$prod = $ds->Query('products')->eq('id',$id)->current();
 				
+				//... each using a template
 				$this->content( Template::Make('product_basket') )
 					->set('title',$prod->title)
 					->set('amount',$amount)
@@ -56,21 +61,25 @@ class Basket extends ShopBase
 					;
 				$price_total += $amount * $prod->price;
 			}
+			// display total price and the button to go on
 			$this->content("<div class='basket_total'>Total price: $price_total</div>");
 			$this->content( uiButton::Make("Buy now") )->onclick = "location.href = '".buildQuery('Basket','BuyNow')."'";
 		}
 	}
 	
 	/**
+	 * Adds a product to the basket.
 	 * @attribute[RequestParam('id','int')]
 	 */
 	function Add($id)
 	{
+		// check if the product exists
 		$ds = model_datasource('system');
 		$prod = $ds->Query('products')->eq('id',$id)->current();
 		if( !$prod )
 			redirect('Basket','Index',array('error'=>'Product not found'));
-		
+
+		// increase the counter for this product
 		if( !isset($_SESSION['basket'][$id]) )
 			$_SESSION['basket'][$id] = 0;
 		$_SESSION['basket'][$id]++;
@@ -78,28 +87,39 @@ class Basket extends ShopBase
 	}
 	
 	/**
+	 * Removes an item from the basket.
 	 * @attribute[RequestParam('id','int')]
 	 */
 	function Remove($id)
 	{
+		// check if the product exists
 		$ds = model_datasource('system');
 		$prod = $ds->Query('products')->eq('id',$id)->current();
 		if( !$prod )
 			redirect('Basket','Index',array('error'=>'Product not found'));
 		
+		// decrease the counter for this product
 		if( isset($_SESSION['basket'][$id]) )
 			$_SESSION['basket'][$id]--;
+		// and unset if no more items left
 		if( $_SESSION['basket'][$id] == 0 )
 			unset($_SESSION['basket'][$id]);
 		redirect('Basket','Index');
 	}
-	
+
+	/**
+	 * Entrypoint for the checkout process.
+	 * 
+	 * Requests customers address details and asks for payment processor.
+	 */
 	function BuyNow()
 	{
+		// displays the chechout form, which has all inputs for address on it
 		$this->content( Template::Make('checkout_form') );
 	}
 	
 	/**
+	 * Persists current basket to the database and starts checkout process.
 	 * @attribute[RequestParam('fname','string')]
 	 * @attribute[RequestParam('lname','string')]
 	 * @attribute[RequestParam('street','string')]
@@ -115,6 +135,8 @@ class Basket extends ShopBase
 		if( !$fname || !$lname || !$street || !$zip || !$city || !$email )
 			redirect('Basket','Index',array('error'=>'Missing some data'));
 		
+		// create a new customer. note that we do not check for existance or stuff.
+		// this should be part of a real shop system!
 		$cust = new SampleCustomer();
 		$cust->fname = $fname;
 		$cust->lname = $lname;
@@ -125,14 +147,17 @@ class Basket extends ShopBase
 		$cust->price_total = 0;
 		$cust->Save();
 
+		// create a new order and assign the customer (from above)
 		$order = new SampleShopOrder();
 		$order->customer_id = $cust->id;
 		$order->created = 'now()';
 		$order->Save();
 		
+		// now loop thru the basket-items and add them to the order...
 		$ds = model_datasource('system');
 		foreach( $_SESSION['basket'] as $id=>$amount )
 		{
+			//... by creating a dataset for each item
 			$prod = $ds->Query('products')->eq('id',$id)->current();
 			$item = new SampleShopOrderItem();
 			$item->order_id = $order->id;
@@ -145,16 +170,25 @@ class Basket extends ShopBase
 			
 			$order->price_total += $amount * $prod->price;
 		}
+		// save the order again to persist the total amount
 		$order->Save();
 		$_SESSION['basket'] = array();
 		
+		// finally start the checkout process using the given payment provider
 		log_debug("Handing control over to payment provider '$provider'");
 		$p = new $provider();
 		$p->StartCheckout($order,buildQuery('Basket','PostPayment'));
 	}
 	
+	/**
+	 * This is the return URL for the payment provider.
+	 * Will be called when payment raches a final state, so control is handed over to our 
+	 * app again from the payment processor.
+	 */
 	function PostPayment()
 	{
+		// we just display the $_REQUEST data for now. in fact this is the point where some processing
+		// should take place: send email to the team, that prepares the items for shipping, send email(s) to customer,...
 		log_debug("PostPayment",$_REQUEST);
 		$this->content("<h1>Payment processed</h1>");
 		$this->content("Provider returned this data:<br/><pre>".render_var($_REQUEST)."</pre>");
