@@ -43,8 +43,8 @@ class PayPal extends PaymentProvider
 		if( !isset($CONFIG["payment"]["paypal"]["paypal_id"]))
 			WdfException::Raise("PayPal: Missing paypal_id");
 		
-		if( !isset($CONFIG["payment"]["paypal"]["ipnurl"]))
-			WdfException::Raise("PayPal: Missing ipnurl");
+		if( !isset($CONFIG["payment"]["paypal"]["notify_handler"]))
+			WdfException::Raise("PayPal: Missing notify_handler");
 		
 		if( !isset($CONFIG["payment"]["paypal"]["use_sandbox"]) )
 			$CONFIG["payment"]["paypal"]["use_sandbox"] = false;
@@ -139,7 +139,7 @@ class PayPal extends PaymentProvider
 		$this->SetVar('return', $ok_url);
 		$this->SetVar('cancel_return', $cancel_url);
 		$params = array("provider" => "paypal");
-		$notify_url = buildQuery("Shopping", "PPNotification", $params, $CONFIG["payment"]["paypal"]["ipnurl"]);
+		$notify_url = buildQuery($CONFIG["payment"]["paypal"]["notify_handler"][0], $CONFIG["payment"]["paypal"]["notify_handler"][1], $params);
 		$this->SetVar('notify_url', $notify_url);
 		
 		// customer details
@@ -155,7 +155,7 @@ class PayPal extends PaymentProvider
 		if( $address->City ) $this->SetVar('city',$address->City);
 		// tell paypal to use this entered address:
 		$this->SetVar('address_override', 1);
-		$this->SetVar('bn', "ScendixSoftware_BuyNow_".$CONFIG["payment"]["paypal"]["custom"]."_DE");
+		$this->SetVar('bn', $CONFIG["payment"]["paypal"]["custom"]);
 		// do not let users add notes in paypal:
 		$this->SetVar('no_note', 1);
 		
