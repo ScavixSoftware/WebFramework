@@ -84,10 +84,12 @@ $CONFIG['resources'][] = array
 $CONFIG['system']['modules'] = array('payment');
 date_default_timezone_set("Europe/Berlin");
 
-// configure payment module
+// configure payment module with your IShopOrder class
 $CONFIG["payment"]["order_model"] = 'SampleShopOrder';
+// set up Gate2Shop if you want to use it
 $CONFIG["payment"]["gate2shop"]["merchant_id"]      = '<your_merchant_id>';
 $CONFIG["payment"]["gate2shop"]["merchant_site_id"] = '<your_merchant_site_id>';
 $CONFIG["payment"]["gate2shop"]["secret_key"]       = '<your_secret_key>';
+// set up PayPal if you want to use it
 $CONFIG["payment"]["paypal"]["paypal_id"]      = '<your_paypal_id>';
 $CONFIG["payment"]["paypal"]["notify_handler"] = array('Basket','Notification');

@@ -198,7 +198,9 @@ class Basket extends ShopBase
 	 * This is a special handler method for PayPal.
 	 * It will be called asynchronously from PayPal backend so user will never see results of it.
 	 * Just here to update the database when payments are ready or refunded or whatever.
-	 * See https://www.paypal.com/ipn for details.
+	 * See https://www.paypal.com/ipn for details but in fact WebFramework will handle this for you.
+	 * Just needs this entry point for the callback.
+	 * @attribute[RequestParam('provider','string')]
 	 */
 	function Notification($provider)
 	{
