@@ -31,12 +31,15 @@ class Products extends ShopBase
 	 */
 	function Index($error)
 	{
+		// display error message if given
 		if( $error )
 			$this->content(uiMessage::Error($error));
 		
+		// loop thru the products...
 		$ds = model_datasource('system');
 		foreach( $ds->Query('products')->orderBy('title') as $prod )
 		{
+			//... and use a template to represent each
 			$this->content( Template::Make('product_overview') )
 				->set('title',$prod->title)
 				->set('tagline',$prod->tagline)
@@ -52,11 +55,13 @@ class Products extends ShopBase
 	 */
 	function Details($id)
 	{
+		// check if product really exists
 		$ds = model_datasource('system');
 		$prod = $ds->Query('products')->eq('id',$id)->current();
 		if( !$prod )
 			redirect('Products','Index',array('error'=>'Product not found'));
 		
+		// create a template with product details
 		$this->content( Template::Make('product_details') )
 			->set('title',$prod->title)
 			->set('description',$prod->body)

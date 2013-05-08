@@ -34,6 +34,9 @@ if( isset($_GET['clear']) )
 	$_SESSION = array();	
 }
 
+/**
+ * Creates a all tables and some sample data.
+ */
 function ensure_db()
 {
 	$flds = array();
@@ -57,6 +60,7 @@ function ensure_db()
 			array('Product 3','Product 3 tagline: we need that for listings','No desc here too as this is demo data','product3.png',1.99));
 	}
 }
+// Not nice to call that every time, but we will go for it in our sample.
 ensure_db();
 
 system_execute();

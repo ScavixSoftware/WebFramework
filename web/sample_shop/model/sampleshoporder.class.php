@@ -23,6 +23,14 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+/**
+ * Represents an order in the database.
+ * 
+ * In fact nothing more than implementations for the inherited Model 
+ * and the implemented IShopOrder interface (see the API reference docs for details about the methods).
+ * More logic would go into the Set* methods to handle different order states.
+ * For our sample we just set the states in the DB.
+ */
 class SampleShopOrder extends Model implements IShopOrder
 {
 	const UNKNOWN  = 0;
