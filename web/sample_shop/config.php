@@ -84,7 +84,10 @@ $CONFIG['resources'][] = array
 $CONFIG['system']['modules'] = array('payment');
 date_default_timezone_set("Europe/Berlin");
 
-// configure payment module with some dummy data
+// configure payment module
 $CONFIG["payment"]["order_model"] = 'SampleShopOrder';
-$CONFIG["payment"]["gate2shop"] = array();
-$CONFIG["payment"]["paypal"] = array();
+$CONFIG["payment"]["gate2shop"]["merchant_id"]      = '<your_merchant_id>';
+$CONFIG["payment"]["gate2shop"]["merchant_site_id"] = '<your_merchant_site_id>';
+$CONFIG["payment"]["gate2shop"]["secret_key"]       = '<your_secret_key>';
+$CONFIG["payment"]["paypal"]["paypal_id"]      = '<your_paypal_id>';
+$CONFIG["payment"]["paypal"]["notify_handler"] = array('Basket','Notification');
