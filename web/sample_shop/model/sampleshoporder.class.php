@@ -27,7 +27,7 @@
  * Represents an order in the database.
  * 
  * In fact nothing more than implementations for the inherited Model 
- * and the implemented IShopOrder interface (see the API reference docs for details about the methods).
+ * and the implemented IShopOrder interface.
  * More logic would go into the Set* methods to handle different order states.
  * For our sample we just set the states in the DB.
  */
