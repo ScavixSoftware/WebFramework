@@ -93,3 +93,8 @@ $CONFIG["payment"]["gate2shop"]["secret_key"]       = '<your_secret_key>';
 // set up PayPal if you want to use it
 $CONFIG["payment"]["paypal"]["paypal_id"]      = '<your_paypal_id>';
 $CONFIG["payment"]["paypal"]["notify_handler"] = array('Basket','Notification');
+
+// Credentials for the Admin controller. Hardcoding them is okay for now, but they should obviously be stored in DB later.
+// Note: never store passwords, but salted password hashes!
+$CONFIG["admin"]["username"] = 'admin';
+$CONFIG["admin"]["password"] = 'admin';

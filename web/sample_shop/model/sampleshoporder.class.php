@@ -27,7 +27,8 @@
  * Represents an order in the database.
  * 
  * In fact nothing more than implementations for the inherited Model 
- * and the implemented IShopOrder interface (see the API reference docs for details about the methods).
+ * and the implemented IShopOrder interface.
+ * See https://github.com/ScavixSoftware/WebFramework/wiki/classes_modules_payment#wiki-1c67f96d00c3c22f1ab9002cd0e3acbb
  * More logic would go into the Set* methods to handle different order states.
  * For our sample we just set the states in the DB.
  */
@@ -39,8 +40,16 @@ class SampleShopOrder extends Model implements IShopOrder
 	const FAILED   = 30;
 	const REFUNDED = 40;
 	
+	/**
+	 * Returns the table name.
+	 * See https://github.com/ScavixSoftware/WebFramework/wiki/classes_essentials_model_model.class#gettablename
+	 */
 	public function GetTableName() { return 'orders'; }
 
+	/**
+	 * Gets the orders address.
+	 * @return ShopOrderAddress The order address
+	 */
 	public function GetAddress()
 	{
 		$res = new ShopOrderAddress();
@@ -53,12 +62,31 @@ class SampleShopOrder extends Model implements IShopOrder
 		return $res;
 	}
 
+	/**
+	 * Gets the currency code.
+	 * @return string A valid currency code
+	 */
 	public function GetCurrency() { return 'EUR'; }
 
+	/**
+	 * Gets the invoice ID.
+	 * @return mixed Invoice identifier
+	 */
 	public function GetInvoiceId() { return "I".$this->id; }
 
+	/**
+	 * Gets the order culture code.
+	 * 
+	 * See <CultureInfo>
+	 * @return string Valid culture code
+	 */
 	public function GetLocale() { return 'en-US'; }
 
+    /**
+	 * Return the total price incl. VAT (if VAT applies for the given country). 
+	 * @param float $price The price without VAT.
+	 * @return float Price including VAT (if VAT applies for the country).
+	 */
 	public function GetTotalPrice($price = false)
 	{
 		if( $price !== false )
@@ -66,19 +94,52 @@ class SampleShopOrder extends Model implements IShopOrder
 		return $this->price_total * ( (1+$this->GetVatPercent()) / 100 );
 	}
 
+    /**
+	 * Return the total VAT (if VAT applies for the given country). 
+	 * @return float VAT in order currency
+	 */
 	public function GetTotalVat() { return $this->price_total * ($this->GetVatPercent()/100); }
 
+    /**
+	 * Return the total VAT percent (if VAT applies for the given country). 
+	 * @return float VAT percent
+	 */
 	public function GetVatPercent() { return 19; }
 
+	/**
+	 * Returns all items.
+	 * 
+	 * @return array A list of <IShopOrderItem> objects
+	 */
 	public function ListItems() { return SampleShopOrderItem::Make()->eq('order_id',$this->id)->orderBy('id'); }
 
+	/**
+	 * Sets the currency
+	 * @param string $currency_code A valid currency code
+	 * @return void
+	 */
 	public function SetCurrency($currency_code) { /* we stay with EUR */ }
 
+	/**
+	 * Creates an instance from an order id.
+	 * @return IShopOrder The new/loaded order <Model>
+	 */
 	public static function FromOrderId($order_id)
 	{
 		return SampleShopOrder::Make()->eq('id',$order_id)->current();
 	}
 
+	/**
+	 * Called when the order has failed.
+	 * 
+	 * This is a callback from the payment processor. Will be called when there was an error in the payment process.
+	 * This can be synchronous (when cutsomer aborts in then initial payment ui) or asynchronous when something goes wrong
+	 * later in the payment processors processes.
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
 	public function SetFailed($payment_provider_type, $transaction_id, $statusmsg = false)
 	{
 		$this->status = self::FAILED;
@@ -86,6 +147,15 @@ class SampleShopOrder extends Model implements IShopOrder
 		$this->Save();
 	}
 
+	/**
+	 * Called when the order has been paid.
+	 * 
+	 * This is a callback from the payment processor. Will be called when the customer has paid the order.
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
 	public function SetPaid($payment_provider_type, $transaction_id, $statusmsg = false)
 	{
 		$this->status = self::PAID;
@@ -93,6 +163,16 @@ class SampleShopOrder extends Model implements IShopOrder
 		$this->Save();
 	}
 
+	/**
+	 * Called when the order has reached pending state.
+	 * 
+	 * This is a callback from the payment processor. Will be called when the customer has paid the order but the
+	 * payment has not yet been finished/approved by the provider.
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
 	public function SetPending($payment_provider_type, $transaction_id, $statusmsg = false)
 	{
 		$this->status = self::PENDING;
@@ -100,6 +180,16 @@ class SampleShopOrder extends Model implements IShopOrder
 		$this->Save();
 	}
 
+	/**
+	 * Called when the order has been refunded.
+	 * 
+	 * This is a callback from the payment processor. Will be called when the payment was refunded for any reason.
+	 * This can be reasons from the provider and/or from the customer (when he cancels the payment later).
+	 * @param int $payment_provider_type Provider type identifier (<PaymentProvider>::PROCESSOR_PAYPAL, <PaymentProvider>::PROCESSOR_GATE2SHOP, ...)
+	 * @param mixed $transaction_id Transaction identifier (from the payment provider)
+	 * @param string $statusmsg An optional status message
+	 * @return void
+	 */
 	public function SetRefunded($payment_provider_type, $transaction_id, $statusmsg = false)
 	{
 		$this->status = self::REFUNDED;
@@ -107,5 +197,9 @@ class SampleShopOrder extends Model implements IShopOrder
 		$this->Save();
 	}
 
+	/**
+	 * Checks if VAT needs to be paid.
+	 * @return boolean true or false
+	 */
 	public function DoAddVat() { return true; /* Let's assume normal VAT customers for now */ }
 }

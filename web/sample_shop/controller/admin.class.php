@@ -25,6 +25,9 @@
 
 class Admin extends ShopBase
 {
+	/**
+	 * Checks if aa admin has logged in and redirects to login if not.
+	 */
 	private function _login()
 	{
 		// check only the fact that somebody logged in
@@ -44,8 +47,8 @@ class Admin extends ShopBase
 		// if credentials are given, try to log in
 		if( $username && $password )
 		{
-			// hardcoded credentials are okay for now
-			if( $username=='admin' && $password=='admin')
+			// see config.php for credentials
+			if( $username==cfg_get('admin','username') && $password==cfg_get('admin','password') )
 			{
 				$_SESSION['logged_in'] = true; // check only the fact that somebody logged in
 				redirect('Admin');
@@ -64,7 +67,7 @@ class Admin extends ShopBase
 	
 	function Index()
 	{
-		$this->_login();
+		$this->_login(); // require admin to be logged in
 		
 		// add products table and a button to create a new product
 		$this->content("<h1>Products</h1>");
@@ -94,6 +97,8 @@ class Admin extends ShopBase
 	 */
 	function AddProduct($title,$tagline,$body,$price)
 	{
+		$this->_login(); // require admin to be logged in
+		
 		// This is a quite simple condition: You MUST provide each of the variables
 		if( $title && $tagline && $body && $price )
 		{
@@ -132,6 +137,8 @@ class Admin extends ShopBase
 	 */
 	function DelProduct($table,$action,$model,$row)
 	{
+		$this->_login(); // require admin to be logged in
+		
 		// we use the ajax confirm features of the framework which require some translated string, so we set them up here
 		// normally we would start the sysadmin and create some, but for this sample we ignore that.
 		default_string('TITLE_DELPRODUCT','Delete Product');

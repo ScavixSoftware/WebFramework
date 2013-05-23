@@ -23,7 +23,16 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+/**
+ * Represents a customer in the database.
+ * 
+ * Just a placeholder class to be able to query the DB nicely.
+ */
 class SampleCustomer extends Model
 {
+	/**
+	 * Returns the table name.
+	 * See https://github.com/ScavixSoftware/WebFramework/wiki/classes_essentials_model_model.class#gettablename
+	 */
 	public function GetTableName() { return 'customers'; }
 }
