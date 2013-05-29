@@ -142,6 +142,8 @@ function minify_js($paths,$target_file)
 	$code = "";
 	foreach( $files as $f )
 	{
+        if(starts_with($f, "/") && !starts_with($f, "//"))
+            $f = (isSSL() ? "https" : "http")."://{$_SERVER['SERVER_NAME']}".$f;        
 		$js = sendHTTPRequest($f,false,false,$response_header);
 		if( mb_detect_encoding($js) != "UTF-8" )
 			$js = mb_convert_encoding($js, "UTF-8");
@@ -183,6 +185,8 @@ function minify_css($paths,$target_file,$nc_argument=false)
 	{
 		if( !$f )
 			continue;
+        if(starts_with($f, "/") && !starts_with($f, "//"))
+            $f = (isSSL() ? "https" : "http")."://{$_SERVER['SERVER_NAME']}".$f;
 		$css = sendHTTPRequest($f,false,false,$response_header);
 		if( stripos($response_header,"404 Not Found") !== false )
 			continue;
