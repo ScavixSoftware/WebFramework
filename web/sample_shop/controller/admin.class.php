@@ -22,6 +22,14 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+use ScavixWDF\Base\AjaxAction;
+use ScavixWDF\Base\AjaxResponse;
+use ScavixWDF\Base\Template;
+use ScavixWDF\Controls\Form\Form;
+use ScavixWDF\JQueryUI\Dialog\uiDialog;
+use ScavixWDF\JQueryUI\uiButton;
+use ScavixWDF\JQueryUI\uiDatabaseTable;
+use ScavixWDF\JQueryUI\uiMessage;
 
 class Admin extends ShopBase
 {

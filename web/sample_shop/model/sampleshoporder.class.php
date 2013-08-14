@@ -22,6 +22,9 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+use ScavixWDF\Model\Model;
+use ScavixWDF\Payment\IShopOrder;
+use ScavixWDF\Payment\ShopOrderAddress;
 
 /**
  * Represents an order in the database.

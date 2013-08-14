@@ -23,6 +23,10 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+use ScavixWDF\Base\HtmlPage;
+use ScavixWDF\Base\Template;
+use ScavixWDF\Controls\Anchor;
+
 class Blog extends HtmlPage
 {
 	function __initialize()

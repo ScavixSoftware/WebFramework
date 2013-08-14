@@ -23,6 +23,8 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+use ScavixWDF\Base\HtmlPage;
+
 /**
  * @attribute[Resource('marked.js')]
  */

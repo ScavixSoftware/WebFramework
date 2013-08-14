@@ -22,6 +22,8 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+use ScavixWDF\Base\Template;
+use ScavixWDF\JQueryUI\uiMessage;
 
 class Products extends ShopBase
 {

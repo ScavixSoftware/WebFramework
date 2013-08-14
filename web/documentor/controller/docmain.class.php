@@ -23,6 +23,12 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+use ScavixWDF\Base\Control;
+use ScavixWDF\Base\HtmlPage;
+use ScavixWDF\Base\Template;
+use ScavixWDF\Controls\Anchor;
+use ScavixWDF\Reflection\PhpDocComment;
+
 class DocMain extends HtmlPage
 {
 	const MAX_FILES = 5000;

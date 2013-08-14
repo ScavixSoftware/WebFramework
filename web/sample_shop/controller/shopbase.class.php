@@ -22,6 +22,7 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+use ScavixWDF\Base\HtmlPage;
 
 /**
  * For now we only use this to have a central derived template for all subclasses.
