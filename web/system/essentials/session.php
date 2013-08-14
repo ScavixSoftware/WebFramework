@@ -26,6 +26,9 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+use ScavixWDF\Session\Serializer;
+use ScavixWDF\WdfException;
+
 require_once(__DIR__.'/session/serializer.class.php');
 
 /**
@@ -77,6 +80,7 @@ function session_run()
 			(!$CONFIG['session']['usephpsession'] && $CONFIG['session']['handler'] == "PhpSession") )
 			WdfException::Raise('Do not use $CONFIG[\'session\'][\'usephpsession\'] anymore! See session_init() for details.');
 	}
+	$CONFIG['session']['handler'] = fq_class_name($CONFIG['session']['handler']);
 	$GLOBALS['fw_session_handler'] = new $CONFIG['session']['handler']();
 
 //	if( system_is_ajax_call() && isset($_SESSION['object_id_storage']) )

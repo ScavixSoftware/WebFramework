@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,10 +25,17 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+
 define('FRAMEWORK_LOADED','uSI7hcKMQgPaPKAQDXg5');
 require_once(__DIR__.'/system_objects.php');
 require_once(__DIR__.'/system_functions.php');
+
+use ScavixWDF\Base\AjaxResponse;
+use ScavixWDF\Base\Args;
+use ScavixWDF\Base\Renderable;
+use ScavixWDF\ICallable;
+use ScavixWDF\Reflection\WdfReflector;
+use ScavixWDF\WdfException;
 
 // Config handling
 system_config_default( !defined("NO_DEFAULT_CONFIG") );
@@ -64,7 +71,7 @@ function system_config($filename,$reset_to_defaults=true)
 function system_config_default($reset = true)
 {
 	global $CONFIG;
-	
+
 	# see http://www.php.net/manual/de/session.configuration.php
 	ini_set('session.hash_function',1);
 	ini_set('session.hash_bits_per_character',5);
@@ -113,6 +120,8 @@ function system_config_default($reset = true)
     $path = explode("index.php",$_SERVER['PHP_SELF']);
 	if( !isset($_SERVER['REQUEST_SCHEME']) )
 		$_SERVER['REQUEST_SCHEME'] = 'http';
+	if( !isset($_SERVER['HTTP_HOST']) )
+		$_SERVER['HTTP_HOST'] = '127.0.0.1';
 	
 	$CONFIG['system']['url_root'] = "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}{$path[0]}";
     $CONFIG['system']['modules'] = array();
@@ -169,10 +178,10 @@ function system_is_module_loaded($mod)
 }
 
 /**
- * Initializes the Scavix WDF.
+ * Initializes the Scavix ScavixWDF.
  * 
  * This is one of two essential functions you must know about.
- * Initializes the complete WDF, loads all essentials and defined modules and initializes them,
+ * Initializes the complete ScavixWDF, loads all essentials and defined modules and initializes them,
  * prepares the session and writes out some headers (from config too).
  * @param string $application_name Application name. This will become your session cookie name!
  * @param bool $skip_header Optional. If true, will not send headers.
@@ -266,7 +275,7 @@ function system_parse_request_path()
 		if( count($path)>0 )
 		{
 			if( $path[0]=='~' ) $path[0] = cfg_get('system','default_page');
-			
+			$path[0] = fq_class_name($path[0]);
 			if( class_exists($path[0]) || in_object_storage($path[0]) )
 			{
 				$controller = $path[0];
@@ -289,7 +298,7 @@ function system_parse_request_path()
 	if( !isset($event) || !$event )
 		$event = Args::request('event', cfg_get('system','default_event')); // really oldschool
 	
-	$pattern = "/[^A-Za-z0-9\-_]/";
+	$pattern = '/[^A-Za-z0-9\-_\\\\]/';
 	$controller = substr(preg_replace($pattern, "", $controller), 0, 256);
 	$event = substr(preg_replace($pattern, "", $event), 0, 256);
 	return array($controller,$event);
@@ -309,6 +318,8 @@ function system_instanciate_controller($controller_id)
 		$res = restore_object($controller_id);
 	elseif( class_exists($controller_id) )
 		$res = new $controller_id();
+	else
+		WdfException::Raise("ACCESS DENIED: Unknown controller '$controller_id'");
 	
 	if( system_is_ajax_call() )
 	{
@@ -329,7 +340,7 @@ function system_instanciate_controller($controller_id)
  * 
  * This is the second of two essential functions.
  * It runs the actual execution. If fact it is the only place where you will
- * find an `echo` in the WDF code.
+ * find an `echo` in the ScavixWDF code.
  * @return void
  */
 function system_execute()
@@ -430,7 +441,7 @@ function system_execute()
  */
 function system_invoke_request($target_class,$target_event,$pre_execute_hook_type)
 {
-	$ref = System_Reflector::GetInstance($target_class);
+	$ref = WdfReflector::GetInstance($target_class);
 	$params = $ref->GetMethodAttributes($target_event,"RequestParam");
 	$args = array();
 	$argscheck = array();
@@ -743,13 +754,55 @@ function __set_classpath_order($class_path_order)
  */
 function system_spl_autoload($class_name)
 {
+//	log_debug("system_spl_autoload($class_name)");
 	if(($class_name == "") || ($class_name{0} == "<"))
 		return;  // it's html
     try
     {
+		if( strpos($class_name, '\\') !== false )
+		{
+			$orig = $class_name;
+			$class_name = array_pop(explode('\\',$class_name));
+//			log_debug("Simplifying FQ classname '$orig' to '$class_name'");
+		}
         $file = __search_file_for_class($class_name);
         if( $file && is_readable($file) )
+		{
+			$pre = get_declared_classes();
             require_once($file);
+			$post = array_unique(array_diff(get_declared_classes(), $pre));
+			
+			foreach( $post as $cd )
+			{
+				$d = explode("\\",$cd);
+				if( count($d) > 1 )
+					create_class_alias($cd,array_pop($d));
+			}
+			
+			$def = array_pop($post);
+			
+			if( !isset($orig) && !$def ) // plain class requested AND file was already included, so search up the declared classes and alias
+			{
+				foreach( array_reverse($pre) as $c )
+				{
+					if( !ends_with($c,$class_name) )
+						continue;
+					log_info("Aliasing previously included class '$c' to '$class_name'. To avoid this check the use statements or use a qualified classname.");
+					create_class_alias($c,$class_name,true);
+					break;
+				}
+			}
+			else
+			{
+				$class_name = isset($orig)?$orig:$class_name;
+				if( strtolower($def) != strtolower($class_name) && ends_iwith($def,$class_name) ) // no qualified classname requested but class was defined with namespace
+				{
+
+					log_info("Aliasing class '$def' to '$class_name'. To avoid this check the use statements or use a qualified classname.");
+					create_class_alias($def,$class_name,true);
+				}
+			}
+		}
     } 
     catch(Exception $ex)
     { WdfException::Log("system_spl_autoload",$ex); };
@@ -842,8 +895,12 @@ function __search_file_for_class($class_name,$extension="class.php",$classpath_l
 	$short_class_name = "";
 	if( strpos($class_name,"_") !== false )
 	{
-		$short_class_name = explode("_",$class_name);
-		$short_class_name = $short_class_name[count($short_class_name)-1];
+		$short_class_name = array_pop(explode("_",$class_name));
+		$short_class_name_lc = strtolower($short_class_name);
+	}
+	elseif( strpos($class_name,"\\") !== false )
+	{
+		$short_class_name = array_pop(explode("\\",$class_name));
 		$short_class_name_lc = strtolower($short_class_name);
 	}
 
@@ -909,7 +966,7 @@ function buildQuery($controller,$event="",$data="", $url_root=false)
 
 	if( $controller instanceof Renderable )
 		$controller = $controller->_storage_id;
-		
+	
     if(substr($controller, 0, 4) == "http")
         return $controller;
 
@@ -1081,49 +1138,6 @@ function is_host($host_or_ip)
 }
 
 /**
- * Finds all objects of a given classname in the given content.
- * 
- * Used to query a complete object tree for specific classes.
- * Currently only used in uiDatabaseTable, so may be removed if we find a better way.
- * @todo: this one with all it's recursions kills performance massively!
- * @param array $content Content to search in
- * @param string $classname Classname to find
- * @param array $result Found objects
- * @param int $recursion INTERNAL
- * @param array $stack INTERNAL
- * @return bool true if something is found
- */
-function system_find(&$content,$classname,&$result = array(),$recursion=0, $stack=array())
-{
-	if($recursion > 10)
-		return true;
-	if( is_object($content) )
-	{
-		if(isset($content->_storage_id))
-		{
-			if(isset($stack[$content->_storage_id]))
-				return true;
-			$stack[$content->_storage_id] = $content->_storage_id;
-		}
-		if( get_class($content) == $classname || is_subclass_of($content, $classname) )
-            $result[] = $content;
-		$ov = get_object_vars($content);
-		foreach( $ov as $p=>&$val )
-		{
-			if(system_find($content->$p,$classname,$result,$recursion+1,$stack))
-				return true;
-		}
-	}
-    elseif( is_array($content) )
-    {
-        foreach( $content as &$c )
-            if(system_find($c,$classname,$result,$recursion+1,$stack))
-				return true;
-    }
-	return false;
-}
-
-/**
  * Returns a value from the wdf cache.
  * 
  * There are multiple caches: SESSION and global.
@@ -1240,7 +1254,7 @@ function current_controller($as_string=true)
 	if( !isset($GLOBALS['current_controller']) )
 		return $as_string?'':null;
 	if( $as_string )
-		return strtolower(is_object($GLOBALS['current_controller'])?get_class($GLOBALS['current_controller']):$GLOBALS['current_controller']);
+		return strtolower(is_object($GLOBALS['current_controller'])?get_class_simple($GLOBALS['current_controller']):$GLOBALS['current_controller']);
 	return $GLOBALS['current_controller'];
 }
 
@@ -1267,7 +1281,7 @@ function current_event()
  */
 function constant_from_name($class_name_or_object,$constant_name)
 {
-	$ref = System_Reflector::GetInstance($class_name_or_object);
+	$ref = WdfReflector::GetInstance($class_name_or_object);
 	$constant_name = strtolower($constant_name);
 	foreach( $ref->getConstants() as $name=>$value )
 		if( strtolower($name) == $constant_name || ends_with(strtolower($name), $constant_name) )
@@ -1286,7 +1300,7 @@ function constant_from_name($class_name_or_object,$constant_name)
  */
 function name_from_constant($class_name,$constant_value,$prefix=false)
 {
-	$ref = System_Reflector::GetInstance($class_name);
+	$ref = WdfReflector::GetInstance($class_name);
 	foreach( $ref->getConstants() as $name=>$value )
 		if( $value == $constant_value && (!$prefix || starts_with($name, $prefix)) )
 			return $name;
@@ -1442,4 +1456,57 @@ function system_render_object_tree($array_of_objects)
 			$res[$key] = $val;
 	}
 	return $res;
+}
+
+function create_class_alias($original,$alias,$strong=false)
+{
+	if( $strong )
+		class_alias($original,$alias);
+	
+	$alias = strtolower($alias);
+	if( isset($GLOBALS['system_class_alias'][$alias]) )
+	{
+		if( $GLOBALS['system_class_alias'][$alias] == $original )
+			return;
+		
+		if( !is_array($GLOBALS['system_class_alias'][$alias]) )
+			$GLOBALS['system_class_alias'][$alias] = array($GLOBALS['system_class_alias'][$alias]);
+		$GLOBALS['system_class_alias'][$alias][] = $original;
+	}
+	else
+		$GLOBALS['system_class_alias'][$alias] = $original;
+}
+
+/**
+ * @internal Maps a classname given as string to a full qualified class identifier.
+ */
+function fq_class_name($classname)
+{
+	if( strpos($classname, '\\')!==false )
+		return $classname;
+	$cnl = strtolower($classname);
+	switch( $cnl )
+	{
+		case 'template':              return '\\ScavixWDF\\Base\\Template';
+		case 'renderable':            return '\\ScavixWDF\\Base\\Renderable';
+		case 'control':               return '\\ScavixWDF\\Base\\Control';
+		case 'requestparamattribute': return '\\ScavixWDF\\Reflection\\RequestParamAttribute';
+		case 'resourceattribute':     return '\\ScavixWDF\\Reflection\\ResourceAttribute';
+		case 'nominifyattribute':     return '\\ScavixWDF\\Reflection\\NoMinifyAttribute';
+		case 'wdfresource':           return '\\ScavixWDF\\WdfResource';
+		case 'datasource':            return '\\ScavixWDF\\Model\\DataSource';
+		case 'sysadmin':              return '\\ScavixWDF\\Admin\\SysAdmin';
+		case 'minifyadmin':           return '\\ScavixWDF\\Admin\\MinifyAdmin';
+		case 'tracelogger':           return '\\ScavixWDF\\Logging\\TraceLogger';
+		case 'phpsession':            return '\\ScavixWDF\\Session\\PhpSession';
+	}
+	
+	if( isset($GLOBALS['system_class_alias'][$cnl]) )
+	{
+		if( is_array($GLOBALS['system_class_alias'][$cnl]) )
+			WdfException::Raise("Ambigous classname: $classname",$GLOBALS['system_class_alias'][$cnl]);
+		return $GLOBALS['system_class_alias'][$cnl];
+	}
+	//log_debug("fq_class_name($classname) NOOP");
+	return $classname;
 }

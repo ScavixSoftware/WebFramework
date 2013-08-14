@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +25,7 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Logging;
 
 $GLOBALS['logger_severity_map'] = array
 (
@@ -107,7 +108,7 @@ class Logger
 		}
 		if( isset($config['class']) )
 		{
-			$log_cls = $config['class'];
+			$log_cls = fq_class_name($config['class']);
 			$res = new $log_cls($config);
 		}
 		else

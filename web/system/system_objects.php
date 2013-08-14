@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,9 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF;
+
+use Exception;
 
 if( !defined('FRAMEWORK_LOADED') || FRAMEWORK_LOADED != 'uSI7hcKMQgPaPKAQDXg5' ) die('');
 
@@ -36,7 +39,7 @@ interface ICallable {}
  * Transparently wraps Exceptions thus providing a way to catch them easily while still having the original
  * Exception information.
  * 
- * Using static <WdfException::Raise>() method you can pass in multiple arguments. WDF will try to detect
+ * Using static <WdfException::Raise>() method you can pass in multiple arguments. ScavixWDF will try to detect
  * if there's an exception object given and use it (the first one detected) as inner exception object.
  * <code php>
  * WdfException::Raise('My simple test');

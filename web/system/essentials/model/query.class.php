@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,7 +25,12 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Model;
+
+use DateTime;
+use PDO;
+use ScavixWDF\WdfDbException;
+
 /**
  * @internal SQL common query builder
  */
@@ -99,7 +104,7 @@ class Query
 				$this->_statement->bindValue($i+1,$v);
 		}
 		if( !$this->_statement->execute() )
-			WdfDbException::Raise($this->_statement->ErrorOutput(),"\nSQL: $sql","\nArguments:",$this->_values);
+			WdfDbException::Raise($this->_statement->ErrorOutput(),"\nArguments:",$this->_values,"\nMerged:",ResultSet::MergeSql($this->_ds,$sql, $this->_values));
 		
 		$res = $this->_statement->fetchAll(PDO::FETCH_CLASS,get_class($this->_object),$ctor_args);
 		return $res;
@@ -240,25 +245,41 @@ class Query
 		}			
 	}
 
-	function like($property,$value)
+	function like($property,$value,$flipped=false)
 	{
 		if( $value instanceof ColumnAttribute )
 			$this->__conditionTree()->Add(new Condition("LIKE",$property,$value));
 		else
 		{
-			$this->__conditionTree()->Add(new Condition("LIKE",$property));
-			$this->_values[] = $value;
+			if( $flipped )
+			{
+				$this->__conditionTree()->Add(new Condition("LIKE","?",$value));
+				$this->_values[] = $property;
+			}
+			else
+			{
+				$this->__conditionTree()->Add(new Condition("LIKE",$property));
+				$this->_values[] = $value;
+			}
 		}			
 	}
 
-	function rlike($property,$value)
+	function rlike($property,$value,$flipped=false)
 	{
 		if( $value instanceof ColumnAttribute )
 			$this->__conditionTree()->Add(new Condition("RLIKE",$property,$value));
 		else
 		{
-			$this->__conditionTree()->Add(new Condition("RLIKE",$property));
-			$this->_values[] = $value;
+			if( $flipped )
+			{
+				$this->__conditionTree()->Add(new Condition("RLIKE","?",$value));
+				$this->_values[] = $property;
+			}
+			else
+			{
+				$this->__conditionTree()->Add(new Condition("RLIKE",$property));
+				$this->_values[] = $value;
+			}
 		}
 	}
 

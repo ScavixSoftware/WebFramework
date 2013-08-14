@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\JQueryUI\Dialog;
+
+use ScavixWDF\JQueryUI\uiControl;
+
 default_string('TITLE_DIALOG', 'Dialog');
 
 /**
@@ -43,6 +47,7 @@ class uiDialog extends uiControl
 	{
 		parent::__initialize("div");
 		$this->title = $title;
+		$tit_script = $this->title?"":"$(this).parent().find('.ui-dialog-titlebar').hide();";
 
 		$this->Options = array_merge(array(
 				'autoOpen'=>true,
@@ -51,7 +56,7 @@ class uiDialog extends uiControl
 				'draggable'=>false,
 				'width'=>350,
 				'height'=>150,
-				'open'=>"function(){ $(this).parent().find('.ui-button').button('enable'); }",
+				'open'=>"function(){ $(this).parent().find('.ui-button').button('enable');$tit_script }",
 			),$options);
 		
 		$rem = system_is_ajax_call()?".remove()":'';
@@ -72,6 +77,17 @@ class uiDialog extends uiControl
 				$temp = array( $this->CloseButton => $this->CloseButtonAction );
 				$this->Buttons = array_merge($this->Buttons, $temp);
 			}
+			
+			$rem = system_is_ajax_call()?".remove()":'';
+			$close_action = "$('#{$this->id}').dialog('close')$rem;";
+			
+			foreach( $this->Buttons as $label=>$action )
+			{
+				if( !starts_with($action, '[jscode]') && !starts_with($action, 'function') )
+					$action = "function(){ $action }";
+				$this->Buttons[$label] = str_replace("{close_action}", $close_action, $action);
+			}
+						
 			$this->Options['buttons'] = $this->Buttons;
 			$tmp = $this->_script;
 			$this->_script = array();

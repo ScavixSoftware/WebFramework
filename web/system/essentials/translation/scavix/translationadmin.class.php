@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,23 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Translation;
+
+use stdClass;
+use ScavixWDF\Base\AjaxAction;
+use ScavixWDF\Base\AjaxResponse;
+use ScavixWDF\Base\Control;
+use ScavixWDF\Controls\Anchor;
+use ScavixWDF\Controls\Form\Button;
+use ScavixWDF\Controls\Form\CheckBox;
+use ScavixWDF\Controls\Form\Form;
+use ScavixWDF\Controls\Form\Select;
+use ScavixWDF\Controls\Form\TextArea;
+use ScavixWDF\Controls\Form\TextInput;
+use ScavixWDF\Controls\Table\Table;
+use ScavixWDF\JQueryUI\Dialog\uiDialog;
+use ScavixWDF\Localization\Localization;
+use ScavixWDF\WdfException;
 
 /**
  * <SysAdmin> handler for translations.
@@ -131,7 +148,7 @@ class TranslationAdmin extends TranslationAdminBase
             $strings = "\$GLOBALS['translation']['strings'] = ".var_export($data,true);
             file_put_contents(
                 $CONFIG['translation']['data_path'].$lang.'.inc.php', 
-                "<?\n$info;\n$strings;\n"
+                "<?php\n$info;\n$strings;\n"
             );
             $this->_contentdiv->content("<div>Created translation file for $lang</div>");
         }
@@ -207,11 +224,12 @@ class TranslationAdmin extends TranslationAdminBase
 		if( $lang != $CONFIG['localization']['default_language'] )
 		{
 			$translated = array();
-			$rs = $this->_searchQuery($lang,$search);
+			$rs = $this->_searchQuery($lang);
 			foreach( $rs as $row )
 				$translated[$row['id']] = $row['content'];
 		}
 		$rs = $this->_searchQuery($CONFIG['localization']['default_language'],$search)->page($offset,10);
+        $this->ds->LastStatement->LogDebug();
 		foreach( $rs as $term )
 		{
 			if( isset($translated) )
@@ -265,11 +283,11 @@ class TranslationAdmin extends TranslationAdminBase
 	}
 	
 	/**
-	 * @internal Imports a file with translations into the translation system.
+	 * Imports a file with translations into the translation system.
 	 * 
 	 * File must contain vaid JSON data with key-value pairs of strings in an array.
 	 * Sample:
-	 * <code javascript>
+	 * <code json>
 	 * [
 	 *   {"term":"TXT_TERM1","content":"My contents of terms 1"},
 	 *   {"or":"TXT_TERM2","can_be":"My contents of terms 2"},
@@ -282,7 +300,7 @@ class TranslationAdmin extends TranslationAdminBase
 	 * - The uploaded file must be given as 'json_file' (`$_FILES['json_file']`)
 	 * @param string $lang The language the contents are given in
 	 * @return void
-	 * 
+	 * @internal
 	 * @attribute[RequestParam('lang','string',false)]
 	 */
 	function Import($lang)

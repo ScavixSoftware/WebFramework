@@ -25,7 +25,13 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Payment;
+
+use ScavixWDF\Localization\CultureInfo;
+use ScavixWDF\Payment\IShopOrder;
+use ScavixWDF\Payment\PaymentProvider;
+use ScavixWDF\WdfException;
+
 /**
  * PayPal payment provider.
  * 

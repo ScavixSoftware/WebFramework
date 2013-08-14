@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,11 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\JQueryUI;
+
+use ScavixWDF\Controls\Form\Label;
+use ScavixWDF\Controls\Form\Select;
+
 default_string('TXT_VERY_POOR', 'Poor');
 default_string('TXT_NOT_THAT_BAD', 'Bad');
 default_string('TXT_AVERAGE', 'Average');

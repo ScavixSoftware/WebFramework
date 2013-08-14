@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,7 +25,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Base;
+
+use ScavixWDF\WdfException;
+
 /**
  * These are unsiversal HTML attributes.
  * Each (1st dimension) array key represents an attribute and the value (array) contains
@@ -191,7 +194,7 @@ class Control extends Renderable
 	function __initialize($tag = "")
 	{
 		$this->Tag = strtolower($tag);
-        $class = strtolower(get_class($this));
+        $class = strtolower(get_class_simple($this));
 
         if( $class != $this->Tag && $class != "control" )
             $this->class = $class;

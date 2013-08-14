@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +25,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+
+use ScavixWDF\Localization\CultureInfo;
+use ScavixWDF\Localization\Localization;
+use ScavixWDF\Model\Model;
  
 /**
  * Initializes the translation essential.
@@ -583,7 +587,7 @@ function translation_ensure_nt($text_potentially_named_like_a_constant)
 /**
  * 'Registers' a string in the translation system with a default value.
  * 
- * This is used in WDF when components require user-interaction without forcing the implementor to
+ * This is used in ScavixWDF when components require user-interaction without forcing the implementor to
  * create 100ths of strings as the first he must do.
  * @param string $constant Constant name
  * @param string $text The defauilt text

@@ -25,6 +25,15 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Controls\Table;
+
+use ExcelCulture;
+use PDO;
+use ScavixWDF\Base\Control;
+use ScavixWDF\Controls\Anchor;
+use ScavixWDF\Localization\CultureInfo;
+use ScavixWDF\Model\DataSource;
+
 default_string("TXT_NO_DATA_FOUND","no data found");
 
 /**
@@ -418,7 +427,7 @@ class DatabaseTable extends Table
 	protected function _exportExcel($format=self::EXPORT_FORMAT_XLSX)
 	{		
 		system_load_module(__DIR__.'/../../modules/mod_phpexcel.php');
-		$xls = new PHPExcel();
+		$xls = new \PHPExcel();
 		$sheet = $xls->getActiveSheet();
 		$row = 1;
 		$max_cell = 0;
@@ -444,7 +453,7 @@ class DatabaseTable extends Table
 			if( isset($this->ColFormats[$i]) )
 			{
 				$ef = $ci->GetExcelFormat($this->ColFormats[$i]);
-				$col = PHPExcel_Cell::stringFromColumnIndex($i);
+				$col = \PHPExcel_Cell::stringFromColumnIndex($i);
 				$sheet->getStyle("$col$first_data_row:$col$row")
 					->getNumberFormat()
 					->setFormatCode($ef);
@@ -452,9 +461,9 @@ class DatabaseTable extends Table
 		}
 		
 		if( $format == self::EXPORT_FORMAT_XLS )
-			$xlswriter = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+			$xlswriter = \PHPExcel_IOFactory::createWriter($xls, 'Excel5');
 		else
-			$xlswriter = PHPExcel_IOFactory::createWriter($xls, 'Excel2007');
+			$xlswriter = \PHPExcel_IOFactory::createWriter($xls, 'Excel2007');
 		
 		$filename = str_replace("{date}",date("Y-m-d_H-i-s"),self::$export_def[$format]['fn']);
 		$mime = self::$export_def[$format]['mime'];

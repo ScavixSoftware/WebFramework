@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,7 +25,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Reflection;
+
+use stdClass;
+
 /**
  * Represents a PHP DocComment as described in http://en.wikipedia.org/wiki/PHPDoc
  * 
@@ -41,7 +44,7 @@ class PhpDocComment
 	/**
 	 * Creates a PhpDocComment instance from a string
 	 * 
-	 * See <System_Reflector::getCommentObject> for how to use this best.
+	 * See <WdfReflector::getCommentObject> for how to use this best.
 	 * @param string $comment Valid DocComment string
 	 * @return boolean|PhpDocComment False on error, else a PhpDocComment object
 	 */

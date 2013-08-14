@@ -26,6 +26,8 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
  
+use ScavixWDF\WdfException;
+
 /**
  * Modul to localize ip-adresses.
  * 

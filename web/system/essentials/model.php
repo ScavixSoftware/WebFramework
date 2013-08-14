@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +26,9 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+
+use ScavixWDF\Model\DataSource;
+use ScavixWDF\WdfDbException;
 
 /**
  * Initializes the model essential.
@@ -125,6 +129,7 @@ function &model_datasource($name)
 	if( is_array($MODEL_DATABASES[$name]) )
 	{
 		list($dstype,$constr) = $MODEL_DATABASES[$name];
+		$dstype = fq_class_name($dstype);
 		$model_db = new $dstype($name,$constr);
 		if( !$model_db )
 			WdfDbException::Raise("Unable to connect to database '$name'.");

@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,12 +25,13 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Model\Driver;
+
 /**
  * Interface for database drivers.
  * 
- * Although WDF uses <PDO> each database has it's specialities so we need a driver interface.
- * The actual database drivers must imeplement this to be compatible with WDF.
+ * Although ScavixWDF uses <PDO> each database has it's specialities so we need a driver interface.
+ * The actual database drivers must imeplement this to be compatible with ScavixWDF.
  */
 interface IDatabaseDriver
 {

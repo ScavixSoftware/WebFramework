@@ -25,7 +25,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\JQueryUI;
+
+use ScavixWDF\Base\Control;
+
 /**
  * A TreeView control.
  * 

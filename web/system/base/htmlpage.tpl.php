@@ -34,38 +34,38 @@ echo '<?xml version="1.0" encoding="UTF-8" ?>'."\n$doctype\n";?>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title><?=$title?></title>
-<? if(isset($favicon) && $favicon) { ?>
+<?php if(isset($favicon) && $favicon) { ?>
 	<link rel="shortcut icon" href="<?=$favicon?>" />
-<? } ?>
-	<? foreach($meta as $m) echo $m; ?>
-	<? foreach($css as $c) echo $c; ?>
-	<? foreach($js as $j) echo $j; ?>
-	<? if(isset($inlineCSS)) echo $inlineCSS; ?>
+<?php } ?>
+	<?php foreach($meta as $m) echo $m; ?>
+	<?php foreach($css as $c) echo $c; ?>
+	<?php foreach($js as $j) echo $j; ?>
+	<?php if(isset($inlineCSS)) echo $inlineCSS; ?>
 <script type='text/javascript'>
 $(function(){ 
 	if( !navigator.cookieEnabled )
 		return $('body').empty().append('<?=$js_cookie_error?>');
-<? if( count($docready) > 0 ): ?>
+<?php if( count($docready) > 0 ): ?>
 	wdf.ready.add(function()
 	{
 	<?=implode("\n\t",$docready);?>
 	});
-<? endif; ?>
+<?php endif; ?>
 	<?=$wdf_init?>
 });
 	<?=implode("\n\t",$plaindocready)?>
 </script>
 </head>
 <body<?=isset($isrtl)?"$isrtl":""?><?=isset($bodyClass)?" class='$bodyClass'":""?>>
-<? if( $render_noscript_block ): ?>
+<?php if( $render_noscript_block ): ?>
 <noscript>
 	<style type="text/css">
 		body>*:not(noscript) { display:none !important; }
 	</style>
 	<?=$js_cookie_error?>
 </noscript>
-<? endif; ?>
-<?
+<?php endif; ?>
+<?php
 if( isset($sub_template_content) )
 	echo $sub_template_content;
 else

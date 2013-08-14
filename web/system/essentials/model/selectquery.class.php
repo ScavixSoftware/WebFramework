@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +25,7 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Model;
 
 /**
  * @internal SQL SELECT query builder
@@ -90,7 +91,7 @@ class SelectQuery extends Query
 			$tmp = array();
 			foreach( $this->_orderBy as $k=>$d )
 				if( $k != '{SPECIAL}' )
-					$tmp[] = "`$k` $d";
+					$tmp[] = "$k $d";
 				else
 					$tmp[] = "$d";
 

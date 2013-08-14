@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Base;
+
+use ScavixWDF\JQueryUI\Dialog\uiConfirmation;
+use ScavixWDF\WdfException;
 
 /**
  * Helper class to build common JavaScript codes for usage in AJAX aware controls.

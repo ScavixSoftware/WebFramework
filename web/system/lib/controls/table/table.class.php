@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +25,12 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Controls\Table;
+
+use ScavixWDF\Base\AjaxResponse;
+use ScavixWDF\Base\Control;
+use ScavixWDF\Localization\CultureInfo;
+use ScavixWDF\WdfException;
 
 /**
  * An HTML table in DIV notation.
@@ -256,7 +262,7 @@ class Table extends Control
 		
         foreach( $this->_content as &$c )
         {
-			if( !is_object($c) || (get_class($c) != "TBody") )
+			if( !is_object($c) || (get_class_simple($c) != "TBody") )
 				continue;
 
             foreach( $c->_content as $r )

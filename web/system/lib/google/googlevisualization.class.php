@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,12 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Google;
+
+use MC_Google_Visualization;
+use PDO;
+use ScavixWDF\ICallable;
+use ScavixWDF\Model\DataSource;
 
 /**
  * Base class for google visualization controls.
@@ -68,7 +74,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		
 		$this->_ds = $ds?$ds:(self::$DefaultDatasource?self::$DefaultDatasource:model_datasource('internal'));
 		
-		$this->gvType = $type?$type:substr(get_class($this),2);
+		$this->gvType = $type?$type:substr(get_class_simple($this),2);
 		$this->gvOptions = $options?$options:array();
 		$this->gvQuery = $query;
 		

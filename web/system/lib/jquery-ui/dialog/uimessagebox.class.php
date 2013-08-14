@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,8 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\JQueryUI\Dialog;
+
 default_string('TITLE_WARNING', 'Warning');
 
 /**
@@ -49,5 +51,27 @@ class uiMessageBox extends uiDialog
 
 		$this->content($message_text);
 		$this->AddCloseButton(tds('BTN_OK','Ok'));
+	}
+	
+	/**
+	 * Creates a new uiMessageBox as hint.
+	 * 
+	 * @param string $message Hint text
+	 * @return uiMessagebox A new uiMessagebox 
+	 */
+	static function Hint($message)
+	{
+		return new uiMessagebox($message,'hint','');
+	}
+	
+	/**
+	 * Creates a new uiMessageBox as error.
+	 * 
+	 * @param string $message Error text
+	 * @return uiMessageBox A new uiMessagebox 
+	 */
+	static function Error($message)
+	{
+		return new uiMessagebox($message,'error','');
 	}
 }

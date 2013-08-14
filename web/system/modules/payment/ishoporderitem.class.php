@@ -25,37 +25,47 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Payment;
 
 /**
- * Wraps ReflectionMethod class and overrides invokeArgs method to allow control extender pattern to work.
- * 
+ * Order items <Model>s must implement this.
  */
-class System_ReflectionMethod extends ReflectionMethod
+interface IShopOrderItem
 {
 	/**
-	 * Overrides default invokeArgs method
-	 * 
-	 * See <ReflectionMethod::invokeArgs>
-	 * Will additionally check all defined extenders and call the method there if present.
-	 * @param object $object The object to invoke the method on. In case of static methods, you can pass null to this parameter
-	 * @param array $argsarray The parameters to be passed to the function, as an array
-	 * @return mixed Returns the method result. 
+	 * Gets the items name.
+	 * @return string The item name
 	 */
-	public function invokeArgs($object, array $argsarray)
-	{
-		try{
-			return parent::invokeArgs($object, $argsarray);
-		}catch(Exception $e){ log_debug("Checking for extender invokation"); }
-		
-		if( !is_null($object) && $object instanceof Control )
-		{
-			foreach( $object->_extender as &$ex )
-			{
-				try{
-					return $this->invokeArgs($ex, $argsarray);
-				}catch(Exception $e){ log_debug("Checking other extenders"); }
-			}
-		}
-		WdfException::Raise("Error invoking ".$this->class."->".$this->name);
-	}
+	function GetName();
+	
+	/**
+	 * Gets the price per item converted into the requested currency.
+	 * @param string $currency Currency code
+	 * @return float The price per item converted into $currency
+	 */
+	function GetAmount($currency);
+	
+	/**
+	 * Gets the shipping cost.
+	 * @return float Cost for shipping
+	 */
+	function GetShipping();
+	
+	/**
+	 * Gets the handling cost.
+	 * @return float Cost for handling
+	 */
+	function GetHandling();
+	
+	/**
+	 * Gets the discount.
+	 * @return float The discount
+	 */
+	function GetDiscount();
+	
+	/**
+	 * Gets the quantity.
+	 * @return float The quantity
+	 */
+	function GetQuantity();
 }

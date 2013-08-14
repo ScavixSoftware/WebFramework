@@ -25,7 +25,13 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Controls\Locale;
+
+use ScavixWDF\Base\Renderable;
+use ScavixWDF\Controls\Form\Select;
+use ScavixWDF\Localization\CultureInfo;
+use ScavixWDF\Localization\Localization;
+
 /**
  * Region selector.
  * 
@@ -68,14 +74,19 @@ class RegionSelect extends Select
 		
 		if( count($regions)>0 )
 		{
+			$cc = current_controller(false);
+			$translations_active = ($cc instanceof Renderable) && $cc->_translate;
 			$sorted = array();
 			foreach($regions as $reg)
 			{
 				if( !$reg ) continue;
 				$code = $reg->Code;
-				$sorted[$code] = array("name"=>tds("TXT_COUNTRY_".strtoupper($code),$reg->EnglishName),"code",$code);
+				if( $translations_active )
+					$sorted[$code] = array("name"=>tds("TXT_COUNTRY_".strtoupper($code),$reg->EnglishName),"code",$code);
+				else
+					$sorted[$code] = array("name"=>$reg->EnglishName,"code",$code);
 			}
-			uasort($sorted, "RegionSelect::compareCountryNames");
+			uasort($sorted, __CLASS__."::compareCountryNames");
 
 			foreach($sorted as $code=>$item)
 				$this->AddOption($code, $item['name']);

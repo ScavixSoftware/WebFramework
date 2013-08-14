@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +25,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Base;
+
+use ScavixWDF\ICallable;
+use ScavixWDF\Localization\Localization;
 
 default_string('ERR_JAVASCRIPT_AND_COOKIES_REQUIRED','This page requires JavaScript and Cookies.');
 /**

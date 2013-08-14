@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,9 +22,21 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Admin;
+
+use ScavixWDF\Base\AjaxResponse;
+use ScavixWDF\Base\Control;
+use ScavixWDF\Base\HtmlPage;
+use ScavixWDF\Base\Template;
+use ScavixWDF\Controls\Anchor;
+use ScavixWDF\Controls\Form\CheckBox;
+use ScavixWDF\Controls\Form\Form;
+use ScavixWDF\Controls\Form\Select;
+use ScavixWDF\Controls\Form\TextInput;
+use ScavixWDF\Controls\Table\Table;
 
 /**
- * WDF sysadmin page
+ * ScavixWDF sysadmin page
  * 
  * This is a tweak mechanism that allows you to manage your application.
  * For example you can create strings, manage the cache and check the PHP configuration.
@@ -42,6 +54,7 @@ class SysAdmin extends HtmlPage
     {
         global $CONFIG;
 		
+		header("Content-Type: text/html; charset=utf-8"); // overwrite previously set header to ensure we deliver HTML
 		unset($CONFIG["use_compiled_js"]);
 		unset($CONFIG["use_compiled_css"]);
         
@@ -55,7 +68,7 @@ class SysAdmin extends HtmlPage
             ) )
             redirect('SysAdmin','Login');
         
-        parent::__initialize($title, 'sysadmin');
+        parent::__initialize("SysAdmin - $title", 'sysadmin');
         $this->_translate = false;
         
         if( current_event(true) != 'login' )
@@ -65,28 +78,27 @@ class SysAdmin extends HtmlPage
 			
 			foreach( $CONFIG['system']['admin']['actions'] as $label=>$def )
 			{
-				if( !class_exists($def[0]) )
+				if( !class_exists(fq_class_name($def[0])) )
 					continue;
 				$nav->content( new Anchor(buildQuery($def[0],$def[1]),$label) );
 			}
-            $nav->content( new Anchor(buildQuery('SysAdmin','Cache'),'Cache') )
-                ->content( new Anchor(buildQuery('SysAdmin','PhpInfo'),'PHP info') )
-                ->content( new Anchor(buildQuery('TranslationAdmin','NewStrings'),'Translations') )
-                ->content( new Anchor(buildQuery('SysAdmin','Testing'),'Testing') )
-                ->content( new Anchor(buildQuery('',''),'Back to app') )
-                ->content( new Anchor(buildQuery('SysAdmin','Logout'),'Logout', 'logout') );
+            $nav->content( new Anchor(buildQuery('SysAdmin','Cache'),'Cache') );
+            $nav->content( new Anchor(buildQuery('SysAdmin','PhpInfo'),'PHP info') );
+            $nav->content( new Anchor(buildQuery('TranslationAdmin','NewStrings'),'Translations') );
+            $nav->content( new Anchor(buildQuery('SysAdmin','Testing'),'Testing') );
+            $nav->content( new Anchor(buildQuery('',''),'Back to app') );
+            $nav->content( new Anchor(buildQuery('SysAdmin','Logout'),'Logout', 'logout') );
 			
 			$this->_subnav = parent::content(new Control('div'));
         }
         
         $this->_contentdiv = parent::content(new Control('div'))->addClass('content');
         
-        parent::content(new Control('br'))->addClass('clearer');
-        $copylink = new Anchor('http://www.scavix.com', '&copy; 2012-'.date('Y').' Scavix&reg; Software Ltd. &amp; Co. KG');
+        $copylink = new Anchor('http://www.scavix.com', '&#169; 2012-'.date('Y').' Scavix&#174; Software Ltd. &amp; Co. KG');
         $copylink->target = '_blank';
-        parent::content(new Control('div'))
-                ->addClass('footer')
-                ->content($copylink);
+        $footer = parent::content(new Control('div'))->addClass('footer');
+		$footer->content("<br class='clearer'/>");
+        $footer->content($copylink);
         
         if( (current_event() == strtolower($CONFIG['system']['default_event'])) && !system_method_exists($this, current_event()) )
             redirect('SysAdmin', 'Index');
@@ -135,11 +147,11 @@ class SysAdmin extends HtmlPage
         }
         
         if( $username != $CONFIG['system']['admin']['username'] || $password != $CONFIG['system']['admin']['password'] )
-            redirect(get_class($this),'Login');
+            redirect(get_class_simple($this),'Login');
         
         $_SESSION['admin_handler_username'] = $username;
         $_SESSION['admin_handler_password'] = $password;
-        redirect(get_class($this));
+        redirect(get_class_simple($this));
 	}
     
     /**
@@ -149,7 +161,7 @@ class SysAdmin extends HtmlPage
     {
         unset($_SESSION['admin_handler_username']);
         unset($_SESSION['admin_handler_password']);
-        redirect(get_class($this),'Login');
+        redirect(get_class_simple($this),'Login');
     }
 	
 	/**

@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,7 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+use ScavixWDF\WdfException;
 
 if( !defined('FRAMEWORK_LOADED') || FRAMEWORK_LOADED != 'uSI7hcKMQgPaPKAQDXg5' ) die('');
 
@@ -379,7 +380,10 @@ function urlScheme($append_slashes=false)
 function system_ensure_path_ending(&$path, $make_realpath=false)
 {
 	if( $make_realpath )
-		$path = realpath($path);
+	{
+		$p = realpath($path);
+		if( $p ) $path = $p;
+	}
     if( !ends_with($path, '/') )
         $path .= '/';
 }
@@ -430,6 +434,29 @@ function ends_with($string,$end)
 		return false;
 	}
 	return substr($string,strlen($string)-strlen($end)) == $end;
+}
+
+/**
+ * Checks if a string ends with another one.
+ * 
+ * Same as <ends_with> but ignores case.
+ * @param string $string String to check
+ * @param string $end The end to be checked
+ * @return bool true or false
+ */
+function ends_iwith($string,$end)
+{
+	$end = strtolower($end);
+	if( func_num_args() > 2 )
+	{
+		$args = func_get_args();
+		array_shift($args);
+		foreach( $args as $end )
+			if( strtolower(substr($string,strlen($string)-strlen($end))) == $end )
+				return true;
+		return false;
+	}
+	return strtolower(substr($string,strlen($string)-strlen($end))) == $end;
 }
 
 /**
@@ -753,12 +780,11 @@ function classpath_add($path, $recursive=true, $part=false)
 	system_ensure_path_ending($path,true);
 	if( !$part )
 		$part = $CONFIG['system']['application_name'];
-	
 	$CONFIG['class_path'][$part][] = $path;
 	if( !in_array($part, $CONFIG['class_path']['order']) )
 		$CONFIG['class_path']['order'][] = $part;
 			
-	if( $recursive )
+	if( $recursive && is_dir($path) )
 	{
 		foreach( system_glob($path.'*', GLOB_MARK|GLOB_ONLYDIR|GLOB_NOSORT) as $sub )
 			classpath_add($sub, true, $part);
@@ -878,4 +904,19 @@ function castObject($instance, $className)
         strstr(strstr(serialize($instance), '"'), ':')
     ));
 	return $res;
+}
+
+/**
+ * Returns the classname for the given object.
+ * 
+ * This function ignores all namespace stuff and only return the good old classname.
+ * Not sure if we will need it for a longer time, but in fact it IS needed for namespace redesign.
+ * @param object $object The object to get the classname from
+ * @param bool $lower_case What do you think?
+ * @return string Simplified classname
+ */
+function get_class_simple($object, $lower_case=false)
+{
+	$res = array_pop(explode('\\',get_class($object)));
+	return $lower_case?strtolower($res):$res;
 }

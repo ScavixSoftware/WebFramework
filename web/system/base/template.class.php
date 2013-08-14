@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,7 +25,10 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Base;
+
+use ScavixWDF\WdfException;
+
 /**
  * Building blocks of web pages.
  * 
@@ -213,7 +216,7 @@ class Template extends Renderable
 	/**
 	 * Gets all variables.
 	 * 
-	 * @return arary All variables
+	 * @return array All variables
 	 */
 	function get_vars()
 	{

@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,13 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Translation;
+
+use ScavixWDF\Base\AjaxResponse;
+use ScavixWDF\Controls\Anchor;
+use ScavixWDF\Controls\Form\CheckBox;
+use ScavixWDF\Controls\Form\Form;
+use ScavixWDF\WdfException;
 
 /**
  * <SysAdmin> handler for translations.
@@ -131,7 +138,7 @@ class TranslationAdmin extends TranslationAdminBase
             $strings = "\$GLOBALS['translation']['strings'] = ".var_export($data,true);
             file_put_contents(
                 $CONFIG['translation']['data_path'].$lang.'.inc.php', 
-                "<?\n$info;\n$strings;\n"
+                "<?php\n$info;\n$strings;\n"
             );
             $this->_contentdiv->content("<div>Created translation file for $lang</div>");
         }

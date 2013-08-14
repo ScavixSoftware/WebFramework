@@ -25,7 +25,12 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Widgets;
+
+use ScavixWDF\Base\Template;
+use ScavixWDF\Controls\Anchor;
+use ScavixWDF\Controls\Image;
+
 /**
  * Links to some social networks for sharing the current uri.
  * 

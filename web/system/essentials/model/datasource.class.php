@@ -25,7 +25,14 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Model;
+
+use Exception;
+use PDO;
+use ScavixWDF\Model\Driver\MySql;
+use ScavixWDF\Model\Driver\SqLite;
+use ScavixWDF\WdfDbException;
+
 /**
  * Provides access to a database.
  * 
@@ -69,7 +76,7 @@ class DataSource
 		}catch(Exception $ex){ WdfDbException::Raise("Error connecting database",$dsn,$ex); }
 		if( !$this->_pdo )
 			WdfDbException::Raise("Something went horribly wrong with the PdoLayer");
-		$this->_pdo->setAttribute( PDO::ATTR_STATEMENT_CLASS, array( "WdfPdoStatement", array($this,$this->_pdo) ) );
+		$this->_pdo->setAttribute( PDO::ATTR_STATEMENT_CLASS, array( "\\ScavixWDF\\Model\\WdfPdoStatement", array($this,$this->_pdo) ) );
 
 		$driver = $this->_pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
 		switch( $driver )
@@ -216,7 +223,7 @@ class DataSource
 		
 		$stmt = $this->Prepare($sql);
 		if( !$stmt->execute($parameter) )
-			WdfDbException::Raise("SQL Error: ".$stmt->ErrorOutput(),"\nSQL: $sql","\nArguments:",$parameter);
+			WdfDbException::Raise("SQL Error: ".$stmt->ErrorOutput(),"\nArguments:",$parameter,"\nMerged:",ResultSet::MergeSql($this,$sql,$parameter));
 		$this->_last_affected_rows_count = $stmt->Count();
 		return $stmt;
 	}

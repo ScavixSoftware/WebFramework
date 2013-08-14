@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,6 +25,8 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+
+use ScavixWDF\WdfException;
 
 define('globalcache_CACHE_OFF',0);
 define('globalcache_CACHE_EACCELERATOR',1);

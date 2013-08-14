@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -72,6 +72,8 @@ function resources_init()
 		'url' => $CONFIG['resources_system_url_root'].'skin/',
 		'append_nc' => true,
 	);
+	
+	$CONFIG['class_path']['system'][] = __DIR__.'/resources/';;
 }
 
 /**
@@ -127,42 +129,4 @@ function resFile($filename, $as_local_path = false)
 	if( $conf = resourceExists($filename,true,$as_local_path) )
 		return $conf;
 	return "";
-}
-
-/**
- * This is a wrapper/router for system (wdf) resources.
- * 
- * It tries to map *WdfResource* urls to the file in the local filessystem and writes it out using readfile().
- * This is to let users place the wdf folder outside the doc root while still beeing able to access resources in there
- * without having to create a domain for that. Natually doing that would be better because faster!
- */
-class WdfResource implements ICallable
-{
-	/**
-	 * @internal Returns a JS resource
-	 * @attribute[RequestParam('res','string')]
-	 */
-	function js($res)
-	{
-		$res = explode("?",$res);
-		$res = realpath(__DIR__."/../js/".$res[0]);
-		
-		header('Content-Type: text/javascript');
-		readfile($res);
-		die();
-	}
-	
-	/**
-	 * @internal Returns a CSS resource
-	 * @attribute[RequestParam('res','string')]
-	 */
-	function skin($res)
-	{
-		$res = explode("?",$res);
-		$res = realpath(__DIR__."/../skin/".$res[0]);
-		
-		header('Content-Type: text/css');
-		readfile($res);
-		die();
-	}
 }

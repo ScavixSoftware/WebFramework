@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -40,9 +40,9 @@ try
 {
 	<?=$js_varname?> = _gat._getTracker("<?=$account_code?>");
 	<?=$js_varname?>._initData();
-	<? if( $track_immediately ): ?>
+	<?php if( $track_immediately ): ?>
 	<?=$js_varname?>._trackPageview();
-	<? endif; ?>
+	<?php endif; ?>
 
 	wdf.ready.add( function()
 	{

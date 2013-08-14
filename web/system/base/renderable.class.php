@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,9 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Base;
+
+use ScavixWDF\Reflection\ResourceAttribute;
 
 /**
  * Base class for all HTML related stuff.
@@ -98,7 +101,7 @@ abstract class Renderable
 		
 		if( is_object($template) )
 		{
-			$classname = strtolower(get_class($template));
+			$classname = get_class($template);
 			
 			// first collect statics from the class definitions
 			$static = ResourceAttribute::ResolveAll( ResourceAttribute::Collect($classname) );
@@ -120,14 +123,19 @@ abstract class Renderable
 				
 				// finally include the 'self' stuff (<classname>.js,...)
 				// Note: these can be forced to be loaded in static if they require to be loaded before the contents resources
-				$parents = array();
+				$classname = get_class_simple($template);
+				//log_debug("checking res $classname");
+				$parents = array(); $cnl = strtolower($classname);
 				do
 				{
-					if( resourceExists("$classname.css") )
-						$parents[] = resFile("$classname.css");
-					if( resourceExists("$classname.js") )
-						$parents[] = resFile("$classname.js");
-					$classname = strtolower(get_parent_class($classname));
+					if( resourceExists("$cnl.css") )
+						$parents[] = resFile("$cnl.css");
+					if( resourceExists("$cnl.js") )
+						$parents[] = resFile("$cnl.js");
+					//log_debug("info",fq_class_name($classname),get_parent_class(fq_class_name($classname)));
+					$classname = array_pop(explode('\\',get_parent_class(fq_class_name($classname))));
+					//log_debug("  parent = $classname");
+					$cnl = strtolower($classname);
 				}
 				while($classname != "");
 				$res = array_merge($res,array_reverse($parents));

@@ -25,7 +25,8 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Localization;
+
 /**
  * Represents culture information.
  * 
@@ -256,7 +257,7 @@ class CultureInfo
 	{
 		$ci = internal_getCulturesByCurrency($code);
 		$ci = internal_getCultureInfo($ci[0]);
-		if( $this->CurrencyFormat->Code != $ci->CurrencyFormat->Code )
+		if( $ci && $this->CurrencyFormat->Code != $ci->CurrencyFormat->Code )
 			$this->CurrencyFormat = $ci->CurrencyFormat;
 	}
 

@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -26,6 +26,8 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
  
+use ScavixWDF\Localization\Localization;
+
 /**
  * This is a PDF document with some invoice specific features.
  * 

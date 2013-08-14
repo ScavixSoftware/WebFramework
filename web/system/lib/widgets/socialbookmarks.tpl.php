@@ -1,5 +1,5 @@
 <div class="socialbookmarks">
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -29,10 +29,10 @@
  
  if(isset($title)):?>
 <div class="sb_headline"><?=$title?></div>
-<? endif; ?>
+<?php endif; ?>
 <ul>
-<? foreach($links as $link): ?>
+<?php foreach($links as $link): ?>
 	<li><?=$link?></li>
-<? endforeach; ?>
+<?php endforeach; ?>
 </ul>
 </div>

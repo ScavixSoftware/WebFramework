@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -22,6 +22,12 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\JQueryUI;
+
+use ScavixWDF\Localization\CultureInfo;
+use ScavixWDF\Localization\DateTimeFormat;
+use ScavixWDF\Localization\Localization;
+
 default_string('BTN_DP_NEXT', 'Next');
 default_string('BTN_DP_PREV', 'Prev');
 default_string('TXT_DP_CLOSE', 'Close');
@@ -69,11 +75,11 @@ class uiDatePicker extends uiControl
 			$this->SetCulture(Localization::detectCulture());
 
 		if( isset($this->value) )
-			$this->value = get_class($this)=="uiDatePicker"
+			$this->value = get_class_simple($this)=="uiDatePicker"
 				?$this->CultureInfo->FormatDate($this->value,DateTimeFormat::DF_SHORTDATE)
 				:$this->CultureInfo->FormatDateTime($this->value);
 		if( isset($this->Options['defaultDate']) )
-			$this->Options['defaultDate'] = get_class($this)=="uiDatePicker"
+			$this->Options['defaultDate'] = get_class_simple($this)=="uiDatePicker"
 				?$this->CultureInfo->FormatDate($this->Options['defaultDate'],DateTimeFormat::DF_SHORTDATE)
 				:$this->CultureInfo->FormatDateTime($this->Options['defaultDate']);
 

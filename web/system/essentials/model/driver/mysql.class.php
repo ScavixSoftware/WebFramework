@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -25,7 +25,16 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
- 
+namespace ScavixWDF\Model\Driver;
+
+use DateTime;
+use PDO;
+use ScavixWDF\Model\ColumnSchema;
+use ScavixWDF\Model\ResultSet;
+use ScavixWDF\Model\TableSchema;
+use ScavixWDF\ToDoException;
+use ScavixWDF\WdfDbException;
+
 /**
  * MySQL database driver.
  * 
@@ -260,7 +269,10 @@ class MySql implements IDatabaseDriver
 		$sql = preg_replace('/LIMIT\s+[\d\s,]+/', '', $sql);
 		$sql = "SELECT count(*) FROM ($sql) AS x";
 		$stmt = $this->_pdo->prepare($sql);
-		$stmt->execute(array_values($input_arguments));
+		if( is_null($input_arguments) )
+			$stmt->execute();
+		else
+			$stmt->execute(array_values($input_arguments));
 		$total = intval($stmt->fetchColumn());
 		
 		return array

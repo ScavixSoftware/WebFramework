@@ -25,6 +25,12 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Reflection;
+
+use Exception;
+use ReflectionClass;
+use ReflectionProperty;
+use ScavixWDF\Base\Control;
 
 /**
  * Wraps ReflectionClass and provides additional functionality regarding Attributes and DocComments
@@ -32,7 +38,7 @@
  * This is central class as it ensures correct DocComment parsing even if a bytecode cache (like APC) is active and removing them.
  * There's also intensive caching active to improve speed.
  */
-class System_Reflector extends ReflectionClass
+class WdfReflector extends ReflectionClass
 {
 	protected $Instance = false;
 	protected $Classname = false;
@@ -46,11 +52,11 @@ class System_Reflector extends ReflectionClass
 	}
 
 	/**
-	 * Create a System_Reflector instance
+	 * Create a WdfReflector instance
 	 * 
 	 * Return a reflector for the given classname or object.
 	 * @param string|object $classname Classname or object to be reflected
-	 * @return System_Reflector A new instance of type System_Reflector
+	 * @return WdfReflector A new instance of type WdfReflector
 	 */
 	public static function &GetInstance($classname)
 	{
@@ -68,7 +74,7 @@ class System_Reflector extends ReflectionClass
 				$res->Instance = $inst;
 			return $res;
 		}
-		$res = new System_Reflector($classname);
+		$res = new WdfReflector($classname);
 
 		if( isset($inst) )
 			$res->Instance = $inst;
@@ -209,8 +215,11 @@ class System_Reflector extends ReflectionClass
 					log_trace("Invalid Attribute: $m ({$name}Attribute) found in Comment '$comment'");
 				continue;
 			}
-
+			
+			$parts = explode("(",$attr,2);
+			$attr = fq_class_name($parts[0])."(".$parts[1];
 			eval('$attr = new '.$attr.';');
+			
 			$name = strtolower($name);
 			$add = count($filter) == 0;
 			foreach( $filter as $f )
@@ -270,7 +279,7 @@ class System_Reflector extends ReflectionClass
 	 *									May be string for a single attribute or array of string for
 	 *									multiple attributes.
 	 * @param bool $allowAttrInheritance If true, filter not only matches directly, but also all classes derivered from a valid filter
-	 * @return array An array of objects derivered from <System_Attribute>.
+	 * @return array An array of objects derivered from <WdfAttribute>.
 	 */
 	public function GetClassAttributes($filter=array(), $allowAttrInheritance=true)
 	{
@@ -291,11 +300,11 @@ class System_Reflector extends ReflectionClass
 	/**
 	 * Returns method attributes.
 	 * 
-	 * For a detailed description see <System_Reflector::GetClassAttributes>
+	 * For a detailed description see <WdfReflector::GetClassAttributes>
 	 * @param string $method_name The name of the method.
 	 * @param string|array $filter	Return only Attributes tha match the given filter. May be string for a single attribute or array of string for multiple attributes.
 	 * @param bool $allowAttrInheritance If true, filter not only matches directly, but also all classes derivered from a valid filter
-	 * @return array An array of objects derivered from <System_Attribute>.
+	 * @return array An array of objects derivered from <WdfAttribute>.
 	 */
 	public function GetMethodAttributes($method_name, $filter=array(), $allowAttrInheritance=true)
 	{
@@ -312,7 +321,7 @@ class System_Reflector extends ReflectionClass
 			{
 				foreach( $this->Instance->_extender as &$ex )
 				{
-					$ref2 = System_Reflector::GetInstance($ex);
+					$ref2 = WdfReflector::GetInstance($ex);
 					$res = $ref2->GetMethodAttributes($method_name, $filter);
 					if( $res && count($res) > 0 )
 					{
@@ -357,7 +366,7 @@ class System_Reflector extends ReflectionClass
 	/**
 	 * Returns the DocComment for a method
 	 * 
-	 * Perhaps use <System_Reflector::getCommentObject>() instead as that one returns a <PhpDocComment> object.
+	 * Perhaps use <WdfReflector::getCommentObject>() instead as that one returns a <PhpDocComment> object.
 	 * @param string $method_name Name of method
 	 * @return string The DocComment
 	 */
@@ -369,7 +378,7 @@ class System_Reflector extends ReflectionClass
 	/**
 	 * Returns the DocComment for a method(or the class) as object
 	 * 
-	 * This is the modern version of <System_Reflector::getCommentString>().
+	 * This is the modern version of <WdfReflector::getCommentString>().
 	 * @param string $method_name Name of method or false if you want the class comment
 	 * @return PhpDocComment The DocComment wrapped as PhpDocComment
 	 */
@@ -380,16 +389,16 @@ class System_Reflector extends ReflectionClass
 	}
 	
 	/**
-	 * Overrides <ReflectionClass::getMethod> to enable <System_ReflectionMethod> handling.
+	 * Overrides <ReflectionClass::getMethod> to enable <WdfReflectionMethod> handling.
 	 * 
 	 * @param string $name Name of the method to get
-	 * @return System_ReflectionMethod A System_ReflectionMethod instance or false on error
+	 * @return WdfReflectionMethod A WdfReflectionMethod instance or false on error
 	 */
 	public function getMethod($name)
 	{
 		try
 		{
-			$res = new System_ReflectionMethod($this->Classname,$name);
+			$res = new WdfReflectionMethod($this->Classname,$name);
 			return $res;
 		}catch(Exception $e){ log_debug("Checking for extender method"); }
 		
@@ -397,7 +406,7 @@ class System_Reflector extends ReflectionClass
 		{
 			foreach( $this->Instance->_extender as &$ex )
 			{
-				$ref = System_Reflector::GetInstance($ex);
+				$ref = WdfReflector::GetInstance($ex);
 				$res = $ref->getMethod($name);
 				if( $res )
 					return $res;

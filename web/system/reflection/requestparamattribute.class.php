@@ -25,6 +25,8 @@
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
+namespace ScavixWDF\Reflection;
+use ScavixWDF\Localization\Localization;
 
 /**
  * Allows to automatically pass REQUEST parameters to methods arguments.
@@ -33,7 +35,7 @@
  * in the doccomment will make the following usable:
  * function SomeMethod($joe){ log_debug($joe); }
  */
-class RequestParamAttribute extends System_Attribute
+class RequestParamAttribute extends WdfAttribute
 {
 	var $Name = null;
 	var $Type = null;
