@@ -48,7 +48,8 @@ class Preview extends HtmlPage
 - [Alphabetical class listing](classes)
 - [Inheritance tree](inheritance)
 - [Interfaces](interfaces)
-- [Folder tree](foldertree)";
+- [Folder tree](foldertree)
+- [Namespace tree](namespacetree)";
 		
 		$q = buildQuery('Preview','Linked');
 		$s  = "$('.markdown-body').html(marked(".json_encode($md)."));";

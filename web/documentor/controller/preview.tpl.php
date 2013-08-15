@@ -38,6 +38,8 @@
 	<a href="<?=buildQuery('Preview','Linked','f=interfaces')?>">Interfaces</a>
 	&nbsp;&nbsp;
 	<a href="<?=buildQuery('Preview','Linked','f=foldertree')?>">Folder tree</a>
+	&nbsp;&nbsp;
+	<a href="<?=buildQuery('Preview','Linked','f=namespacetree')?>">Namespace tree</a>
 </div>
 <div class="markdown-body">
 <? foreach($content as $c)echo$c;?>

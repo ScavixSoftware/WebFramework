@@ -129,7 +129,7 @@ class DocMain extends HtmlPage
 		$path = realpath(__DIR__.'/../../system/');
 		$i = 1;
 		global $home, $processed_files;
-		$home = array('funcs'=>array(),'classes'=>array(),'methods'=>array(),'tree'=>array(),'interfaces'=>array());
+		$home = array('funcs'=>array(),'classes'=>array(),'methods'=>array(),'tree'=>array(),'interfaces'=>array(),'namespaces'=>array());
 		$processed_files = array();
 		$all_files = system_glob_rec($path,'*.php');
 		$cnt_all_files = count($all_files);
@@ -274,6 +274,12 @@ class DocMain extends HtmlPage
 			if( count($p) < 2 )
 				return $match[0];
 			
+			if( $p[0] == "NAMESPACE" )
+			{
+//				log_debug("NS link found: {$p[1]}",$home['namespaces'][$p[1]]);
+				return "[".str_replace(":","\\",$p[1])."](namespacetree#wiki-{$home['namespaces'][$p[1]]['hash']})";
+			}
+			
 			if( $p[0] == "PARENTCLASSES" )
 			{
 				$parents = array();
@@ -284,7 +290,7 @@ class DocMain extends HtmlPage
 				}while( $class );
 				if( count($parents) == 0 )
 					return "";
-				return "\n\nExtends: ".implode(" &raquo; ",$parents);
+				return "\n\n**Extends**: ".implode(" &raquo; ",$parents);
 			}
 
 			if( $p[0] == "SUBCLASSES" )
@@ -293,7 +299,7 @@ class DocMain extends HtmlPage
 				DocMain::getSubclasses($p[1], $subs, false);
 				if( count($subs) == 0 )
 					return "";
-				return "\n\nSubclasses: ".implode(", ",$subs);
+				return "\n\n**Subclasses**: ".implode(", ",$subs);
 			}
 			
 			if( $p[0] == "OVERRIDE" )
@@ -391,7 +397,7 @@ class DocMain extends HtmlPage
 		file_put_contents(__DIR__.'/out/interfaces.md', $this->escapeMd(implode("\n",$lines)));
 		
 		// write folder structure
-		log_debug("Tree",$processed_files);
+//		log_debug("Tree",$processed_files);
 		$lines = array("# Folder tree:");
 		$written_tree = array();
 		ksort($processed_files);
@@ -427,6 +433,18 @@ class DocMain extends HtmlPage
 					$lines[] = "$pre* ".self::linkCls($cls);
 		}
 		file_put_contents(__DIR__.'/out/foldertree.md', $this->escapeMd(implode("\n",$lines)));
+		
+		// write namespace tree
+		$lines = array("# Namespace tree:");
+		foreach( $home['namespaces'] as $ns=>$def )
+		{
+			$pad = str_pad("", count(explode(":",$ns))-1 ,"\t");
+			$lines[] = "$pad* <a id='{$def['hash']}'/>**".str_replace(":","\\",$ns)."**";
+			foreach( $def['classes'] as $cls )
+				$lines[] = "$pad\t* ".DocMain::linkCls($cls);
+		}
+		file_put_contents(__DIR__.'/out/namespacetree.md', $this->escapeMd(implode("\n",$lines)));
+//		log_debug("namespaces",$home['namespaces']);
 	}
 	
 	static function getSubclasses($parent,&$res,$pre='* ')
@@ -488,6 +506,15 @@ class DocMain extends HtmlPage
 		$mod = implode(" ",$class['modifiers']);
 		$hash = md5($class['name']);
 		$tpl  = "\n## $mod {$class['type']} <a id='{$hash}'/>{$class['name']}\n".($dc?$dc->RenderAsMD():"NOT DOCUMENTED");
+		
+		if( $class['ns'] )
+		{
+			$tpl .= "\n\n**Namespace**: <NAMESPACE::{$class['ns']}>";
+			if( !isset($home['namespaces'][$class['ns']]) )
+				$home['namespaces'][$class['ns']] = array('hash'=>md5($class['ns']),'classes'=>array());
+			$home['namespaces'][$class['ns']]['classes'][] = $class['name'];
+		}
+		
 		if( isset($class['extends']) )
 		{
 			//$tpl .= "\n\nExtends: <{$class['extends']}>";
@@ -497,7 +524,7 @@ class DocMain extends HtmlPage
 			$home['tree'][$class['name']] = false;
 
 		if( isset($class['implements']) )
-			$tpl .= "\n\nImplements: <".implode("> <",$class['implements']).">";
+			$tpl .= "\n\n**Implements**: <".implode("> <",$class['implements']).">";
 
 		$tpl .= "<PARENTCLASSES::{$class['name']}>";
 		$tpl .= "<SUBCLASSES::{$class['name']}>";
@@ -651,6 +678,7 @@ class DocMain extends HtmlPage
 		$last_str = '';
 		$last_modifiers = array();
 		
+		$catch_ns = $cur_ns = false;
 		$classes = array(); $cur_cls = false;
 		$functions = array(); $cur_func = false;
 		$cur_arg = false;
@@ -671,7 +699,9 @@ class DocMain extends HtmlPage
 						break;
 					case T_STRING:
 //						log_if($value=="Icon", (($cur_cls&&isset($cur_cls['name']))?$cur_cls['name']:'')."::Icon",$cur_cls,$cur_func);
-						if( $cur_cls && !isset($cur_cls['name']) )
+						if( $catch_ns )
+							$cur_ns[] = $value;
+						elseif( $cur_cls && !isset($cur_cls['name']) )
 						{
 							$cur_cls['name'] = $value;
 //							log_if($value=="uiControl","uiControl",$cur_cls);
@@ -700,9 +730,15 @@ class DocMain extends HtmlPage
 						break;
 					case T_CLASS:
 					case T_INTERFACE:
-//						if( !in_array('private', $last_modifiers) )
-							$cur_cls = array('start_line'=>$line,'methods'=>array(),'block_val'=>$block,'comment'=>$last_comment,
-								'modifiers'=>$last_modifiers,'type'=>($type==T_CLASS)?'class':'interface');
+						$cur_cls = array(
+							'type'=>($type==T_CLASS)?'class':'interface',
+							'ns' => $cur_ns,
+							'modifiers'=>$last_modifiers,
+							'methods'=>array(),
+							'start_line'=>$line,
+							'block_val'=>$block,
+							'comment'=>$last_comment,
+						);
 						$last_comment = '';$last_str = '';
 						$last_modifiers = array();
 						break;
@@ -730,6 +766,10 @@ class DocMain extends HtmlPage
 						break;
 					case T_CURLY_OPEN:
 						$tok = "{";
+						break;
+					case T_NAMESPACE:
+						$catch_ns = true;
+						$cur_ns = array();
 						break;
 				}
 			}
@@ -784,6 +824,12 @@ class DocMain extends HtmlPage
 							$cur_arg = false;
 						}
 					case ';':
+						if( $catch_ns )
+						{
+							$catch_ns = false;
+							if( $cur_ns && is_array($cur_ns) )
+								$cur_ns = implode(":", $cur_ns);
+						}
 						$last_modifiers = array();
 					break;
 				}
