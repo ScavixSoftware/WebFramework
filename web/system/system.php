@@ -1458,6 +1458,9 @@ function system_render_object_tree($array_of_objects)
 	return $res;
 }
 
+/**
+ * @internal Called from the autoloader and used for backwards compatibility: This is needed for projects that do not yet use WDF with namespaces).
+ */
 function create_class_alias($original,$alias,$strong=false)
 {
 	if( $strong )

@@ -73,6 +73,7 @@ class ResultSet implements Iterator, ArrayAccess
 	 * Merges arguments into an SQL statement.
 	 * 
 	 * Note that this is meant for debug output only!
+	 * @param DataSource $ds <DataSource> used to escape the arguments (<DataSource::EscapeArgument>)
 	 * @param string $sql SQL statement
 	 * @param array $arguments Array of arguments
 	 * @return string Merged statement

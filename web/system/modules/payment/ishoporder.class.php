@@ -34,6 +34,7 @@ interface IShopOrder
 {
 	/**
 	 * Creates an instance from an order id.
+	 * @param mixed $order_id ID of order to load
 	 * @return IShopOrder The new/loaded order <Model>
 	 */
 	static function FromOrderId($order_id);
