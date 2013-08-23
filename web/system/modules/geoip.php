@@ -37,6 +37,7 @@ use ScavixWDF\WdfException;
 */
 function geoip_init()
 {
+	global $CONFIG;
 	if( !function_exists('geoip_country_code_by_name') )
 	{
 		require_once(__DIR__."/geoip/geoip.inc");
@@ -48,6 +49,12 @@ function geoip_init()
 		
 	if( !isset($GLOBALS['current_ip_addr']) )
 		$GLOBALS['current_ip_addr'] = get_ip_address();
+	
+	if( !isset($CONFIG['geoip']['city_dat_file']) )
+		$CONFIG['geoip']['city_dat_file'] = __DIR__."/geoip/GeoLiteCity.dat";
+	
+	if( !file_exists($CONFIG['geoip']['city_dat_file']) )
+		WdfException::Raise("GeoIP module: missing GeoLiteCity.dat! Get it from http://dev.maxmind.com/geoip/legacy/geolite/");
 }
 
 /**
@@ -66,7 +73,7 @@ function get_geo_location_by_ip($ip_address=null)
 		return false;
 	if( function_exists('geoip_open') )
 	{
-		$gi = geoip_open(__DIR__."/geoip/GeoLiteCity.dat",GEOIP_STANDARD);
+		$gi = geoip_open($GLOBALS['CONFIG']['geoip']['city_dat_file'],GEOIP_STANDARD);
 		$location = geoip_record_by_addr($gi,$ip_address);
 		geoip_close($gi);
 		return $location;
@@ -86,7 +93,7 @@ function get_geo_region()
 	include(__DIR__."/geoip/geoipregionvars.php");
 	if( function_exists('geoip_open') )
 	{
-		$gi = geoip_open(__DIR__."/geoip/GeoLiteCity.dat",GEOIP_STANDARD);
+		$gi = geoip_open($GLOBALS['CONFIG']['geoip']['city_dat_file'],GEOIP_STANDARD);
 		$location = geoip_record_by_addr($gi,$GLOBALS['current_ip_addr']);
 		geoip_close($gi);
 		if(!isset($GEOIP_REGION_NAME[$location->country_code]))
@@ -113,7 +120,7 @@ function get_coordinates_by_ip($ip = false)
 	
 	if( function_exists('geoip_open') )
 	{
-		$gi = geoip_open(__DIR__."/geoip/GeoLiteCity.dat",GEOIP_STANDARD);
+		$gi = geoip_open($GLOBALS['CONFIG']['geoip']['city_dat_file'],GEOIP_STANDARD);
 		$location = geoip_record_by_addr($gi,$ip);
 		geoip_close($gi);
 	}
@@ -152,7 +159,7 @@ function get_countrycode_by_ip($ipaddr = false)
 
 	if( function_exists('geoip_open') )
 	{
-		$gi = geoip_open(__DIR__."/geoip/GeoLiteCity.dat",GEOIP_STANDARD);
+		$gi = geoip_open($GLOBALS['CONFIG']['geoip']['city_dat_file'],GEOIP_STANDARD);
 		$country_code = geoip_country_code_by_addr($gi,$ipaddr);
 //		log_debug("country: ".$country_code);
 		geoip_close($gi);
@@ -184,7 +191,7 @@ function get_countryname_by_ip()
 //		return $_SERVER["GEOIP_COUNTRY_CODE"];
 	if( function_exists('geoip_open') )
 	{
-		$gi = geoip_open(__DIR__."/geoip/GeoLiteCity.dat",GEOIP_STANDARD);
+		$gi = geoip_open($GLOBALS['CONFIG']['geoip']['city_dat_file'],GEOIP_STANDARD);
 		$country_name = geoip_country_name_by_name($gi,$GLOBALS['current_ip_addr']);
 		geoip_close($gi);
 	}
