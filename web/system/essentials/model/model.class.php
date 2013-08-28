@@ -1068,7 +1068,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->newerThan($property,$this->__toTypedValue($property,$value),$interval);
+		$res->_query->newerThan($property,$value,$interval);
 		return $res;
 	}
 	
@@ -1085,7 +1085,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->olderThan($property,$this->__toTypedValue($property,$value),$interval);
+		$res->_query->olderThan($property,$value,$interval);
 		return $res;
 	}
 	
