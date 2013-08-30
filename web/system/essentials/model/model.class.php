@@ -165,7 +165,15 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * it is better to get a plain array. For example if you need to test with `is_array`.
 	 * @return array Array of results (may be empty)
 	 */
-	function results(){ $this->__ensureResults(); return $this->_results; }
+	function results()
+	{
+		if( $this->_query )
+		{
+			$this->__ensureResults(); 
+			return $this->_results;
+		}
+		return array($this);
+	}
 	
 	/**
 	 * Enumerates all values from a column of the current result.
