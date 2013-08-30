@@ -920,3 +920,15 @@ function get_class_simple($object, $lower_case=false)
 	$res = array_pop(explode('\\',get_class($object)));
 	return $lower_case?strtolower($res):$res;
 }
+
+/**
+ * Checks if an array is associative.
+ * 
+ * Stolen from [stackoverflow.com](http://stackoverflow.com/questions/173400/php-arrays-a-good-way-to-check-if-an-array-is-associative-or-sequential/4254008#4254008)
+ * @param array $array Input array
+ * @return bool true if $array contains at least one key that is not numeric
+ */
+function is_assoc($array)
+{
+  return (bool)count( array_filter(array_keys($array), 'is_string') );
+}
