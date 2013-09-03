@@ -180,7 +180,7 @@ class SqLite implements IDatabaseDriver
 	/**
 	 * @implements <IDatabaseDriver::getSaveStatement>
 	 */
-	function getSaveStatement($model,&$args)
+	function getSaveStatement($model,&$args,$columns_to_update=false)
 	{
 		$cols = array();
 		$pks = $model->GetPrimaryColumns();
@@ -199,9 +199,10 @@ class SqLite implements IDatabaseDriver
 			}
 		}
 
-		foreach( $model->GetColumnNames(true) as $col )
+		$columns_to_update = $columns_to_update?$columns_to_update:$model->GetColumnNames(true);
+		foreach( $columns_to_update as $col )
 		{
-			if( in_array($col,$pks) )
+			if( in_array($col,$pks) || !$model->HasColumn($col) )
 				continue;
 			
 			// isset returns false too if $this->$col is set to NULL, so we need some more logic here

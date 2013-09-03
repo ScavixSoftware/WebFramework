@@ -89,9 +89,10 @@ interface IDatabaseDriver
 	 * 
 	 * @param Model $model The model to store
 	 * @param array $args <b>OUT:</b>The values extracted from $model that have changed wince last save (or all if new object)
+	 * @param array $columns_to_update If given only these fields will be updated. If not Model tries to detect changed columns automatically.
 	 * @return string SQL statement with argument placeholders for all change columns (see $args)
 	 */
-	function getSaveStatement($model,&$args);
+	function getSaveStatement($model,&$args,$columns_to_update=false);
 	
 	/**
 	 * Creates a valid statement to delete the given model from the database.

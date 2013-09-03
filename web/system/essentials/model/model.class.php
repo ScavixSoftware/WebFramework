@@ -1171,12 +1171,14 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * Saves this model to the database.
 	 * 
 	 * New datasets will be inserted, loaded ones will be updated automatically.
+	 * If $columns_to_update is given only those columns will be stored. This may be useful to avoid DB conflicts in multithread scenarios.
+	 * @param array $columns_to_update If given only these fields will be updated. If not Model tries to detect changed columns automatically.
 	 * @return boolean In fact always true, WdfDbException will be thrown in error case
 	 */
-	public function Save()
+	public function Save($columns_to_update=false)
 	{
 		$args = array();
-		$stmt = $this->_ds->Driver->getSaveStatement($this,$args);
+		$stmt = $this->_ds->Driver->getSaveStatement($this,$args,$columns_to_update);
 
 		if( !$stmt )
 			return true; // nothing to save
@@ -1193,6 +1195,20 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		}
 		$this->__init_db_values();
 		return true;
+	}
+	
+	/**
+	 * Passes all given arguments as array to the Save method.
+	 * 
+	 * Use it like this: `$model->Update('age','last_action');`
+	 * when you want to ensure that only these columns are written.
+	 * See <Model::Save>() for more information.
+	 * @return <Model> `clone $this`
+	 */
+	public function Update()
+	{
+		$this->Save(func_get_args());
+		return $this;
 	}
 	
 	/**
