@@ -288,9 +288,12 @@ class SysAdmin extends HtmlPage
 	 * @internal SysAdmin phpinfo.
 	 * @attribute[RequestParam('extension','string',false)]
 	 * @attribute[RequestParam('search','string',false)]
+	 * @attribute[RequestParam('dump_server','bool',false)]
 	 */
-	function PhpInfo($extension,$search)
+	function PhpInfo($extension,$search,$dump_server)
 	{
+		if( $dump_server )
+			$search = $extension = "";
 		if( $search )
 			$extension = null;
 		
@@ -329,6 +332,10 @@ class SysAdmin extends HtmlPage
 		$q = buildQuery('SysAdmin','PhpInfo');
 		$sel->onchange = "wdf.redirect({extension:$(this).val()})";
 		$tb->onkeydown = "if( event.which==13 ) wdf.redirect({search:$(this).val()})";
+
+		$ext_nav->content('&nbsp;&nbsp;&nbsp;Or ');
+		$q = buildQuery('SysAdmin','PhpInfo','dump_server=1');
+		$ext_nav->content( new Anchor($q,'dump the $_SERVER variable') );
 		
 		$get_version = function($ext)
 		{
@@ -344,6 +351,15 @@ class SysAdmin extends HtmlPage
 			$sel->AddOption($ext,$ext.$get_version($ext)." (".count($data[$ext]).")");
 		}
 		
+		if( $dump_server )
+		{
+			$tab = $this->content( new Table() )
+				->addClass('phpinfo')
+				->SetCaption('Contents of the $_SERVER variable')
+				->SetHeader('Name','Value');
+			foreach( $_SERVER as $k=>$v )
+				$tab->AddNewRow($k,$v);
+		}
 		if( $extension || $extension == 'all' || $search )
 		{
 			foreach( $data as $k=>$config )
