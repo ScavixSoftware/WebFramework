@@ -23,3 +23,4 @@ Resources
 [API reference documentation](https://github.com/ScavixSoftware/WebFramework/wiki)        
 Basic usage: [Ultra-Rapid PHP Application Development](http://www.codeproject.com/Articles/553018/Ultra-Rapid-PHP-Application-Development)        
 A real world sample: [Easily implementing your own online shop](http://www.codeproject.com/Articles/586703/Easily-implementing-your-own-online-shop)        
+Upgrading projects to PHP namespaces: [An easy solution](http://www.codeproject.com/Articles/643091/Upgrading-projects-to-PHP-namespaces-An-easy-solut)        
