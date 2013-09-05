@@ -34,6 +34,7 @@ use ScavixWDF\Base\AjaxResponse;
 use ScavixWDF\Base\Args;
 use ScavixWDF\Base\Renderable;
 use ScavixWDF\ICallable;
+use ScavixWDF\Model\DataSource;
 use ScavixWDF\Reflection\WdfReflector;
 use ScavixWDF\WdfException;
 
@@ -1512,4 +1513,75 @@ function fq_class_name($classname)
 	}
 	//log_debug("fq_class_name($classname) NOOP");
 	return $classname;
+}
+
+/**
+ * Checks if a process it still running.
+ * 
+ * Note that this depends on <shell_exec>(), so make sure it not  disabled in `php.ini`.
+ * @param int $pid Process id to check
+ * @return bool true if running, else false
+ */
+function system_process_running($pid)
+{
+	$test = explode("\n",trim(shell_exec("ps $pid")));
+	return count($test) > 1;
+}
+
+/**
+ * Creates a named lock.
+ * 
+ * This is useful in some special cases where different PHP processes are creating for example datasets that must be
+ * unique. So use it like this:
+ * <code php>
+ * system_get_lock('creating_something');
+ * // do critical things
+ * system_release_lock('creating_something');
+ * </code>
+ * Note that `system_get_lock` will check all existent locks if the processes that created them are still running
+ * by using <system_process_running>(). That one depends on <shell_exec>() so make sure it is not disabled.
+ * Another note to the datasource argument: This defaults to 'internal' and the 'internal' datasource defaults to 'sqlite:memory'.
+ * So if you dont change this the locks will have no effect beyond process bounds!
+ * @param string $name A name for the lock.
+ * @param mixed $datasource Name of datasource to use or <DataSource> object itself.
+ * @param int $timeout Timeout in seconds (an Exception will be thrown on timeout).
+ * @return void
+ */
+function system_get_lock($name,$datasource='internal',$timeout=10)
+{
+	$ds = ($datasource instanceof DataSource)?$datasource:model_datasource($datasource);
+	$ds->ExecuteSql("CREATE TABLE IF NOT EXISTS wdf_locks(lockname VARCHAR(50) NOT NULL, pid INT UNSIGNED NOT NULL, PRIMARY KEY (lockname))");
+	
+	$start = microtime(true);
+	
+	$args = array($name,getmypid());
+	do
+	{
+		if( isset($cnt) )
+			usleep(100000);
+		if( microtime(true)-$start > $timeout)
+			WdfException::Raise("Timeout while awaiting the lock '$name'");
+		
+		foreach( $ds->ExecuteSql("SELECT pid FROM wdf_locks")->Enumerate('pid') as $pid )
+		{
+			if( !system_process_running($pid) )
+				$ds->ExecuteSql("DELETE FROM wdf_locks WHERE pid=?",$pid);
+		}
+		$ds->ExecuteSql("INSERT OR IGNORE INTO wdf_locks(lockname,pid)VALUES(?,?)",$args);
+		$cnt = $ds->getAffectedRowsCount();
+	}while( $cnt == 0 );
+}
+
+/**
+ * Releases a named lock.
+ * 
+ * See <system_get_lock>() for details about this.
+ * @param string $name Name of the lock to release
+ * @param mixed $datasource Name of datasource to use or <DataSource> object itself.
+ * @return void
+ */
+function system_release_lock($name,$datasource='internal')
+{
+	$ds = ($datasource instanceof DataSource)?$datasource:model_datasource($datasource);
+	$ds->ExecuteSql("DELETE FROM wdf_locks WHERE lockname=?",$name);
 }
