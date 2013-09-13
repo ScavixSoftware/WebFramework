@@ -1491,18 +1491,19 @@ function fq_class_name($classname)
 	$cnl = strtolower($classname);
 	switch( $cnl )
 	{
-		case 'template':              return '\\ScavixWDF\\Base\\Template';
-		case 'renderable':            return '\\ScavixWDF\\Base\\Renderable';
-		case 'control':               return '\\ScavixWDF\\Base\\Control';
-		case 'requestparamattribute': return '\\ScavixWDF\\Reflection\\RequestParamAttribute';
-		case 'resourceattribute':     return '\\ScavixWDF\\Reflection\\ResourceAttribute';
-		case 'nominifyattribute':     return '\\ScavixWDF\\Reflection\\NoMinifyAttribute';
-		case 'wdfresource':           return '\\ScavixWDF\\WdfResource';
-		case 'datasource':            return '\\ScavixWDF\\Model\\DataSource';
-		case 'sysadmin':              return '\\ScavixWDF\\Admin\\SysAdmin';
-		case 'minifyadmin':           return '\\ScavixWDF\\Admin\\MinifyAdmin';
-		case 'tracelogger':           return '\\ScavixWDF\\Logging\\TraceLogger';
-		case 'phpsession':            return '\\ScavixWDF\\Session\\PhpSession';
+		case 'template':                  return '\\ScavixWDF\\Base\\Template';
+		case 'renderable':                return '\\ScavixWDF\\Base\\Renderable';
+		case 'control':                   return '\\ScavixWDF\\Base\\Control';
+		case 'requestparamattribute':     return '\\ScavixWDF\\Reflection\\RequestParamAttribute';
+		case 'resourceattribute':         return '\\ScavixWDF\\Reflection\\ResourceAttribute';
+		case 'externalresourceattribute': return '\\ScavixWDF\\Reflection\\ExternalResourceAttribute';
+		case 'nominifyattribute':         return '\\ScavixWDF\\Reflection\\NoMinifyAttribute';
+		case 'wdfresource':               return '\\ScavixWDF\\WdfResource';
+		case 'datasource':                return '\\ScavixWDF\\Model\\DataSource';
+		case 'sysadmin':                  return '\\ScavixWDF\\Admin\\SysAdmin';
+		case 'minifyadmin':               return '\\ScavixWDF\\Admin\\MinifyAdmin';
+		case 'tracelogger':               return '\\ScavixWDF\\Logging\\TraceLogger';
+		case 'phpsession':                return '\\ScavixWDF\\Session\\PhpSession';
 	}
 	
 	if( isset($GLOBALS['system_class_alias'][$cnl]) )
