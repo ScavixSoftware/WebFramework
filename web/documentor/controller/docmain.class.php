@@ -122,6 +122,8 @@ class DocMain extends HtmlPage
 		$this->content($run->WdfRender()."&nbsp;&nbsp;".$down->WdfRender()."&nbsp;&nbsp;".$preview->WdfRender());
 		$this->content('</div>');
 		
+		if( !file_exists(__DIR__.'/out') )
+			mkdir(__DIR__.'/out');
 		foreach( system_glob_rec(__DIR__.'/out','*') as $file )
 			unlink($file);
 		cache_clear();
