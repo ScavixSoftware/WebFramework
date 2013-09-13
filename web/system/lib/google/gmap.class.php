@@ -68,13 +68,13 @@ class gMap extends GoogleControl
 		foreach( $this->_markers as $m )
 		{
 			list($lat,$lng,$opt) = $m;
-			$init[] = "wdf.gmap.addMarker('$id',$lat,$lng,".json_encode($opt).")";
+			$init[] = "wdf.gmap.addMarker('$id',$lat,$lng,".json_encode($opt).");";
 		}
 		foreach( $this->_addresses as $a )
 		{
-			$init[] = "wdf.gmap.addAddress('$id',".json_encode($a).")";
+			$init[] = "wdf.gmap.addAddress('$id',".json_encode($a).");";
 		}
-    	$init[] = "wdf.gmap.showAllMarkers('$id')";
+    	$init[] = "wdf.gmap.showAllMarkers('$id');";
 			
 		$this->_addLoadCallback('maps', $init);
 		return parent::PreRender($args);

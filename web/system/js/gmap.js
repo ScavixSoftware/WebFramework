@@ -56,6 +56,8 @@
 					}
 					else if(req.address.indexOf(","))
 						wdf.gmap.addAddress(id, req.address.substr(req.address.indexOf(",")+1));
+					
+					wdf.gmap.showAllMarkers(id);
 				}
 			});
 		},
