@@ -126,7 +126,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		require_once('MC/Google/Visualization.php');
 		return new MC_Google_Visualization( 
 				new PDO($ds->GetDsn(),$ds->Username(),$ds->Password() ), 
-				strtolower(get_class($ds->Driver))
+				strtolower(array_pop(explode("\\",get_class($ds->Driver))))
 			);
 	}
 	
@@ -188,6 +188,21 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	}
 	
 	/**
+	 * Sets the <DataSource> to be used
+	 * 
+	 * @param mixed $datasource Optional <DataSource> to use. This may also be the name of the <DataSource> to use as `string`.
+	 * @return GoogleVisualization `$this`
+	 */
+	function setDataSource($datasource)
+	{
+		if( is_string($datasource) )
+			$this->_ds = model_datasource($datasource);
+		elseif( $datasource instanceof DataSource )
+			$this->_ds = $datasource;
+		return $this;
+	}
+	
+	/**
 	 * Sets up a google query from a database table.
 	 * 
 	 * See https://developers.google.com/chart/interactive/docs/reference#queryobjects
@@ -195,10 +210,13 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	 * <GoogleVisualization::setDataHeader> and <GoogleVisualization::addDataRow>
 	 * @param string $table_name Table name
 	 * @param mixed $query The [goolge query](https://google-developers.appspot.com/chart/interactive/docs/querylanguage)
+	 * @param DataSource $datasource Optional <DataSource> to use. This may also be the name of the <DataSource> to use as `string`.
 	 * @return GoogleVisualization `$this`
 	 */
-	function setDbQuery($table_name,$query)
+	function setDbQuery($table_name,$query,$datasource=false)
 	{
+		if( $datasource )
+			$this->setDataSource($datasource);
 		$this->EntityFromTable($table_name);
 		$this->gvQuery = $query;
 		return $this;
