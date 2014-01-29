@@ -111,7 +111,8 @@ namespace WdfTracer
 
         private static Thread searchViewer;
         private static SingleInstanceController controller;
-        private static RegistryKey settings;
+        internal static RegistryKey settings;
+        internal static RegistryKey ViewerSettings;
 
         private static string logfile_name;
         private static FileStream debug_stream;
@@ -142,6 +143,7 @@ namespace WdfTracer
             path = path.Substring(path.IndexOf('\\') + 1);
             RegistryKey root = Registry.CurrentUser;
             settings = root.CreateSubKey(path);
+            ViewerSettings = settings.CreateSubKey("Viewer");
 
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -218,7 +220,7 @@ namespace WdfTracer
 
         private static void SearchViewer()
         {
-            RegistryKey root = settings.CreateSubKey("Viewer");
+            
             foreach (SourceViewer s in Viewer)
             {
                 if (s.Executable != null && File.Exists(s.Executable))
@@ -240,7 +242,7 @@ namespace WdfTracer
                     Log(s.Name + " found multiple times, taking first." + Environment.NewLine + string.Join(Environment.NewLine, files.ToArray()));
 
                 s.Executable = files[0];
-                s.Save(root);
+                s.Save(ViewerSettings);
                 Log("Found "+s.Name+" executable: '" + s.Executable + "'");
                 if (SelectedViewer == null)
                     SelectedViewer = s;
@@ -486,6 +488,7 @@ namespace WdfTracer
                     viewer.Add(new SourceViewer { Alias = "netbeans", Name = "NetBeans", ArgumentPattern = "--nosplash {file}:{line}", ExeSearchName = "netbeans.exe" });
                     viewer.Add(new SourceViewer { Alias = "ultraedit", Name = "UltraEdit", ArgumentPattern = "/foi \"{file}/{line}\"", ExeSearchName = "uedit32.exe" });
                     viewer.Add(new SourceViewer { Alias = "notepadpp", Name = "Notepad++", ArgumentPattern = "-n{line} \"{file}\"", ExeSearchName = "notepad++.exe" });
+                    viewer.Add(new SourceViewer { Alias = "notepad", Name = "Notepad", ArgumentPattern = "{file}", ExeSearchName = "notepad.exe"});
 
                     foreach (SourceViewer s in viewer)
                         s.Save(root);
@@ -503,9 +506,24 @@ namespace WdfTracer
                     s.Executable = key.GetValue("Executable", "").ToString();
                     s.ArgumentPattern = key.GetValue("ArgumentPattern", "").ToString();
                     s.IdleBeforeLineMark = int.Parse(key.GetValue("IdleBeforeLineMark", "500").ToString());
+                    s.Nummer = int.Parse(key.GetValue("Nummer", "0").ToString());
 
                     viewer.Add(s);
                 }
+                SourceViewer swap;
+                for (int runs = 0; runs < viewer.Count; runs++)
+                {
+                    for (int sort = 0; sort < viewer.Count - 1; sort++)
+                    {
+                        if (viewer[sort].Nummer > viewer[sort + 1].Nummer)
+                        {
+                            swap = viewer[sort + 1];
+                            viewer[sort + 1] = viewer[sort];
+                            viewer[sort] = swap;
+                        }
+                    }
+                }
+
                 return viewer;
             }
         }

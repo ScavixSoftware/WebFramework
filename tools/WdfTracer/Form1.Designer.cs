@@ -170,7 +170,7 @@ namespace WdfTracer
             // toolStripStatusLabel1
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(667, 17);
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(636, 17);
             this.toolStripStatusLabel1.Spring = true;
             // 
             // btnSelectedViewer
@@ -183,18 +183,19 @@ namespace WdfTracer
             this.btnSelectedViewer.Name = "btnSelectedViewer";
             this.btnSelectedViewer.Size = new System.Drawing.Size(124, 20);
             this.btnSelectedViewer.Text = "No viewer found";
+            this.btnSelectedViewer.Click += new System.EventHandler(this.btnSelectedViewer_Click);
             // 
             // itemUltraEdit
             // 
             this.itemUltraEdit.Name = "itemUltraEdit";
-            this.itemUltraEdit.Size = new System.Drawing.Size(124, 22);
+            this.itemUltraEdit.Size = new System.Drawing.Size(152, 22);
             this.itemUltraEdit.Tag = "ultraedit";
             this.itemUltraEdit.Text = "UltraEdit";
             // 
             // itemNetbeans
             // 
             this.itemNetbeans.Name = "itemNetbeans";
-            this.itemNetbeans.Size = new System.Drawing.Size(124, 22);
+            this.itemNetbeans.Size = new System.Drawing.Size(152, 22);
             this.itemNetbeans.Tag = "netbeans";
             this.itemNetbeans.Text = "NetBeans";
             // 
