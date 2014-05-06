@@ -81,7 +81,10 @@ class WdfException extends Exception
 		if( $inner_exception )
 			throw new $classname($message,$inner_exception->getCode(),$inner_exception);
 		else
+		{
+			$message .= "\nStack:\n".system_stacktrace_to_string(debug_backtrace());
 			throw new $classname($message);
+		}
 	}
 	
 	/**

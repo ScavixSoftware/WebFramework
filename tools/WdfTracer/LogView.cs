@@ -463,7 +463,7 @@ namespace WdfTracer
             if (m.Success)
             {
                 test = new Entry();
-                test.Created = DateTime.Parse(m.Groups[1].Value);
+                test.Created = DateTime.Parse(m.Groups[1].Value.Substring(0,20));
                 if (m.Groups.Count < 4)
                 {
                     test.Severity = "";

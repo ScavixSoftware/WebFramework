@@ -586,7 +586,7 @@ class Control extends Renderable
 	}
 	
 	/**
-	 * Set a valud to a data-$name attribute.
+	 * Set a value to a data-$name attribute.
 	 * 
 	 * Those can be accessed in JS easily using jQuery.data method
 	 * @param string $name Data name

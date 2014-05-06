@@ -112,7 +112,10 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	protected function _loadPackage($package)
 	{
 		if( isset(self::$_apis['visualization']) )
-			self::$_apis['visualization'][1]['packages'][] = $package;
+		{
+			if( !in_array($package, self::$_apis['visualization'][1]['packages']) )
+				self::$_apis['visualization'][1]['packages'][] = $package;
+		}
 		else
 			parent::_loadApi('visualization','1',array('packages'=>array($package)));
 	}
@@ -152,7 +155,6 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	 */
 	function Query()
 	{
-		log_debug("{$this->id}->Query()",$_REQUEST,$this);
 		$mc = $this->_createMC($this->_ds);
 		foreach( $this->_entities as $name=>$spec )
 		{
@@ -185,6 +187,14 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	function setSize($width,$height)
 	{
 		return $this->opt('width',intval($width))->opt('height',intval($height));
+	}
+	
+	/**
+	 * @shortcut <GoogleVisualization::opt>('title',$title);
+	 */
+	function setTitle($title)
+	{
+		return $this->opt('title',$title);
 	}
 	
 	/**
@@ -246,6 +256,16 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		
 		$this->_entities[$alias?$alias:$table_name] = $entity;
 		$this->_data = array();
+		return $this;
+	}
+	
+	function setSqlQuery($sql,$args=array(),$datasource=false)
+	{
+		if( $datasource )
+			$this->setDataSource($datasource);
+		$this->_data = array();
+		foreach( $this->_ds->ExecuteSql($sql,$args) as $row )
+			$this->_data[] = array_values($row);
 		return $this;
 	}
 	

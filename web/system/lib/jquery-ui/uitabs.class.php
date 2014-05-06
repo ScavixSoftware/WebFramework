@@ -44,6 +44,7 @@ class uiTabs extends uiControl
 		parent::__initialize('div');
 		$this->Options = force_array($options);
 		$this->list = $this->content(new Control('ul'));
+		log_debug($_SERVER);
 	}
 
 	/**
@@ -51,7 +52,6 @@ class uiTabs extends uiControl
 	 */
 	public function PreRender($args = array())
 	{
-		log_debug(__METHOD__);
 		$this->script("$('#{self}').tabs(".system_to_json($this->Options).")");
 		return parent::PreRender($args);
 	}
