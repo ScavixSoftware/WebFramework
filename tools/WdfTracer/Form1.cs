@@ -117,6 +117,17 @@ namespace WdfTracer
                     btnSelectedViewer.Image = i.Image;
                 }
             }
+            btnSelectedViewer.DropDownItems.Add("-");
+            ToolStripItem manage = btnSelectedViewer.DropDownItems.Add("Manage");
+            manage.Click += manage_Click;
+            
+        }
+
+        void manage_Click(object sender, EventArgs e)
+        {
+            Form2 dlg = new Form2();
+            if (dlg.ShowDialog() == DialogResult.OK)
+            { InvalidateSelectedViewer(); }
         }
 
         private void ViewerItemClick(object sender, EventArgs e)
@@ -403,5 +414,10 @@ namespace WdfTracer
         }
 
         #endregion        
+
+        private void btnSelectedViewer_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

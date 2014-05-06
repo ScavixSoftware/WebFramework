@@ -35,19 +35,22 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Drawing.IconLib;
 
 namespace WdfTracer
 {
     internal class SourceViewer
     {
+        private string argPat = "{file}";
+
         public string Alias { get; set; }
         public string Name { get; set; }
-        public string ArgumentPattern { get; set; }
+        public string ArgumentPattern { get { return argPat; } set { argPat = value; } }
         public string ExeSearchName { get; set; }
         public string Executable { get; set; }
         public int IdleBeforeLineMark { get; set; }
         public bool SeemsNotInstalled = false;
-
+        public int Nummer { get; set; }
         public Image Image
         {
             get
@@ -55,41 +58,63 @@ namespace WdfTracer
                 if (IsReady())
                 {
                     string iconfile = Path.Combine(Application.UserAppDataPath, Alias + ".ico");
-                    if (File.Exists(iconfile))
+                    if (!File.Exists(iconfile))
                     {
-                        Icon i = new Icon(iconfile);
-                        return i.ToBitmap();
-                    }
-                    else
-                    {
-                        using (TKageyu.Utils.IconExtractor ie = new TKageyu.Utils.IconExtractor(Executable))
+                        FileStream icon = File.Create(iconfile);
+                        MultiIcon mIcon = new MultiIcon();
+                        mIcon.Load(Executable);
+                        foreach (SingleIcon si in mIcon)
                         {
-                            if (ie.IconCount > 0)
-                            {
-                                FileStream icon = File.Create(iconfile);
-                                Icon i = ie.GetIcon(0);
-                                i.Save(icon);
-                                icon.Close();
-                                return i.ToBitmap();
-                            }
+                            si.Icon.Save(icon);
                         }
+                        icon.Flush();
+                        icon.Close();
                     }
+                    Icon i = new Icon(iconfile);
+                    return i.ToBitmap();
                 }
                 return null;
             }
         }
-
+        internal int[] Bubble(int[] a)
+        {
+            int swap = 0;
+            for (int runs = 0; runs < a.Length; runs++)
+            {
+                for (int sort = 0; sort < a.Length - 1; sort++)
+                {
+                    if (a[sort] > a[sort + 1])
+                    {
+                        swap = a[sort + 1];
+                        a[sort + 1] = a[sort];
+                        a[sort] = swap;
+                    }
+                }
+            }
+            return a;
+        }
+        internal void DeleteIcon()
+        {
+            string iconfile = Path.Combine(Application.UserAppDataPath, Alias + ".ico");
+            File.Delete(Path.GetFullPath(iconfile));
+        }
         internal void Save(RegistryKey settings)
         {
             RegistryKey key = settings.CreateSubKey(Alias);
-            key.SetValue("Name", Name, RegistryValueKind.String);
-            key.SetValue("ExeSearchName", ExeSearchName, RegistryValueKind.String);
+            key.SetValue("Name", (Name == null) ? "": Name, RegistryValueKind.String);
+            key.SetValue("ExeSearchName", (ExeSearchName == null) ? "": ExeSearchName, RegistryValueKind.String);
             key.SetValue("Executable", (Executable == null) ? "" : Executable, RegistryValueKind.String);
-            key.SetValue("ArgumentPattern", ArgumentPattern, RegistryValueKind.String);
-
+            key.SetValue("ArgumentPattern", (ArgumentPattern == null) ? "" : ArgumentPattern, RegistryValueKind.String);
+            key.SetValue("Nummer", Nummer, RegistryValueKind.DWord);
             if (IdleBeforeLineMark == 0)
                 IdleBeforeLineMark = 500;
             key.SetValue("IdleBeforeLineMark", IdleBeforeLineMark, RegistryValueKind.DWord);
+        }
+
+        internal void Delete(RegistryKey settings)
+        {
+            if (settings.GetSubKeyNames().Contains(Alias))
+                settings.DeleteSubKey(Alias);
         }
 
         internal bool IsReady()
