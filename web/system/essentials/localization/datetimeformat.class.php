@@ -26,6 +26,8 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 namespace ScavixWDF\Localization;
+
+use DateTime;
 use ScavixWDF\WdfException;
 
 /**
@@ -43,7 +45,7 @@ class DateTimeFormat
 	const DF_SHORTTIME	= 0x06;
 
 	private static $PatternPlaceholders = array(
-			"d4","d3","d2","d1",
+			"d5","d4","d3","d2","d1",
 			"h2","h1","H2","H1",
 			"m2","m1",
 			"M4","M3","M2","M1",
@@ -123,8 +125,6 @@ class DateTimeFormat
 		// array of patterns to be replaced
 		$pattern = self::$PatternPlaceholders;
 
-		// throw away the %
-//		$format = str_replace("%", "", $format);
 		// find all placeholders
 		$arplaceholders = array();
 		$pl = sizeof($pattern);
@@ -134,25 +134,9 @@ class DateTimeFormat
 			if(strpos($format, $p) !== false)
 				$arplaceholders[] = $p;
 		}
-
-//		$slf = strlen($format);
-//		$pl = sizeof($pattern);
-//		for( $i=0; $i<$slf; $i++ )
-//		{
-////			foreach( $pattern as $k=>$p )
-//			for($j = 0; $j < $pl; $j++)
-//			{
-//				$p = $pattern[$j];
-//				$slp = strlen($p);
-//				$test = substr($format,$i,$slp);
-//				if( $test == $p )
-//				{
-//					$arplaceholders[$p] = "";
-//					$i += $slp;
-//					break;
-//				}
-//			}
-//		}
+		
+		if( $date instanceof DateTime )
+			$date = $date->getTimestamp();
 
 		$i = 0;
 		foreach($arplaceholders as $k=>$p)
@@ -160,6 +144,9 @@ class DateTimeFormat
 			$repl = "";
 			switch($p)
 			{
+				case 'd5':
+					$repl = date('jS',$date);
+					break;
 				case 'd4':
 					$repl = $this->DayNames[date('w',$date)];
 					break;
@@ -172,16 +159,6 @@ class DateTimeFormat
 				case 'd1':
 					$repl = date('j',$date);
 					break;
-
-//				case 'fffffff':
-//				case 'ffffff':
-//				case 'fffff':
-//				case 'ffff':
-//				case 'fff':
-//				case 'ff':
-//				case 'f':
-//					$repl = substr(date('u',$date),0,strlen($k));
-//					break;
 
 				case 'h2':
 					$repl = date('h',$date);
@@ -240,7 +217,6 @@ class DateTimeFormat
 				$format = str_replace($p, $repl, $format);
 		}
 
-//		$format = str_replace($arreplace, array_values($arplaceholders), $format);
 		return $format;
 	}
 
@@ -294,6 +270,7 @@ class DateTimeFormat
 		$apm1 = substr($this->AM,0,1).'|'.substr($this->PM,0,1);
 		$regex_data = array
 		(
+			"d5" => '(\d(|st|nd|rd))',
 			"d4" => '('.$this->_regexEscapeArray($this->DayNames).')',
 			"d3" => '('.$this->_regexEscapeArray($this->ShortDayNames).')',
 			"d2" => '(\d\d)',
@@ -371,6 +348,7 @@ class DateTimeFormat
 		{
 			switch( $semantics[$iter-1] )
 			{
+				case "d5":
 				case "d4":
 				case "d3":
 					break;
@@ -444,9 +422,6 @@ class DateTimeFormat
 		if( $y == 0 && isset($y2) )
 			$y = intval(substr(date("Y"),0,2).$y2);
 
-		$res = mktime($h, $i, $s, $m, $d, $y);
-//		log_debug("$h, $i, $s, $m, $d, $y");
-//		log_debug("$str -> ".$res." -> ".date("Y-m-d H:i:s",$res));
-		return $res;
+		return mktime($h, $i, $s, $m, $d, $y);
 	}
 }

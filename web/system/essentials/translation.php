@@ -85,6 +85,8 @@ function translation_init()
 	$reg = "/".implode("|",$reg)."/";
 	$GLOBALS['__translate_regpattern'] = $reg;
     
+	$GLOBALS['translation']['data'] = array();
+	
     system_ensure_path_ending($CONFIG['translation']['data_path']);
 }
 
@@ -349,11 +351,18 @@ function _text($constant, $arreplace = null, $unbuffered = false, $encoding = nu
  */
 function getString($constant, $arreplace = null, $unbuffered = false, $encoding = null)
 {
+	if( $arreplace instanceof Model )
+		$arreplace = $arreplace->AsArray();
+	if( count($GLOBALS['translation']['data'])>0 )
+	{
+		if( $arreplace )
+			$arreplace = array_merge($GLOBALS['translation']['data'],$arreplace);
+		else
+			$arreplace = $GLOBALS['translation']['data'];
+	}
 	if( !$arreplace )
 		return getStringOrig($constant,$arreplace,$unbuffered,$encoding);
 	$n = array();
-	if( $arreplace instanceof Model )
-		$arreplace = $arreplace->AsArray();
 	foreach( $arreplace as $k=>$v )
 		if( $k[0] == '{' ) $n[$k] = $v; else $n['{'.$k.'}'] = $v;
 	return getStringOrig($constant,$n,$unbuffered,$encoding);
@@ -372,8 +381,6 @@ function getString($constant, $arreplace = null, $unbuffered = false, $encoding 
  */
 function getStringOrig($constant, $arreplace = null, $unbuffered = false, $encoding = null)
 {
-	global $CONFIG;
-	
 	// common 'ensure includes'-block. repeated multiple times in this file for performance reasons
 	if( !isset($GLOBALS['current_language']) )
 		detect_language();
@@ -533,8 +540,6 @@ function checkForExistingLanguage($cultureCode)
  */
 function translation_known_constants()
 {
-	global $CONFIG;
-	
     $res = cache_get('translation_known_constants');
 	if( $res )
 		return $res;
@@ -603,3 +608,48 @@ function default_string($constant,$text)
  * @shortcut for <default_string>($constant, $text)
  */
 function tds($constant,$text){ return default_string($constant, $text); }
+
+function set_trans_data($name,$data)
+{
+	clear_trans_data();
+	add_trans_data($name, $data);
+}
+
+function add_trans_data($name,$data,$depth=0)
+{
+	if( $data instanceof \ScavixWDF\Model\DataSource )
+		return;
+	if( $data instanceof \ScavixWDF\WdfException )
+		return;
+	if( $data instanceof \ScavixWDF\Base\Renderable )
+		return;
+	// todo: more class-based exceptions
+	if( $depth > 1 )
+		return;
+	
+	$name = str_replace(array('{','}'),array('',''),$name);
+	if( $data instanceof Model )
+		$data = $data->AsArray();
+	if( $data instanceof DateTime )
+	{
+		if( !isset($GLOBALS['current_language']) )
+			detect_language();
+		$ci = Localization::getCultureInfo($GLOBALS['current_language']);
+		$GLOBALS['translation']['data'][$name."_asdate"] = $ci->FormatDate($data);
+		$data = $ci->FormatDateTime($data);
+	}
+	if( is_object($data) )
+		$data = (array)$data;
+	if( is_array($data) )
+	{
+		foreach( $data as $k=>$v )
+			add_trans_data("{".$name.".".$k."}",$v,$depth+1);
+		return;
+	}
+	$GLOBALS['translation']['data'][$name] = $data;
+}
+
+function clear_trans_data()
+{
+	$GLOBALS['translation']['data'] = array();
+}

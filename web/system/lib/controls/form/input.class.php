@@ -36,6 +36,8 @@ use ScavixWDF\Base\Control;
  */
 class Input extends Control
 {
+	var $Label = false;
+	
 	function __initialize()
 	{
 		parent::__initialize("input");
@@ -78,5 +80,19 @@ class Input extends Control
 		if( $value !== false )
 			$this->value = $value;
 		return $this;
+	}
+	
+	/**
+	 * Creates a label element for this input.
+	 * 
+	 * Note that this only ensures that the label is correctly assigned to this input.
+	 * It will not add it somewhere!
+	 * @param string $text Text for the label
+	 * @return Label The created label element
+	 */
+	function CreateLabel($text)
+	{
+		$this->Label = new Label($text,$this->id);
+		return $this->Label;
 	}
 }

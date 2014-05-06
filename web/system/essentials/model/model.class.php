@@ -476,9 +476,9 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		$className = get_called_class();
 		$res = new $className($datasource);
-		$res->__ensureSelect();
-		$res->_querySql = $sql;
-		$res->_queryArgs = $args;
+		$res->__ensureSelect($sql);
+		//$sql = preg_replace('/^select\s(.*)\swhere\s/Ui','',$sql);
+		$res->_query->sql($sql,force_array($args));
 		return $res;
 	}
 
@@ -517,6 +517,42 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		}
 		return $res;
     }
+	
+	public static function MakeFromData($data,$datasource=null)
+	{
+		$className = get_called_class();
+		$res = new $className($datasource);
+		$pks = $res->GetPrimaryColumns();
+		foreach( $res->GetColumnNames() as $cn )
+		{
+			if( isset($data[$cn]) )
+				$res->$cn = $data[$cn];
+			$i = array_search($cn, $pks);
+			if( $i !== false )
+				unset($pks[$i]);
+		}
+		$res->__init_db_values(false);
+		$res->_saved = count($pks)==0;
+		return $res;
+	}
+	
+	public static function CastFrom($model)
+	{
+		$className = get_called_class();
+		$res = new $className($model->_ds);
+		$pks = $res->GetPrimaryColumns();
+		foreach( $res->GetColumnNames() as $cn )
+		{
+			if( isset($model->$cn) )
+				$res->$cn = $model->$cn;
+			$i = array_search($cn, $pks);
+			if( $i !== false )
+				unset($pks[$i]);
+		}
+		$res->__init_db_values(false);
+		$res->_saved = count($pks)==0;
+		return $res;
+	}
 	
 	/**
 	 * Static tool method to ensure $value is of type <DateTimeEx>.
@@ -672,10 +708,10 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		WdfDbException::Raise("Unknown column '$name' in table '{$this->_tableSchema->Name}'");
 	}
 
-	private function __ensureSelect()
+	private function __ensureSelect($select_statement=false)
 	{
 		if( !$this->_query )
-			$this->_query = new SelectQuery($this,$this->_ds);
+			$this->_query = new SelectQuery($this,$this->_ds,$select_statement);
 	}
 
 	/**
@@ -773,6 +809,21 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		$res = clone $this;
 		$res->__ensureSelect();
 		$res->_query->having($defaultOperator);
+		return $res;
+	}
+	
+	/**
+	 * Adds a raw SQL part to the statement.
+	 * 
+	 * @param string $sql_statement_part The raw SQL code
+	 * @param array The arguments of the raw SQL query part
+	 * @return Model `clone $this`
+	 */
+	public function sql($sql_statement_part,$args=array())
+	{
+		$res = clone $this;
+		$res->__ensureSelect();
+		$res->_query->sql($sql_statement_part,force_array($args));
 		return $res;
 	}
 

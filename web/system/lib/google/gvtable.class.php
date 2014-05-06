@@ -39,4 +39,19 @@ class gvTable extends GoogleVisualization
 		parent::__initialize('Table',$options,$query,$ds);
 		$this->_loadPackage('table');
 	}
+	
+	/**
+	 * @override
+	 */
+	function PreRender($args = array())
+	{
+		$t = $this->opt('title');
+		if( $t )
+		{
+			// use jQuery to add a caption element to the table as google does not support this natively
+			$js = "$('#{$this->id}').find('table').prepend('<caption>$t</caption>');";
+			$this->_addLoadCallback('visualization', $js);
+		}
+		return parent::PreRender($args);
+	}
 }

@@ -25,6 +25,7 @@
 namespace ScavixWDF\Base;
 
 use ScavixWDF\Reflection\ResourceAttribute;
+use ScavixWDF\WdfException;
 
 /**
  * Base class for all HTML related stuff.
@@ -35,6 +36,7 @@ abstract class Renderable
 {
 	var $_translate = true;
 	var $_storage_id;
+	var $_parent = false;
 	var $_content = array();
 	var $_script = array();
 
@@ -121,6 +123,19 @@ abstract class Renderable
 					$res = array_merge($res,$sub);
 				}
 				
+				// for Template class check the template file too
+				if( $template instanceof Template )
+				{
+					$fnl = strtolower(array_shift(explode(".",basename($template->file))));
+					if( get_class_simple($template,true) != $fnl )
+					{
+						if( resourceExists("$fnl.css") )
+							$res[] = resFile("$fnl.css");
+						if( resourceExists("$fnl.js") )
+							$res[] = resFile("$fnl.js");
+					}
+				}
+				
 				// finally include the 'self' stuff (<classname>.js,...)
 				// Note: these can be forced to be loaded in static if they require to be loaded before the contents resources
 				$classname = get_class_simple($template);
@@ -150,5 +165,242 @@ abstract class Renderable
 			}
 		}
 		return array_unique($res);
+	}
+	
+	function capture(&$variable)
+	{
+		$variable = $this;
+		return $this;
+	}
+	
+	/**
+	 * Adds content to the Control.
+	 * 
+	 * Note that this will not return `$this` but the $content.
+	 * This allows for method chaining like this:
+	 * <code php>
+	 * $this->content( new Control('div') )->css('border','1px solid red')->addClass('mydiv')->content('DIVs content');
+	 * </code>
+	 * @param mixed $content The content to be added
+	 * @param bool $replace if true replaces the whole content.
+	 * @return mixed The content added
+	 */
+	function &content($content,$replace=false)
+	{
+		if( $content instanceof Renderable )
+			$content->_parent = $this;
+		if( !$replace && is_array($content) )
+			foreach( $content as &$c )
+				$this->content($c);
+		elseif( $replace )
+		{
+			foreach( $this->_content as &$c )
+				if( $c instanceof Renderable )
+					$c->_parent = false;
+			$this->_content = is_array($content)?$content:array($content);
+		}
+		else
+			$this->_content[] = $content;
+		return $this->_content[count($this->_content)-1];
+	}
+	
+	/**
+	 * Clears all contents.
+	 * 
+	 * @return Control `$this`
+	 */
+	function clearContent()
+	{
+		foreach( $this->_content as &$c )
+			if( $c instanceof Renderable )
+				$c->_parent = false;
+		$this->_content = array();
+		return $this;
+	}
+	
+	/**
+	 * Gets the number of contents.
+	 * 
+	 * @return int Length of the contents array
+	 */
+	function length()
+	{
+		return count($this->_content);
+	}
+	
+	/**
+	 * Gets the content at index $index.
+	 * 
+	 * @param int $index Zerao based index of content to get
+	 * @return mixed Content at index $index
+	 */
+	function get($index)
+	{
+		if( isset($this->_content[$index]) )
+			return $this->_content[$index];
+		WdfException::Raise("Index out of bounds: $index");
+	}
+	
+	/**
+	 * @shortcut <Control::get>(0);
+	 */
+	function first()
+	{
+		if( isset($this->_content[0]) )
+			return $this->_content[0];
+		return log_return("Control::first() is empty",new Control());
+	}
+	
+	/**
+	 * @shortcut <Control::get>(&ltlast_index;&gt;);
+	 */
+	function last()
+	{
+		if( count($this->_content)>0 )
+			return $this->_content[count($this->_content)-1];
+		return log_return("Control::last() is empty",new Control());
+	}
+	
+	function par()
+	{
+		if( !($this->_parent instanceof Renderable) )
+			WdfException::Raise("Parent must be of type Renderable");
+		return $this->_parent;
+	}
+	
+	function prev()
+	{
+		$i = $this->par()->indexOf($this);
+		return $this->par()->get($i-1);
+	}
+
+	function next()
+	{
+		$i = $this->par()->indexOf($this);
+		return $this->par()->get($i+1);
+	}
+	
+	/**
+	 * @shortcut <Control::content>
+	 */
+	function append($content)
+	{
+		$this->content($content);
+		return $this;
+	}
+	
+	/**
+	 * Prepends something to the contents of this control.
+	 * 
+	 * @param mixed $content Content to be prepended
+	 * @return Control `$this`
+	 */
+	function prepend($content)
+	{
+		return $this->insert($content,0);
+	}
+	
+	/**
+	 * Inserts something to the contents of this control.
+	 * 
+	 * @param mixed $content Content to be prepended
+	 * @param int $index Zero base index where to insert
+	 * @return Control `$this`
+	 */
+	function insert($content,$index)
+	{
+		if( $index instanceof Renderable )
+		{
+			$index = $this->indexOf($index);
+			if( $index < 0 )
+				WdfException::Raise("Cannot insert because index not found");
+		}
+		$buf = $this->_content;
+		$this->_content = array();
+		$i = 0;
+		foreach( $buf as $b )
+		{
+			if( $i++ == $index )
+				$this->content($content);
+			$this->_content[] = $b;
+		}
+		return $this;
+	}
+	
+	function indexOf($content)
+	{
+		$cnt = count($this->_content);
+		for($i=0; $i<$cnt; $i++)
+			if( $this->_content[$i] == $content )
+				return $i;
+		return -1;
+	}
+	
+	/**
+	 * Wraps this control into another one.
+	 * 
+	 * Not words, just samples:
+	 * <code php>
+	 * $wrapper = new Control('div');
+	 * $inner = new Control('span');
+	 * $inner->content('INNER');
+	 * $inner->wrap($wrapper)->content("I am below 'INNER'");
+	 * // or
+	 * $inner = new Control('span');
+	 * $inner->content('INNER');
+	 * $inner->wrap('div')->content("I am below 'INNER'");
+	 * // or
+	 * $inner = new Control('span');
+	 * $inner->content('INNER');
+	 * $inner->wrap(new Control('div'))->content("I am below 'INNER'");
+	 * </code>
+	 * @param mixed $tag_or_obj String or <Control>, see samples
+	 * @return Control The (new) wrapping control
+	 */
+	function wrap($tag_or_obj='')
+	{
+		$res = ($tag_or_obj instanceof Control)?$tag_or_obj:new Control($tag_or_obj);
+		$res->content($this);
+		return $res;
+	}
+	
+	/**
+	 * Append this control to another control.
+	 * 
+	 * @param mixed $target Object of type <Control> or <HtmlPage>
+	 * @return Control `$this`
+	 */
+	function appendTo($target)
+	{
+		if( ($target instanceof Renderable) )
+			$target->content($this);
+		else
+			WdfException::Raise("Target must be of type Control or HtmlPage");
+		return $this;
+	}
+	
+	/**
+	 * Adds this control before another control.
+	 * 
+	 * In fact it will be inserted before the other control into the other controls parent.
+	 * @param Renderable $target Object of type <Renderable>
+	 * @return Control `$this`
+	 */
+	function insertBefore($target)
+	{
+		if( ($target instanceof Renderable) )
+			$target->par()->insert($this,$target);
+		else
+			WdfException::Raise("Target must be of type Renderable");
+		return $this;
+	}
+	
+	/**
+	 * Inserts content after this element.
+	 */
+	function after($content)
+	{
+		$this->par()->insert($content,$this->next());
+		return $this;
 	}
 }

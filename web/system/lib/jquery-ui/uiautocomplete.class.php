@@ -24,12 +24,12 @@
  */
 namespace ScavixWDF\JQueryUI;
 
-use ScavixWDF\Base\Control;
-
 /**
  * Wraps a jQueryUI Autocomplete
  * 
  * See http://jqueryui.com/autocomplete/
+ * 
+ * @attribute[Resource('jquery-ui/ui.autocomplete.ex.js')] 
  */
 class uiAutocomplete extends uiControl
 {
@@ -41,17 +41,8 @@ class uiAutocomplete extends uiControl
 	 */
 	function __initialize($options=array())
 	{		
-		parent::__initialize("");
-		
-		$this->hidden = new Control('input');
-		$this->hidden->setData('role','autocomplete_value')->type = "hidden";
-		$this->ui = new Control('input');
-		$this->ui->setData('role','autocomplete_ui')->type = "text";
-		
-		$options['focus'] = "function(e,d){ $('#{$this->ui->id}').val(d.item.label); return false; }";
-		if( !isset($options['select']) )
-			$options['select'] = str_replace("return false","$('#{$this->hidden->id}').val(d.item.value).change(); return false",$options['focus']);
-
+		parent::__initialize("input");
+		$this->type = "text";
 		$this->Options = $options;
 	}
 	
@@ -72,8 +63,7 @@ class uiAutocomplete extends uiControl
 	 */
 	function PreRender($args = array())
 	{
-		$this->content(array($this->hidden,$this->ui), true);
-		$this->script("$('#{$this->ui->id}').autocomplete(".system_to_json($this->Options).");");
+		$this->script("$('#{$this->id}').autocomplete(".system_to_json($this->Options).");");
 		parent::PreRender($args);
 	}
 }

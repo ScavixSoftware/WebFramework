@@ -354,8 +354,6 @@ class Localization
 		foreach( $regions as $reg )
 		{
 			$reg = internal_getRegion($reg);
-			if( !$reg )
-				continue;
 			if( !$culture_filter )
 			{
 				$res[$reg->Code] = $reg->EnglishName;

@@ -63,7 +63,7 @@ class PercentFormat
 			$val = str_replace($this->GroupSeparator[0],"&#$ord;",$val);
 		}
 		if( $number >= 0 )
-			str_replace("%v", $val, $this->PositiveFormat);
+			return str_replace("%v", $val, $this->PositiveFormat);
 		return str_replace("%v", $val, $this->NegativeFormat);
 	}
 }

@@ -38,10 +38,13 @@ class SelectQuery extends Query
 	protected $_limit = array();
 	protected $_join = array();
 
-	function __construct(&$obj,&$datasource)
+	function __construct(&$obj,&$datasource,$select_statement=false)
 	{
-		parent::__construct($obj,$datasource);
-		$this->_initialSequence = "SELECT * FROM `{$obj->GetTableName()}`";
+		parent::__construct($obj,$datasource,$select_statement?"":"WHERE");
+		if( !$select_statement )
+			$this->_initialSequence = "SELECT * FROM `{$obj->GetTableName()}`";
+		else
+			$this->_initialSequence = "";
 	}
 
 	function setResultFields($fields_as_array_or_commaseparated)
@@ -78,7 +81,7 @@ class SelectQuery extends Query
 		{
 			$tmp = array();
 			foreach( $this->_groupBy as $g )
-				$tmp[] = "`$g`";
+				$tmp[] = "$g";
 
 			$sql .= " GROUP BY ".implode(",",$tmp);
 		}

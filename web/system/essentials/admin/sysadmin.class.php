@@ -343,7 +343,7 @@ class SysAdmin extends HtmlPage
 			return $res?" [$res]":'';
 		};
 		
-		$sel->SetCurrentValue($extension)->AddOption('','<select one>');
+		$sel->SetCurrentValue($extension)->AddOption('','(select one)');
 		$sel->AddOption('all','All values');
 		foreach( array_keys($data) as $ext )
 		{

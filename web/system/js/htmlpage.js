@@ -157,7 +157,13 @@ $.ajaxSetup({cache:false});
 				href = this.settings.site_root + href;
 			
 			if( typeof data == 'object' )
-				href += (this.settings.rewrite?"?":"&")+$.param(data);
+			{
+				var cleaned = {};
+				for(var i in data)
+					if( i.substring(0,3) != 'ui-' )
+						cleaned[i] = data[i];
+				href += (this.settings.rewrite?"?":"&")+$.param(cleaned);
+			}
 			
 			if( location.href == href )
 				location.reload();
@@ -348,7 +354,59 @@ $.ajaxSetup({cache:false});
 //				setTimeout(wdf.server_logger,100);
 //			}
 //			wdf.server_logger();
-		}
+		},
+		
+		showScrollListLoadAnim: function()
+		{
+			$('#scrollloader_overlay_anim').fadeIn();
+		},
+		
+		resetScrollListLoader: function()
+		{
+			wdf.initScrollListLoader();
+			//wdf.stopScrollListLoader();
+		},
+		
+		scrollListLoaderHref: false,
+		scrollListLoaderContainer: false,
+		scrollListLoaderOffset: false,
+		initScrollListLoader: function(href,target_container,offset)
+		{
+			if( href ) wdf.scrollListLoaderHref = this.validateHref(href);
+			wdf.scrollListLoaderContainer = target_container || wdf.scrollListLoaderContainer || 'body';
+			wdf.scrollListLoaderOffset = offset || 1;
+			
+			var trigger = $('#scrollloader_overlay_anim');
+			if( trigger.length === 0 )
+				trigger = $('<div/>').attr('id', 'scrollloader_overlay_anim').addClass('wdf_overlay_anim loadMoreContent_removable_trigger').insertAfter(wdf.scrollListLoaderContainer);
+
+			var scroll_handler = function(e)
+			{
+                if( $(window).scrollTop() + $(window).height() < trigger.position().top )
+					return;
+				
+				wdf.showScrollListLoadAnim();
+				$(window).unbind('scroll.loadMoreContent', scroll_handler);
+				wdf.post(wdf.scrollListLoaderHref,{offset:wdf.scrollListLoaderOffset},function(result)
+				{
+					if( typeof(result) != 'string' || result == "" )
+						return;
+					wdf.scrollListLoaderOffset++;
+					$(wdf.scrollListLoaderContainer).append(result);
+					$(window).bind('scroll.loadMoreContent', scroll_handler);
+					
+					if( $(window).scrollTop() + $(window).height() >= trigger.position().top )
+						scroll_handler();		// keep loading until it fills the page
+				});
+            }
+			$(window).bind('scroll.loadMoreContent', scroll_handler);
+			scroll_handler();		// load more content if page not filled yet
+		},
+		
+		stopScrollListLoader: function()
+		{
+			$('.loadMoreContent_removable_trigger').fadeOut();
+		}		
 	};
 	
 	if( typeof win.Debug != "function" )

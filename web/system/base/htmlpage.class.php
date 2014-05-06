@@ -46,6 +46,7 @@ class HtmlPage extends Template implements ICallable
 	var $css = array();
 	var $docready = array();
 	var $plaindocready = array();
+	var $wdf_settings = array('focus_first_input'=>true);
 
 	/**
 	 * Setting this to a filename (relative to class) will load it as subtemplate
@@ -78,6 +79,9 @@ class HtmlPage extends Template implements ICallable
 
 		if( resourceExists("favicon.ico") )
 			$this->set("favicon", resFile("favicon.ico"));
+		
+		// set up correct display on mobile devices: http://stackoverflow.com/questions/8220267/jquery-detect-scroll-at-bottom
+		$this->addMeta("viewport","width=device-width, height=device-height, initial-scale=1.0");
 	}
 
 	/**
@@ -87,7 +91,10 @@ class HtmlPage extends Template implements ICallable
 	{
 		execute_hooks(HOOK_PRE_RENDER,array($this));
 
-		$init_data = array('request_id' => request_id(),'site_root' => cfg_get('system','url_root'));
+		$init_data = $this->wdf_settings;
+		$init_data['request_id'] = request_id();
+		$init_data['site_root']  = cfg_get('system','url_root');
+		
 		if( cfg_getd('system','attach_session_to_ajax',false) )
 		{
 			$init_data['session_id'] = session_id();
@@ -131,6 +138,7 @@ class HtmlPage extends Template implements ICallable
 		$this->set("css",$this->css);
 		$this->set("js",$this->js);
 		$this->set("meta",$this->meta);
+		$this->set("content",$this->_content);
 		
 		return parent::WdfRender();
 	}
@@ -142,11 +150,12 @@ class HtmlPage extends Template implements ICallable
 	 * @param string $name The name
 	 * @param string $content The content
 	 * @param string $scheme The scheme
+	 * @param string $type The meta-tags name ('name','http-equiv',...)
 	 * @return HtmlPage `$this`
 	 */
-	function addMeta($name,$content,$scheme="")
+	function addMeta($name,$content,$scheme="",$type='name')
 	{
-		$meta = "\t<meta name='$name' content='$content'".(($scheme=="")?"":" scheme='$scheme'")."/>\n";
+		$meta = "\t<meta $type='$name' content='$content'".(($scheme=="")?"":" scheme='$scheme'")."/>\n";
 		$this->meta[$name.$content] = $meta;
 		return $this;
 	}
@@ -200,18 +209,6 @@ class HtmlPage extends Template implements ICallable
 		$css = "\t<link rel='stylesheet' type='text/css' href='$src'/>\n";
 		$this->css[$src] = $css;
 		return $this;
-	}
-
-	/**
-	 * Adds content to the page
-	 * 
-	 * @param mixed $content Content to be added
-	 * @return mixed The content
-	 */
-	function content($content)
-	{
-		$this->add2var("content",$content);
-        return $content;
 	}
 
 	/**

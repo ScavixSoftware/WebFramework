@@ -121,7 +121,7 @@ class Logger
 	{
 		if( isset($this->filename) && $this->filename )
 			return;
-		
+
 		if( !isset($this->filename_pattern) || !$this->filename_pattern )
 			$this->filename = ini_get('error_log');
 		else
@@ -150,8 +150,7 @@ class Logger
 	
 	protected function rotate()
 	{
-		if( !isset($this->filename) )
-			$this->ensureFile();
+		$this->ensureFile();
 		
 		if( !isset($this->max_filesize) || @filesize($this->filename)<$this->max_filesize )
 			return;
@@ -201,13 +200,17 @@ class Logger
 		
 		if( isset($this->min_severity) )
 		{
-			$s = @constant("Logger::$severity");
+			$s = @constant("\\ScavixWDF\\Logging\\Logger::$severity");
 			if( $s!==null && $s<$this->min_severity  )
 				return false;
 		}
 				
 		if( !isset($this->filename) )
 			$this->ensureFile();
+		if( !file_exists($this->filename) )
+			touch($this->filename);
+		if( fileperms($this->filename) != 0755 )
+			chmod($this->filename, 0755);
 		
 		$parts = array();
 		if( !is_null( $a1) ) $parts[] = $this->render( $a1);

@@ -60,7 +60,10 @@ class uiDatePicker extends uiControl
 		if( $value )
 		{
 			if( !$inline )
+			{
 				$this->value = $value;
+				$this->type = 'text';
+			}
 			else
 				$this->Options['defaultDate'] = $value;
 		}

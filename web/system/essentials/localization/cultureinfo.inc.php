@@ -3149,15 +3149,15 @@ function internal_getDateTimeFormat($cultureCode)
 	switch( strtolower( str_replace("_", "-", $cultureCode)) )
 	{
 		case 'en-us':
-			return new DateTimeFormat('0','d4, M4 d2, y4 h1:m2:s2 t2','d4, M4 d2, y4','h1:m2:s2 t2','M4 d2','M1/d1/y4','h1:m2 t2','M4, y4','AM','PM');
+			return new DateTimeFormat('0','d4, M4 d5, y4 h1:m2:s2 t2','d4, M4 d5, y4','h1:m2:s2 t2','M4 d5','M1/d1/y4','h1:m2 t2','M4, y4','am','pm');
 		case 'de-de':
-			return new DateTimeFormat('1','d4, d1. M4 y4 H2:m2:s2','d4, d1. M4 y4','H2:m2:s2','d2 M4','d2.M2.y4','H2:m2','M4 y4','','');
+			return new DateTimeFormat('1','d4, d1. M4 y4 H2:m2:s2','d4, d1. M4 y4','H2:m2:s2','d1. M4','d2.M2.y4','H2:m2','M4 y4','','');
 		case 'it-it':
-			return new DateTimeFormat('1','d4 d1 M4 y4 H1.m2.s2','d4 d1 M4 y4','H1.m2.s2','d2 M4','d2/M2/y4','H1.m2','M4 y4','','');
+			return new DateTimeFormat('1','d4 d1 M4 y4 H1.m2.s2','d4 d1 M4 y4','H1.m2.s2','d1. M4','d2/M2/y4','H1.m2','M4 y4','','');
 		case 'ja-jp':
 			return new DateTimeFormat('0','y4\'年\'M1\'月\'d1\'日\' H1:m2:s2','y4\'年\'M1\'月\'d1\'日\'','H1:m2:s2','M1\'月\'d1\'日\'','y4/M2/d2','H1:m2','y4\'年\'M1\'月\'','午前','午後');
 		case 'fr-fr':
-			return new DateTimeFormat('1','d4 d1 M4 y4 H2:m2:s2','d4 d1 M4 y4','H2:m2:s2','d1 M4','d2/M2/y4','H2:m2','M4 y4','','');
+			return new DateTimeFormat('1','d4 d1 M4 y4 H2:m2:s2','d4 d1 M4 y4','H2:m2:s2','d1. M4','d2/M2/y4','H2:m2','M4 y4','','');
 		case 'ar-sa':
 			return new DateTimeFormat('6','d2/M4/y4 h2:m2:s2 t2','d2/M4/y4','h2:m2:s2 t2','d2 M4','d2/M2/yy','h2:m2 t2','M4, y4','ص','م');
 		case 'bg-bg':

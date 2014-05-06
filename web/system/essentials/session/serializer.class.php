@@ -32,12 +32,12 @@ use DateTime;
 use Exception;
 use PDOStatement;
 use Reflector;
-use SimpleXMLElement;
 use ScavixWDF\Base\DateTimeEx;
 use ScavixWDF\Model\DataSource;
 use ScavixWDF\Model\Model;
 use ScavixWDF\Reflection\WdfReflector;
 use ScavixWDF\WdfException;
+use SimpleXMLElement;
 
 /**
  * Serializer/Unserializer

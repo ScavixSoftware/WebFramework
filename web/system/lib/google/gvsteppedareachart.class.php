@@ -2,8 +2,7 @@
 /**
  * Scavix Web Development Framework
  *
- * Copyright (c) 2007-2012 PamConsult GmbH
- * Copyright (c) since 2013 Scavix Software Ltd. & Co. KG
+ * Copyright (c) since 2012 Scavix Software Ltd. & Co. KG
  *
  * This library is free software; you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General
@@ -19,26 +18,25 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>
  *
- * @author PamConsult GmbH http://www.pamconsult.com <info@pamconsult.com>
- * @copyright 2007-2012 PamConsult GmbH
  * @author Scavix Software Ltd. & Co. KG http://www.scavix.com <info@scavix.com>
  * @copyright since 2012 Scavix Software Ltd. & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
-namespace ScavixWDF\Controls\Form;
+namespace ScavixWDF\Google;
 
 /**
- * Represents a checkbox.
+ * An area chart.
  * 
+ * See https://developers.google.com/chart/interactive/docs/gallery
  */
-class CheckBox extends Input
+class gvSteppedAreaChart extends GoogleVisualization
 {
 	/**
-	 * @param string $name The name
+	 * @override
 	 */
-    function __initialize($name=false)
+	function __initialize($options=array(),$query=false,$ds=false)
 	{
-		parent::__initialize();
-		$this->setType("checkbox")->setName($name)->setValue(1);
+		parent::__initialize('SteppedAreaChart',$options,$query,$ds);
+		$this->_loadPackage('corechart');
 	}
 }

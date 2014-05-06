@@ -33,6 +33,33 @@ namespace ScavixWDF;
  */
 class WdfResource implements ICallable
 {
+	public static function ValidatedCacheResponse($file)
+	{
+		$etag = md5($file);
+		$days = 365*86400;
+		$cached = cache_get("etag_$etag",false);
+		$mtime = date("D, d M Y H:i:s",filemtime($file));
+		header("Expires: ".date("D, d M Y H:i:s",time()+$days));
+		header("Last-Modified: ".$mtime);
+		header("Cache-Control: public, max-age=$days");
+		header("ETag: $etag");
+		$headers = getallheaders();
+		if( $cached )
+		{
+			if( isset($headers['If-None-Match']) && $headers['If-None-Match'] == $etag )
+			{
+				header($_SERVER['SERVER_PROTOCOL'].' 304 Not Modified');
+				die();
+			}
+			if( isset($headers['If-Modified-Since']) && strtotime($headers['If-Modified-Since']) >= strtotime($mtime) )
+			{
+				header($_SERVER['SERVER_PROTOCOL'].' 304 Not Modified');
+				die();
+			}
+		}
+		cache_set("etag_$etag",$mtime);
+	}
+	
 	/**
 	 * @internal Returns a JS resource
 	 * @attribute[RequestParam('res','string')]
@@ -41,8 +68,8 @@ class WdfResource implements ICallable
 	{
 		$res = explode("?",$res);
 		$res = realpath(__DIR__."/../../js/".$res[0]);
-		
 		header('Content-Type: text/javascript');
+		WdfResource::ValidatedCacheResponse($res);
 		readfile($res);
 		die();
 	}
@@ -55,8 +82,8 @@ class WdfResource implements ICallable
 	{
 		$res = explode("?",$res);
 		$res = realpath(__DIR__."/../../skin/".$res[0]);
-		
 		header('Content-Type: text/css');
+		WdfResource::ValidatedCacheResponse($res);
 		readfile($res);
 		die();
 	}

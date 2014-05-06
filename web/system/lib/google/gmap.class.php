@@ -159,6 +159,18 @@ class gMap extends GoogleControl
 		$this->_basicOptions['zoom'] = $zoomlevel;
 		return $this;
 	}
+	
+	/**
+	 * En-/Disabled the default map UI
+	 * 
+	 * @param bool $disabled If true UI will be disabled
+	 * @return gMap `$this`
+	 */
+	function setUiDisabled($disabled=false)
+	{
+		$this->_basicOptions['disableDefaultUI'] = $disabled;
+		return $this;
+	}
     
     /**
      * Finds a geolocation from a search string.

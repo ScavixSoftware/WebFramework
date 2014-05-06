@@ -932,3 +932,55 @@ function is_assoc($array)
 {
   return (bool)count( array_filter(array_keys($array), 'is_string') );
 }
+
+/**
+ * Returns the first property of an object that is not null.
+ * 
+ * Requires at least two parameters. The first must be an object or array to check.
+ * All others represent property/key names that shall be checked for existance.
+ * <code php>
+ * $data = array('name'=>'helloworld','display_name'=>'Hello World!');
+ * $result = ifnull($data,'email','username','display_name','name');
+ * // $result is now "Hello World!"
+ * </code>
+ * @return mixed The first non-null value or null of none found
+ */
+function ifnull()
+{
+	$args = func_get_args();
+	$data = array_shift($args);
+	
+	if( count($args) == 0 )
+		ScavixWDF\WdfException::Raise("ifnull needs at least two arguments");
+	
+	if( is_array($data) )
+		$data = (object)$data;
+	if( !is_object($data) )
+		ScavixWDF\WdfException::Raise("First argument needs to be array or object");
+	
+	foreach( $args as $n )
+		if( isset($data->$n) && $data->$n !== null )
+			return $data->$n;
+	return null;
+}
+
+/**
+ * Shorthand IF funcation.
+ * 
+ * This function is something similar to the ?: syntax for IF control structures.
+ * Complicated to explain, here's a sample:
+ * <code php>
+ * $a = true ? 1 : true ? 2 : 3;    // -> 2
+ * $a = true ? 1 : (true ? 2 : 3);  // -> 1
+ * $b = sif(true,1,sif(true,2,3));  // -> 1
+ * </code>
+ * So we use <sif> to get readable code in a one-liner.
+ * @param bool $condition Condition to check
+ * @param mixed $true_value Returnvalue if $condition is true
+ * @param mixed $false_value Returnvalue if $condition is false
+ * @return mixed $true_value or $false_value
+ */
+function sif($condition,$true_value,$false_value)
+{
+	return $condition?$true_value:$false_value;
+}

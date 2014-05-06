@@ -90,13 +90,16 @@ class GoogleControl extends Control
 		self::$_apis[$api] = array($version, $options);
 	}
 	
-	protected function _addLoadCallback($api,$script)
+	protected function _addLoadCallback($api,$script,$prepend=false)
 	{
 		if( !isset(self::$_apis[$api][1]['callback']) )
 			self::$_apis[$api][1]['callback'] = array();
 		
 		if( is_array($script) )
-			self::$_apis[$api][1]['callback'][] = implode("\n",$script);
+			$script = implode("\n",$script);
+
+		if( $prepend )
+			array_unshift(self::$_apis[$api][1]['callback'], $script);
 		else
 			self::$_apis[$api][1]['callback'][] = $script;
 	}

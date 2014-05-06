@@ -88,14 +88,14 @@ class uiStarSelect extends uiControl
 			$this->Options = system_to_json($this->Options);
 			$this->Options = str_replace("}",$caption,$this->Options);
 
-			$this->_content[] = $labTitle;
-			$this->_content[] = $this->CreateSelect($this->id."_select");
+			$this->content($labTitle);
+			$this->content($this->CreateSelect($this->id."_select"));
 			//$this->_content[] = "&nbsp;&nbsp;(".$caption_element.")";
 		}
 		else
 		{
 			$this->Options = system_to_json($this->Options);
-			$this->_content[] = $this->CreateSelect($this->id."_select");
+			$this->content($this->CreateSelect($this->id."_select"));
 		}
 		
 		$script = "$('#{$this->id}').stars($this->Options);";

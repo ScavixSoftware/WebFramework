@@ -65,10 +65,12 @@ class uiSlider extends uiControl
 		{
 			if( !is_array( $this->values ) )
 				$this->values = array($this->values);
-
 			$opts['values'] = "[".implode(",",$this->values)."]";
-
 		}
+		
+		$opts = array_merge($opts,$this->Options);
+		if( $opts['value'] > $opts['max'] ) $opts['value'] = $opts['max'];
+		if( $opts['value'] < $opts['min'] ) $opts['value'] = $opts['min'];
 
 		$opts = system_to_json($opts);
 		$this->script("$('#{$this->id}').slider($opts);");

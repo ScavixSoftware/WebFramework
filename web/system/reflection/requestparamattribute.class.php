@@ -130,6 +130,7 @@ class RequestParamAttribute extends WdfAttribute
 					$args[$this->Name] = restore_object($data[$name]);
 					return true;
 				case 'array':
+				case 'file':
 					if( isset($data[$name]) && is_array($data[$name]) )
 						$args[$this->Name] = $data[$name];
 					return true;

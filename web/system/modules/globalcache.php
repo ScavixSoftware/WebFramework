@@ -43,14 +43,19 @@ define('globalcache_CACHE_DB',5);
 function globalcache_init()
 {
 	global $CONFIG;
+	
+	if( !isset($CONFIG['globalcache']) )
+		$CONFIG['globalcache'] = array();
+	
+	$servername = isset($_SERVER['SERVER_NAME'])?$_SERVER['SERVER_NAME']:"SCAVIX_WDF_SERVER";
+	
 	if( !isset($CONFIG['globalcache']['CACHE']) || !$CONFIG['globalcache']['CACHE'] )
 		$CONFIG['globalcache']['CACHE'] = (function_exists('apc_store') ? globalcache_CACHE_APC : globalcache_CACHE_OFF);
 
 	if(isset($CONFIG['globalcache']['key_prefix']))
-		$GLOBALS['globalcache_key_prefix'] = "K".md5($_SERVER['SERVER_NAME']."-".$CONFIG['globalcache']['key_prefix']."-".getAppVersion('nc'));
+		$GLOBALS['globalcache_key_prefix'] = "K".md5($servername."-".$CONFIG['globalcache']['key_prefix']."-".getAppVersion('nc'));
 	else
-		$GLOBALS["globalcache_key_prefix"] = "K".md5($_SERVER['SERVER_NAME']."-".session_name()."-".getAppVersion('nc'));
-
+		$GLOBALS["globalcache_key_prefix"] = "K".md5($servername."-".session_name()."-".getAppVersion('nc'));
     register_hook_function(HOOK_POST_INIT,'globalcache_initialize');
 }
 
@@ -264,6 +269,9 @@ function globalcache_get($key, $default = false)
     
 	global $CONFIG;
 	try {
+		if( !isset($CONFIG['globalcache']) || !isset($CONFIG['globalcache']['CACHE']) )
+			return $default;
+		
 		switch($CONFIG['globalcache']['CACHE'])
 		{
 			case globalcache_CACHE_OFF:

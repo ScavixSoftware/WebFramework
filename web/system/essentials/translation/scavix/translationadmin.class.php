@@ -179,7 +179,7 @@ class TranslationAdmin extends TranslationAdminBase
         return $this->DeleteString($term);
     }
 	
-	private function _searchQuery($lang,$search)
+	private function _searchQuery($lang,$search=false)
 	{
 		$rs = $this->ds->Query('wdf_translations')->eq('lang',$lang);
 		if( !$search )
@@ -229,7 +229,6 @@ class TranslationAdmin extends TranslationAdminBase
 				$translated[$row['id']] = $row['content'];
 		}
 		$rs = $this->_searchQuery($CONFIG['localization']['default_language'],$search)->page($offset,10);
-        $this->ds->LastStatement->LogDebug();
 		foreach( $rs as $term )
 		{
 			if( isset($translated) )

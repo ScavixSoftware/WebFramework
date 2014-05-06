@@ -25,9 +25,9 @@
 namespace ScavixWDF\Google;
 
 /**
- * A pie chart
+ * A gauge
  * 
- * See https://developers.google.com/chart/interactive/docs/gallery
+ * See https://google-developers.appspot.com/chart/interactive/docs/gallery/gauge
  */
 class gvPieChart extends GoogleVisualization
 {

@@ -182,7 +182,8 @@ class Control extends Renderable
 		{
 			create_storage_id($this);
 			$args = func_get_args();
-			system_call_user_func_array_byref($this, '__initialize', $args);
+			if( count($args)!=1 || $args[0]!=='Make is calling so skip __initialize call')
+				system_call_user_func_array_byref($this, '__initialize', $args);
 		}
 	}
 
@@ -312,9 +313,10 @@ class Control extends Renderable
 	public static function Make($tag=false)
     {
 		$className = get_called_class();
-		if( $tag === false )
-			return new $className();
-		return new $className($tag);
+		$res = new $className('Make is calling so skip __initialize call');
+		$args = func_get_args();
+		system_call_user_func_array_byref($res, '__initialize', $args);
+		return $res;
 	}
 
 	/**
@@ -348,74 +350,6 @@ class Control extends Renderable
 		$name = strtolower($name);
 		$this->_css[$name] = is_numeric($value)?$value.'px':$value;
 		return $this;
-	}
-
-	/**
-	 * Adds content to the Control.
-	 * 
-	 * Note that this will not return `$this` but the $content.
-	 * This allows for method chaining like this:
-	 * <code php>
-	 * $this->content( new Control('div') )->css('border','1px solid red')->addClass('mydiv')->content('DIVs content');
-	 * </code>
-	 * @param mixed $content The content to be added
-	 * @param bool $replace if true replaces the whole content.
-	 * @return mixed The content added
-	 */
-	function &content($content,$replace=false)
-	{
-		if( !$replace && is_array($content) )
-			foreach( $content as &$c )
-				$this->content($c);
-		elseif( $replace )
-			$this->_content = is_array($content)?$content:array($content);
-		else
-			$this->_content[] = $content;
-		return $this->_content[count($this->_content)-1];
-	}
-	
-	/**
-	 * Clears all contents.
-	 * 
-	 * @return Control `$this`
-	 */
-	function clearContent()
-	{
-		$this->_content = array();
-		return $this;
-	}
-	
-	/**
-	 * Gets the content at index $index.
-	 * 
-	 * @param int $index Zerao based index of content to get
-	 * @return mixed Content at index $index
-	 */
-	function get($index)
-	{
-		if( isset($this->_content[$index]) )
-			return $this->_content[$index];
-		return log_return("Control::get($index) is empty",new Control());
-	}
-	
-	/**
-	 * @shortcut <Control::get>(0);
-	 */
-	function first()
-	{
-		if( isset($this->_content[0]) )
-			return $this->_content[0];
-		return log_return("Control::first() is empty",new Control());
-	}
-	
-	/**
-	 * @shortcut <Control::get>(&ltlast_index;&gt;);
-	 */
-	function last()
-	{
-		if( count($this->_content)>0 )
-			return $this->_content[count($this->_content)-1];
-		return log_return("Control::last() is empty",new Control());
 	}
 
 	/**
@@ -504,7 +438,7 @@ class Control extends Renderable
 		foreach( $this->_attributes as $name=>$value )
 		{
 			if($name{0} != "_")
-				$attr[] = "$name=\"".str_replace("\"","\\\"",$value)."\"";
+				$attr[] = "$name=\"".str_replace("\"","&#34;",$value)."\"";
 		}
 		foreach( $this->_data_attributes as $name=>$value )
 		{
@@ -586,7 +520,7 @@ class Control extends Renderable
 	}
 	
 	/**
-	 * Set a value to a data-$name attribute.
+	 * Set a valud to a data-$name attribute.
 	 * 
 	 * Those can be accessed in JS easily using jQuery.data method
 	 * @param string $name Data name
@@ -612,73 +546,6 @@ class Control extends Renderable
 	{
 		if( isset($this->_data_attributes[$name]) )
 			unset($this->_data_attributes[$name]);
-		return $this;
-	}
-	
-	/**
-	 * @shortcut <Control::content>
-	 */
-	function append($content)
-	{
-		$this->content($content);
-		return $this;
-	}
-	
-	/**
-	 * Prepends something to the contents of this control.
-	 * 
-	 * @param mixed $content Content to be prepended
-	 * @return Control `$this`
-	 */
-	function prepend($content)
-	{
-		$buf = $this->_content;
-		$this->content($content,true);
-		foreach( $buf as $b )
-			$this->_content[] = $b;
-		return $this;
-	}
-	
-	/**
-	 * Wraps this control into another one.
-	 * 
-	 * Not words, just samples:
-	 * <code php>
-	 * $wrapper = new Control('div');
-	 * $inner = new Control('span');
-	 * $inner->content('INNER');
-	 * $inner->wrap($wrapper)->content("I am below 'INNER'");
-	 * // or
-	 * $inner = new Control('span');
-	 * $inner->content('INNER');
-	 * $inner->wrap('div')->content("I am below 'INNER'");
-	 * // or
-	 * $inner = new Control('span');
-	 * $inner->content('INNER');
-	 * $inner->wrap(new Control('div'))->content("I am below 'INNER'");
-	 * </code>
-	 * @param mixed $tag_or_obj String or <Control>, see samples
-	 * @return Control The (new) wrapping control
-	 */
-	function wrap($tag_or_obj='')
-	{
-		$res = ($tag_or_obj instanceof Control)?$tag_or_obj:new Control($tag_or_obj);
-		$res->content($this);
-		return $res;
-	}
-	
-	/**
-	 * Append this control to another control.
-	 * 
-	 * @param mixed $target Object of type <Control> or <HtmlPage>
-	 * @return Control `$this`
-	 */
-	function appendTo($target)
-	{
-		if( ($target instanceof Control) || ($target instanceof HtmlPage) )
-			$target->content($this);
-		else
-			WdfException::Raise("Target must be of type Control or HtmlPage");
 		return $this;
 	}
 	

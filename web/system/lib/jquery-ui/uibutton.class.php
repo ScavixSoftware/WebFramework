@@ -77,4 +77,11 @@ class uiButton extends uiControl
 		}
 		return parent::PreRender($args);
 	}
+	
+	function LinkTo($controller,$method='',$data=array())
+	{
+		$q = buildQuery($controller,$method,$data);
+		$this->onclick = "document.location.href = '$q';";
+		return $this;
+	}
 }

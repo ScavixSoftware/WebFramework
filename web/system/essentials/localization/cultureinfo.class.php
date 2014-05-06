@@ -26,6 +26,13 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 namespace ScavixWDF\Localization;
+use ScavixWDF\Base\DateTimeEx;
+
+use Closure;
+use DateTime;
+use DateTimeZone;
+use Exception;
+use ScavixWDF\WdfException;
 
 /**
  * Represents culture information.
@@ -43,6 +50,7 @@ class CultureInfo
 
 	var $DateTimeFormat;
 	var $CurrencyFormat;
+	var $PercentFormat;
 	var $NumberFormat;
 	var $IsRTL;
 
@@ -92,12 +100,12 @@ class CultureInfo
 		{
 			// check if a valid int is given (ex: '123123123')
 			if( !preg_match('/[^0-9]+/',$date) )
-				$date = $date + 0;
+				return $date + 0;
 			else
-				$date = strtotime($date);
+				return strtotime($date);
 		}
-		elseif( $date instanceof DateTime )
-			$date = intval($date->format('U'));
+		elseif( ($date instanceof DateTime) || ($date instanceof DateTimeEx) )
+			return intval($date->format('U'));
 		return $date;
 	}
 
@@ -272,6 +280,36 @@ class CultureInfo
 	}
 
 	/**
+	 */
+	function FormatDuration($durationInSeconds,$days_as_hours=false)
+	{
+		$days = floor($durationInSeconds / 86400);
+		$durationInSeconds -= $days * 86400;
+		$hours = floor($durationInSeconds / 3600);
+		$durationInSeconds -= $hours * 3600;
+		$minutes = floor($durationInSeconds / 60);
+		$seconds = $durationInSeconds - $minutes * 60;
+
+		$ret = '';
+		if($days > 0)
+		{
+			if( $days_as_hours )
+				$hours += $days * 24;
+			else
+				$ret .= $days.' d';
+		}
+		if($hours > 0)
+		{
+			$ret .= ' '.$hours .':';
+			$ret .= str_pad($minutes, 2, '0', STR_PAD_LEFT) . ':';
+		}
+		else
+			$ret .= ' '.$minutes.':';
+		$ret .= str_pad($seconds, 2, '0', STR_PAD_LEFT);
+		return trim($ret);
+	}
+
+	/**
 	 * @shortcut <NumberFormat::Format($number, 0)
 	 */
 	function FormatInt($number)
@@ -314,7 +352,6 @@ class CultureInfo
 			log_error("No DateTimeFormat instance: {$this->Code}",$dtf);
 			return "No DateTimeFormat instance: {$this->Code}";
 		}
-		
 		return $dtf->Format($date, $format_id);
 	}
 
@@ -351,6 +388,16 @@ class CultureInfo
 		if( $use_long )
 			return $this->FormatDate($date,DateTimeFormat::DF_LONGDATE,$convert_to_timezone)." ".$this->FormatTime($date,DateTimeFormat::DF_LONGTIME,$convert_to_timezone);
 		return $this->FormatDate($date,false,$convert_to_timezone)." ".$this->FormatTime($date,false,$convert_to_timezone);
+	}
+	
+	/**
+	 * @shortcut <PercentFormat::Format($number)
+	 */
+	function FormatPercent($number)
+	{
+		if( $this->PercentFormat )
+			return $this->PercentFormat->Format($number);
+		return $this->FormatNumber($number)."%";
 	}
 
 	/**

@@ -26,7 +26,7 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
-use ScavixWDF\Controls\Form\Form;
+use ScavixWDF\Payment\PaymentProvider;
 use ScavixWDF\WdfException;
  
 /**

@@ -138,11 +138,11 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
     $message = str_ireplace("\\\"","\"",$message);
     $message = str_ireplace("\r\n","<br/>",$message);
     $message = str_ireplace("\n","<br/>",$message);
-
     $message = str_ireplace("<br/>","<br/>\n",$message);
-	$message = "<p style='font-family: verdana, arial, helvetica, sans-serif; font-size: 14px'>".$message."<p>";
-	$mail->Body     =  $message;
-	$mail->AltBody  =  $plainmessage==""?$message:$plainmessage;
+	
+	$mail->Body    = $message;
+	$mail->AltBody = strip_tags($plainmessage==""?$message:str_ireplace("<br/>","\n",$plainmessage));
+	$mail->AltBody = str_ireplace("\n--\n", "\n--\n", $mail->AltBody);
 
 	if( !is_array($attachments) )
 		$attachments = array($attachments);

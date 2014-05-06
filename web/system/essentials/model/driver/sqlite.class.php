@@ -27,6 +27,8 @@
  */
 namespace ScavixWDF\Model\Driver;
 
+use DateTime;
+use PDO;
 use ScavixWDF\Model\ColumnSchema;
 use ScavixWDF\Model\ResultSet;
 use ScavixWDF\Model\TableSchema;

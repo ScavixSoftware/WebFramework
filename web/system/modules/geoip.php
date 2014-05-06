@@ -169,9 +169,14 @@ function get_countrycode_by_ip($ipaddr = false)
 	
 	if($country_code == "")
 	{
-		$location = get_geo_location_by_ip($ipaddr);
-		if($location && isset($location->country_code))
-			$country_code = $location->country_code;
+		if(isDev() && starts_with($ipaddr, '192.168.1.'))
+			$country_code = 'DE';
+		else
+		{
+			$location = get_geo_location_by_ip($ipaddr);
+			if($location && isset($location->country_code))
+				$country_code = $location->country_code;
+		}
 	}
 	$_SESSION['geoip_countrycode_by_ip_'.$ipaddr] = $country_code."";
 	

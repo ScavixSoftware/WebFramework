@@ -47,11 +47,11 @@ class Query
 	protected $_values = array();
 	protected $_statement = false;
 
-    function __construct(&$obj,&$datasource)
+    function __construct(&$obj,&$datasource,$conditions_separator="WHERE")
 	{
 		$this->_object = $obj;
 		$this->_ds = $datasource;
-		$this->_where = new ConditionTree();
+		$this->_where = new ConditionTree(-1,"AND",$conditions_separator);
 		$this->_currentTree = $this->_where;
 		$this->_knownmodels = array($obj);
 	}
@@ -159,6 +159,12 @@ class Query
 	function orX($count)
 	{
 		$this->__conditionTree()->Nest($count,"OR");
+	}
+	
+	function sql($sql,$args=array())
+	{
+		$this->__conditionTree()->Add($sql);
+		foreach( $args as $v ) $this->_values[] = $v;
 	}
 
 	function equal($property,$value,$value_is_sql=false)
@@ -360,7 +366,8 @@ class ConditionTree
 	function __fqFields(&$knownModels)
 	{
 		foreach( $this->_conditions as &$c )
-			$c->__fqFields($knownModels);
+			if( $c instanceof Condition)
+				$c->__fqFields($knownModels);
 	}
 
 	function __generateSql()

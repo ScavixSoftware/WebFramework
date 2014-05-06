@@ -65,6 +65,9 @@ class Form extends Control
 			case "hidden":
 				$inp = new HiddenInput($value, $name);
 				break;
+			case "select":
+				$inp = new Select($name);
+				break;
 			case "file":
 				$this->enctype = "multipart/form-data";
 				$inp = new FileInput($name);
@@ -75,8 +78,7 @@ class Form extends Control
 					$inp->value = $value;
 				break;
 		}
-		$this->content($inp);
-		return $inp;
+		return $this->content($inp);
 	}
 	
 	/**
@@ -109,6 +111,11 @@ class Form extends Control
 			$this->content($res->CreateLabel($label));
 		return $res;
 	}
+	
+	/**
+	 * @shortcut <Form::AddInput>('file',$name,$value)
+	 */
+	function AddSelect($name){ return $this->AddInput('select', $name); }
     
 	/**
 	 * Creates and adds a <SubmitButton>.

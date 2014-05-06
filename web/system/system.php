@@ -57,6 +57,7 @@ elseif( !defined("NO_CONFIG_NEEDED") )
  */
 function system_config($filename,$reset_to_defaults=true)
 {
+	global $CONFIG;
 	if( $reset_to_defaults )
 		system_config_default();
 	require_once($filename);
@@ -120,7 +121,7 @@ function system_config_default($reset = true)
 	
     $path = explode("index.php",$_SERVER['PHP_SELF']);
 	if( !isset($_SERVER['REQUEST_SCHEME']) )
-		$_SERVER['REQUEST_SCHEME'] = 'http';
+		$_SERVER['REQUEST_SCHEME'] = urlScheme(false);
 	if( !isset($_SERVER['HTTP_HOST']) )
 		$_SERVER['HTTP_HOST'] = '127.0.0.1';
 	
@@ -216,6 +217,10 @@ function system_init($application_name, $skip_header = false, $logging_category=
 		logging_add_category($logging_category);
 	logging_set_user(); // works as both (session and logging) are now essentials
 	
+	//if( $CONFIG['error']['clean_each_run'] )
+	//	log_debug("=== Initialization (modules already loaded =================================");
+	session_run();
+	
 	// auto-load all system-modules defined in $CONFIG['system']['modules']
 	foreach( $CONFIG['system']['modules'] as $mod )
 	{
@@ -224,10 +229,6 @@ function system_init($application_name, $skip_header = false, $logging_category=
 		elseif( file_exists( "$mod.php") )
 			system_load_module("$mod.php");
 	}
-
-	//if( $CONFIG['error']['clean_each_run'] )
-	//	log_debug("=== Initialization (modules already loaded =================================");
-	session_run();
 
 	if( isset($_REQUEST['request_id']) )
 	{
@@ -396,38 +397,7 @@ function system_execute()
 	
 	execute_hooks(HOOK_POST_EXECUTE);
 	@set_time_limit(ini_get('max_execution_time'));
-	if( !isset($content) || !$content )
-		$content = $current_controller;
-
-	if( system_is_ajax_call() )
-	{
-		if( $content instanceof AjaxResponse )
-			$response = $content->Render();
-		elseif( $content instanceof Renderable )
-			$response = AjaxResponse::Renderable($content)->Render();
-		else
-			WdfException::Raise("Unknown AJAX return value");
-	}
-	elseif( $content instanceof AjaxResponse ) // is system_is_ajax_call() failed to detect AJAX but response in fact IS for AJAX
-		die("__SESSION_TIMEOUT__");
-	else
-	{
-		$_SESSION['request_id'] = request_id();
-		if( $content instanceof Renderable)
-		{
-			$response = $content->WdfRenderAsRoot();
-			if( $content->_translate && system_is_module_loaded("translation") )
-				$response = __translate($response);
-		}
-		elseif( system_is_module_loaded("translation") )
-			$response = __translate($content);
-	}
-
-	model_store();
-	session_update();
-	execute_hooks(HOOK_PRE_FINISH,array($response));
-
-	echo $response;
+	system_exit($content,false);
 }
 
 /**
@@ -448,7 +418,7 @@ function system_invoke_request($target_class,$target_event,$pre_execute_hook_typ
 	$argscheck = array();
 	$failedargs = array();
 
-	$req_data = array_merge($_GET,$_POST);
+	$req_data = array_merge($_FILES,$_GET,$_POST);
 	foreach( $params as $prm )
 	{
 		$argscheck[$prm->Name] = $prm->UpdateArgs($req_data,$args);
@@ -464,6 +434,51 @@ function system_invoke_request($target_class,$target_event,$pre_execute_hook_typ
 
 	execute_hooks($pre_execute_hook_type,array($target_class,$target_event,$args));
 	return call_user_func_array(array(&$target_class,$target_event), $args);
+}
+
+/**
+ * Terminats the current run and presents a result to the browser.
+ * 
+ * @param mixed $result The result that shall be passed to the browser
+ * @param bool $die If true uses <die>() for output, else uses <echo>()
+ * @return void
+ */
+function system_exit($result=null,$die=true)
+{
+	if( !isset($result) || !$result )
+		$result = current_controller(false);
+
+	if( system_is_ajax_call() )
+	{
+		if( $result instanceof AjaxResponse )
+			$response = $result->Render();
+		elseif( $result instanceof Renderable )
+			$response = AjaxResponse::Renderable($result)->Render();
+		else
+			WdfException::Raise("Unknown AJAX return value");
+	}
+	elseif( $result instanceof AjaxResponse ) // is system_is_ajax_call() failed to detect AJAX but response in fact IS for AJAX
+		die("__SESSION_TIMEOUT__");
+	else
+	{
+		$_SESSION['request_id'] = request_id();
+		if( $result instanceof Renderable)
+		{
+			$response = $result->WdfRenderAsRoot();
+			if( $result->_translate && system_is_module_loaded("translation") )
+				$response = __translate($response);
+		}
+		elseif( system_is_module_loaded("translation") )
+			$response = __translate($result);
+	}
+
+	model_store();
+	session_update();
+	execute_hooks(HOOK_PRE_FINISH,array($response));
+	
+	if( $die )
+		die($response);
+	echo $response;
 }
 
 /**
@@ -908,7 +923,7 @@ function __search_file_for_class($class_name,$extension="class.php",$classpath_l
 	foreach( $CONFIG['class_path']['order'] as $cp_part )
 	{
 		if( !isset($CONFIG['class_path'][$cp_part]))
-			WdfException::Raise("Invalid ClassPath! No entry for '$cp_part'.");
+			continue; //WdfException::Raise("Invalid ClassPath! No entry for '$cp_part'.");
 
 		if( $classpath_limit && $cp_part != $classpath_limit )
 			continue;
@@ -1444,11 +1459,22 @@ function shuffle_assoc(&$array)
  */
 function system_render_object_tree($array_of_objects)
 {
+	if( !isset($GLOBALS['system_render_object_tree_stack']) )
+		$GLOBALS['system_render_object_tree_stack'] = array();
+	
 	$res = array();
 	foreach( $array_of_objects as $key=>&$val )
 	{
 		if( $val instanceof Renderable )
+		{
+			if( in_array($val,$GLOBALS['system_render_object_tree_stack']) )
+			{
+				log_debug("XREF in object tree! Object already rendered elsewhere:",$val);
+				continue;
+			}
+			$GLOBALS['system_render_object_tree_stack'][] = $val;
 			$res[$key] = $val->WdfRender();
+		}
 		elseif( is_array($val) )
 			$res[$key] = system_render_object_tree($val);
 		elseif( $val instanceof DateTime )
@@ -1501,6 +1527,7 @@ function fq_class_name($classname)
 		case 'wdfresource':               return '\\ScavixWDF\\WdfResource';
 		case 'datasource':                return '\\ScavixWDF\\Model\\DataSource';
 		case 'sysadmin':                  return '\\ScavixWDF\\Admin\\SysAdmin';
+		case 'translationadmin':          return '\\ScavixWDF\\Translation\\TranslationAdmin';
 		case 'minifyadmin':               return '\\ScavixWDF\\Admin\\MinifyAdmin';
 		case 'tracelogger':               return '\\ScavixWDF\\Logging\\TraceLogger';
 		case 'phpsession':                return '\\ScavixWDF\\Session\\PhpSession';
@@ -1545,8 +1572,8 @@ function system_process_running($pid)
  * So if you dont change this the locks will have no effect beyond process bounds!
  * @param string $name A name for the lock.
  * @param mixed $datasource Name of datasource to use or <DataSource> object itself.
- * @param int $timeout Timeout in seconds (an Exception will be thrown on timeout).
- * @return void
+ * @param int $timeout Timeout in seconds (an Exception will be thrown on timeout). If <=0 will return immediately true|false
+ * @return void|bool Returns true|false only if $timeout is <=0. Else will return nothing or throw an exception
  */
 function system_get_lock($name,$datasource='internal',$timeout=10)
 {
@@ -1559,9 +1586,11 @@ function system_get_lock($name,$datasource='internal',$timeout=10)
 	do
 	{
 		if( isset($cnt) )
+		{
 			usleep(100000);
-		if( microtime(true)-$start > $timeout)
-			WdfException::Raise("Timeout while awaiting the lock '$name'");
+			if( microtime(true)-$start > $timeout)
+				WdfException::Raise("Timeout while awaiting the lock '$name'");
+		}
 		
 		foreach( $ds->ExecuteSql("SELECT pid FROM wdf_locks")->Enumerate('pid') as $pid )
 		{
@@ -1570,7 +1599,11 @@ function system_get_lock($name,$datasource='internal',$timeout=10)
 		}
 		$ds->ExecuteSql("INSERT OR IGNORE INTO wdf_locks(lockname,pid)VALUES(?,?)",$args);
 		$cnt = $ds->getAffectedRowsCount();
+		
+		if( $cnt == 0 && $timeout <= 0 )
+			return false;
 	}while( $cnt == 0 );
+	return true;
 }
 
 /**

@@ -51,6 +51,20 @@ class DataSource
 	public $Driver;
 	public $LastStatement = false;
     
+	public static function Get($name=false)
+	{
+		if( !$name )
+			return Model::$DefaultDatasource;
+		return model_datasource($name);
+	}
+
+	public static function SetDefault($ds)
+	{
+		if( !($ds instanceof DataSource) )
+			$ds = model_datasource($ds);
+		Model::$DefaultDatasource = $ds;
+	}
+	
     function __construct($alias=false, $dsn=false, $username=false, $password=false)
     {
 		if( !$alias || !$dsn )

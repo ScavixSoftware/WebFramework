@@ -24,9 +24,11 @@
  */
 namespace ScavixWDF\Google;
 
+use DateTime;
 use MC_Google_Visualization;
 use PDO;
 use ScavixWDF\ICallable;
+use ScavixWDF\Localization\CultureInfo;
 use ScavixWDF\Model\DataSource;
 
 /**
@@ -36,8 +38,13 @@ use ScavixWDF\Model\DataSource;
 abstract class GoogleVisualization extends GoogleControl implements ICallable
 {
 	public static $DefaultDatasource = false;
+	public static $Colors = false;
 	
+	var $_culture = false;
+	var $_columnDef = false;
 	var $_data = array();
+	var $_rowCallbacks = array();
+	var $_roleCallbacks = array();
 	
 	var $_entities = array();
 	var $_ds;
@@ -57,7 +64,9 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		$className = get_called_class();
 		$res = new $className();
 		if( $title )
-			return $res->opt('title',$title);
+			$res->opt('title',$title);
+		if( self::$Colors )
+			$res->opt('colors',self::$Colors);		
 		return $res;
 	}
 	
@@ -87,20 +96,38 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	 */
 	function PreRender($args = array())
 	{
-		$id = $this->id;
-		$opts = json_encode($this->gvOptions);
-		if( count($this->_data)>0 )
+		if( count($this->_data)>1 )
 		{
-			$d = system_to_json($this->_data);
-			$init = "var d=google.visualization.arrayToDataTable($d); var c=new google.visualization.{$this->gvType}($('#$id').get(0));c.draw(d,$opts);";
+			$id = $this->id;
+			$opts = json_encode($this->gvOptions);
+			if( count($this->_data)>0 )
+			{
+				array_walk_recursive($this->_data,function(&$item, &$key){ if( $item instanceof DateTime) $item = "[jscode]new Date(".($item->getTimestamp()*1000).")"; });
+				$d = system_to_json($this->_data);
+				$js = "var d=google.visualization.arrayToDataTable($d);"
+					. "var c=new google.visualization.{$this->gvType}($('#$id').get(0));"
+					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });"
+					. "c.draw(d,$opts);"
+					. "$('#$id').data('googlechart', c);";
+			}
+			else
+			{
+				$q = buildQuery($this->id,'Query');
+				$js = "var $id = new google.visualization.Query('$q');"
+					. "$id.setQuery('{$this->gvQuery}');"
+					. "$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));"
+					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });"
+					. "c.draw(r.getDataTable(),$opts);"
+					. "$('#$id').data('googlechart', c);}});";
+			}
+			$this->_addLoadCallback('visualization', $js, true);
 		}
 		else
 		{
-			$q = buildQuery($this->id,'Query');
-			$init = "var $id = new google.visualization.Query('$q');$id.setQuery('{$this->gvQuery}');$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));c.draw(r.getDataTable(),$opts);}});";
+			$t = $this->opt('title');
+			$this->css('text-align','center')
+				->content( ($t?"<b>$t:</b> ":"").tds("TXT_NO_DATA", "No data found") , true);
 		}
-		$this->_addLoadCallback('visualization', $init);
-		
 		if( isset($this->gvOptions['width']) )
 			$this->css('width',"{$this->gvOptions['width']}px");
 		if( isset($this->gvOptions['height']) )
@@ -117,7 +144,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 				self::$_apis['visualization'][1]['packages'][] = $package;
 		}
 		else
-			parent::_loadApi('visualization','1',array('packages'=>array($package)));
+			parent::_loadApi('visualization','1.1',array('packages'=>array($package)));
 	}
 	
 	protected function _createMC($ds)
@@ -278,7 +305,10 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	function setDataHeader()
 	{
 		$this->_entities = array(); $this->gvQuery = false;
-		$this->_data = array(func_get_args());
+		$args = func_get_args();
+		if( count($args)==1 && is_array($args[0]) )
+			$args = array_shift($args);
+		$this->_data = array($args);
 		return $this;
 	}
 	
@@ -292,7 +322,10 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	function addDataRow()
 	{
 		$this->_entities = array(); $this->gvQuery = false;
-		$this->_data[] = func_get_args();
+		$args = func_get_args();
+		if( count($args)==1 && is_array($args[0]) )
+			$args = array_shift($args);
+		$this->_data[] = $args;
 		return $this;
 	}
 	
@@ -311,6 +344,114 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 			$this->_data = array_merge(array($this->_data[0]),$rows);
 		else
 			$this->_data = $rows;
+		return $this;
+	}
+	
+	function linkSelect($other_vis)
+	{
+		$js = "google.visualization.events.addListener($('#{$this->id}').data('googlechart'), 'select', function(){ $('#{$other_vis->id}').data('googlechart').setSelection($('#{$this->id}').data('googlechart').getSelection()); });";
+		$this->_addLoadCallback('visualization', $js);
+		return $this;
+	}
+	
+	function addColumn($name,$label=false,$type=false)
+	{
+		$this->_columnDef[$label] = array($name,$type);
+		if( isset(self::$Colors[$name]) )
+		{
+			$cols = force_array($this->opt('colors'));
+			$cols[] = self::$Colors[$name];
+			$this->opt('colors',$cols);
+		}
+		return $this;
+	}
+	
+	function setCulture(CultureInfo $ci)
+	{
+		$this->_culture = $ci;
+		return $this;
+	}
+	
+	function addRowCallback($callback)
+	{
+		$this->_rowCallbacks[] = $callback;
+		return $this;
+	}
+	
+	function addColumnRole($role,$callback)
+	{
+		$key = "{$role}_".count($this->_roleCallbacks);
+		$this->_columnDef[$key] = $role;
+		$this->_roleCallbacks[$key] = array($role,$callback);
+		return $this;
+	}
+	
+	function setResultSet($rs)
+	{
+		$head = array();
+		foreach( $this->_columnDef as $key=>$def )
+		{
+			if( isset($this->_roleCallbacks[$key]) )
+				$head[] = array('role'=>$def);
+			else
+				$head[] = $key;
+		}
+		$this->_data = array($head);
+		$ci = $this->_culture;
+		foreach( $rs as $row )
+		{
+			$d = array();
+			foreach( $this->_columnDef as $key=>$def )
+			{
+				if( isset($this->_roleCallbacks[$key]) )
+				{
+					list($role,$callback) = $this->_roleCallbacks[$key];
+					$d[] = $callback($role,$d,$row);
+					continue;
+				}
+				list($name,$type) = $def;
+				if( !isset($row[$name]) )
+					$row[$name] = "";
+				$v = $row[$name];
+				switch( $type )
+				{
+					case 'int': 
+					case 'integer': 
+						$v = intval($v); 
+						break;
+					case 'float': 
+					case 'double': 
+						$v = floatval($v);
+						if( $ci )
+							$v = array('v'=>$v,'f'=>$ci->FormatNumber($v));
+						break;
+					case 'currency': 
+						$v = floatval($v);
+						if( $ci )
+							$v = array('v'=>$v,'f'=>$ci->FormatCurrency($v));
+						break;
+					case 'date': 
+						$v = new DateTime($v);
+						if( $ci )
+							$v = array('v'=>$v,'f'=>$ci->FormatDate($v));
+						break;
+					case 'time': 
+						$v = new DateTime($v);
+						if( $ci )
+							$v = array('v'=>$v,'f'=>$ci->FormatTime($v));
+						break;
+					case 'datetime': 
+						$v = new DateTime($v);
+						if( $ci )
+							$v = array('v'=>$v,'f'=>$ci->FormatDateTime($v));
+						break;
+				}
+				$d[] = $v;
+			}
+			foreach( $this->_rowCallbacks as $rcb )
+				$d = $rcb($d);
+			$this->_data[] = $d;
+		}
 		return $this;
 	}
 }

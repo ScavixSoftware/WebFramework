@@ -373,8 +373,9 @@ class ResultSet implements Iterator, ArrayAccess
 	 * Will build an array with all values for the specified column in this result sets rows.
 	 * <code php>
 	 * $ids = $dataSource->ExecuteSql("SELECT * FROM my_table WHERE id<1000")->Enumerate("id");
+	 * $tables = $dataSource->ExecuteSql("SHOW TABLES")->Enumerate(0);
 	 * </code>
-	 * @param string $column_name Column to enumerate values for
+	 * @param string|int $column_name Column to enumerate values for. If an integer is given will see that as zero-based index.
 	 * @param bool $distinct True to array_unique, false to keep duplicates
 	 * @return type
 	 */
@@ -383,9 +384,16 @@ class ResultSet implements Iterator, ArrayAccess
 		if( !$this->_data_fetched )
 			$this->fetchAll();
 		$res = array();
+		if( is_integer($column_name) && count($this->_rowbuffer)>0 )
+		{
+			$temp = array_keys($this->_rowbuffer[0]);
+			$column_name = $temp[$column_name];
+		}
 		foreach( $this->_rowbuffer as $row )
+		{
 			if( !$distinct || !in_array($row[$column_name], $res) )
 				$res[] = $row[$column_name];
+		}
 		return $res;
 	}
 	

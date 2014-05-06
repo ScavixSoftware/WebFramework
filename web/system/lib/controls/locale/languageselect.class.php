@@ -53,6 +53,8 @@ class LanguageSelect extends Select
 				$lang = $current_language_code->ResolveToLanguage();
 			else
 				$lang = Localization::getLanguageCulture($current_language_code);
+			if( !$lang )
+				$lang = Localization::detectCulture()->ResolveToLanguage();
 			$this->SetCurrentValue($lang->Code);
 		}
 		foreach(getAvailableLanguages() as $code)

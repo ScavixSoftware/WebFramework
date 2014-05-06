@@ -43,8 +43,10 @@ echo '<?xml version="1.0" encoding="UTF-8" ?>'."\n$doctype\n";?>
 	<?php if(isset($inlineCSS)) echo $inlineCSS; ?>
 <script type='text/javascript'>
 $(function(){ 
+<?php if( $render_noscript_block ): ?>
 	if( !navigator.cookieEnabled )
 		return $('body').empty().append('<?=$js_cookie_error?>');
+<?php endif; ?>
 <?php if( count($docready) > 0 ): ?>
 	wdf.ready.add(function()
 	{
