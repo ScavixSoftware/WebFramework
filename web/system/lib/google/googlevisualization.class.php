@@ -354,6 +354,14 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		return $this;
 	}
 	
+	/**
+	 * Manually adds a column specification to the visualization.
+	 * 
+	 * @param string $name Column name
+	 * @param string $label Column label
+	 * @param string $type Type of values
+	 * @return GoogleVisualization `$this`
+	 */
 	function addColumn($name,$label=false,$type=false)
 	{
 		$this->_columnDef[$label] = array($name,$type);
@@ -366,18 +374,44 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		return $this;
 	}
 	
+	/**
+	 * Assigns a culture to this visualization.
+	 * 
+	 * This will be used for value formatting.
+	 * @param CultureInfo $ci The culture object
+	 * @return GoogleVisualization `$this`
+	 */
 	function setCulture(CultureInfo $ci)
 	{
 		$this->_culture = $ci;
 		return $this;
 	}
 	
+	/**
+	 * Adds a callback method that will be called for each added data row.
+	 * 
+	 * @param Closure $callback Method to be called
+	 * @return GoogleVisualization `$this`
+	 */
 	function addRowCallback($callback)
 	{
 		$this->_rowCallbacks[] = $callback;
 		return $this;
 	}
 	
+	/**
+	 * Adds a role to the last added column.
+	 * 
+	 * A role consists of a name and a callback that will be polled for each column in each data row.
+	 * The callback must return the value for the column role.
+	 * Note that this is only implementend for role 'annotation'.
+	 * 
+	 * See https://developers.google.com/chart/interactive/docs/roles
+	 * 
+	 * @param string $role Role specifier
+	 * @param Closure $callback Callback function
+	 * @return GoogleVisualization `$this`
+	 */
 	function addColumnRole($role,$callback)
 	{
 		$key = "{$role}_".count($this->_roleCallbacks);
@@ -386,6 +420,15 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		return $this;
 	}
 	
+	/**
+	 * Adds a <ResultSet> as data for this visualization.
+	 * 
+	 * The set may contain any column but it must contain all columns defined
+	 * thru <GoogleVisualization::addColumn> or <GoogleVisualization::addColumnRole>.
+	 * 
+	 * @param type $rs <ResultSet> with data.
+	 * @return GoogleVisualization `$this`
+	 */
 	function setResultSet($rs)
 	{
 		$head = array();

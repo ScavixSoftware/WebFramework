@@ -280,6 +280,19 @@ class CultureInfo
 	}
 
 	/**
+	 * Formats a duration given in seconds as string.
+	 * 
+	 * Format is like this:
+	 * <code php>
+	 * $ci = Localozation::getBrowserCulture();
+	 * $with_days = $ci->FormatDuration(86500);      // "1 d 00:01:40"
+	 * $no_days   = $ci->FormatDuration(86500,true); // "24:01:40"
+	 * <code>
+	 * 
+	 * This is not very nicely globalozed, but it works for now.
+	 * @param int $durationInSeconds Duration to be formatted
+	 * @param bool $days_as_hours If true, no days will be printed, but hours may extend the 23 mark
+	 * return string Formatted duration string
 	 */
 	function FormatDuration($durationInSeconds,$days_as_hours=false)
 	{

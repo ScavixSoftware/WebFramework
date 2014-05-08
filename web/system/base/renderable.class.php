@@ -41,18 +41,18 @@ abstract class Renderable
 	var $_script = array();
 
 	/**
-	 * Renders this control as controller.
+	 * Renders this Renderable as controller.
 	 * 
 	 * Extending classes must implement this (<Control>, <Template>).
-	 * @return string The rendered control
+	 * @return string The rendered object
 	 */
 	abstract function WdfRenderAsRoot();
 	
 	/**
-	 * Renders this control.
+	 * Renders this Renderable.
 	 * 
 	 * Extending classes must implement this (<Control>, <Template>).
-	 * @return string The rendered control
+	 * @return string The rendered object
 	 */
 	abstract function WdfRender();
 	
@@ -167,6 +167,16 @@ abstract class Renderable
 		return array_unique($res);
 	}
 	
+	/**
+	 * Captures `$this` to the given `$variable`.
+	 * 
+	 * This may me used to capture an instance from a method chain like this:
+	 * <code php>
+	 * TextInput::Make()->capture($tb)->appendTo($some_container)->par()->prepend($tb->CreateLabel('enter mail:'));
+	 * </code>
+	 * @param Renderable $variable Variable to assign `$this` to
+	 * @return Renderable `$this`
+	 */
 	function capture(&$variable)
 	{
 		$variable = $this;
@@ -174,7 +184,7 @@ abstract class Renderable
 	}
 	
 	/**
-	 * Adds content to the Control.
+	 * Adds content to the Renderable.
 	 * 
 	 * Note that this will not return `$this` but the $content.
 	 * This allows for method chaining like this:
@@ -207,7 +217,7 @@ abstract class Renderable
 	/**
 	 * Clears all contents.
 	 * 
-	 * @return Control `$this`
+	 * @return Renderable `$this`
 	 */
 	function clearContent()
 	{
@@ -231,7 +241,7 @@ abstract class Renderable
 	/**
 	 * Gets the content at index $index.
 	 * 
-	 * @param int $index Zerao based index of content to get
+	 * @param int $index Zero based index of content to get
 	 * @return mixed Content at index $index
 	 */
 	function get($index)
@@ -242,25 +252,39 @@ abstract class Renderable
 	}
 	
 	/**
-	 * @shortcut <Control::get>(0);
+	 * Returns the first content.
+	 * 
+	 * Note that this does not behave like <Renderable::get>(0) because it wont throw an <Exception>
+	 * when there's no content, but return a new empty <Control> object.
+	 * @return Renderable First content or new empty <Control>
 	 */
 	function first()
 	{
 		if( isset($this->_content[0]) )
 			return $this->_content[0];
-		return log_return("Control::first() is empty",new Control());
+		return log_return("Renderable::first() is empty",new Control());
 	}
 	
-	/**
-	 * @shortcut <Control::get>(&ltlast_index;&gt;);
+    /**
+	 * Returns the last content.
+	 * 
+	 * Note that this does not behave like <Renderable::get>(&lt;last_index&gt;) because it wont throw an <Exception>
+	 * when there's no content at last_index, but return a new empty <Control> object.
+	 * @return Renderable Last content or new empty <Control>
 	 */
 	function last()
 	{
 		if( count($this->_content)>0 )
 			return $this->_content[count($this->_content)-1];
-		return log_return("Control::last() is empty",new Control());
+		return log_return("Renderable::last() is empty",new Control());
 	}
 	
+	/**
+	 * Returns this Renderables parent object.
+	 * 
+	 * Note that this will throw an <Exception> when `$this` has not (yet) been added to another <Renderable>.
+	 * @return Renderable Parent object
+	 */
 	function par()
 	{
 		if( !($this->_parent instanceof Renderable) )
@@ -268,12 +292,26 @@ abstract class Renderable
 		return $this->_parent;
 	}
 	
+	/**
+	 * Return `$this` objects direct predecessor.
+	 * 
+	 * Checks the parents content for `$this` and returns the object that was inserted directly before `$this`.
+	 * Note that this method may throw an <Exception> when there's no parent or if `$this` is the first child.
+	 * @return Renderable This objects predecessor in it's parent's content
+	 */
 	function prev()
 	{
 		$i = $this->par()->indexOf($this);
 		return $this->par()->get($i-1);
 	}
 
+	/**
+	 * Return `$this` objects direct successor.
+	 * 
+	 * Checks the parents content for `$this` and returns the object that was inserted directly after `$this`.
+	 * Note that this method may throw an <Exception> when there's no parent or if `$this` is the last child.
+	 * @return Renderable This objects successor in it's parent's content
+	 */
 	function next()
 	{
 		$i = $this->par()->indexOf($this);
@@ -281,7 +319,11 @@ abstract class Renderable
 	}
 	
 	/**
-	 * @shortcut <Control::content>
+	 * Appends content to this Renderable.
+	 * 
+	 * This works exactly as <Renderable::content> but will return `$this` instead of the appended content.
+	 * @param mixed $content The content to be appended
+	 * return Renderable `$this`
 	 */
 	function append($content)
 	{
@@ -290,10 +332,10 @@ abstract class Renderable
 	}
 	
 	/**
-	 * Prepends something to the contents of this control.
+	 * Prepends something to the contents of this Renderable.
 	 * 
 	 * @param mixed $content Content to be prepended
-	 * @return Control `$this`
+	 * @return Renderable `$this`
 	 */
 	function prepend($content)
 	{
@@ -301,11 +343,11 @@ abstract class Renderable
 	}
 	
 	/**
-	 * Inserts something to the contents of this control.
+	 * Inserts something to the contents of this Renderable.
 	 * 
 	 * @param mixed $content Content to be prepended
 	 * @param int $index Zero base index where to insert
-	 * @return Control `$this`
+	 * @return Renderable `$this`
 	 */
 	function insert($content,$index)
 	{
@@ -327,6 +369,14 @@ abstract class Renderable
 		return $this;
 	}
 	
+	/**
+	 * Returns the zero based index of `$content`.
+	 * 
+	 * Checks the content array for the given `$content` and returns it's index of found.
+	 * Returns -1 of not found.
+	 * @param mixed $content Content to search for
+	 * @return int Zero based index or -1 if not found
+	 */
 	function indexOf($content)
 	{
 		$cnt = count($this->_content);
@@ -337,7 +387,7 @@ abstract class Renderable
 	}
 	
 	/**
-	 * Wraps this control into another one.
+	 * Wraps this Renderable into another one.
 	 * 
 	 * Not words, just samples:
 	 * <code php>
@@ -354,37 +404,37 @@ abstract class Renderable
 	 * $inner->content('INNER');
 	 * $inner->wrap(new Control('div'))->content("I am below 'INNER'");
 	 * </code>
-	 * @param mixed $tag_or_obj String or <Control>, see samples
-	 * @return Control The (new) wrapping control
+	 * @param mixed $tag_or_obj String or <Renderable>, see samples
+	 * @return Renderable The (new) wrapping control
 	 */
 	function wrap($tag_or_obj='')
 	{
-		$res = ($tag_or_obj instanceof Control)?$tag_or_obj:new Control($tag_or_obj);
+		$res = ($tag_or_obj instanceof Renderable)?$tag_or_obj:new Control($tag_or_obj);
 		$res->content($this);
 		return $res;
 	}
 	
 	/**
-	 * Append this control to another control.
+	 * Append this Renderable to another Renderable.
 	 * 
-	 * @param mixed $target Object of type <Control> or <HtmlPage>
-	 * @return Control `$this`
+	 * @param mixed $target Object of type <Renderable>
+	 * @return Renderable `$this`
 	 */
 	function appendTo($target)
 	{
 		if( ($target instanceof Renderable) )
 			$target->content($this);
 		else
-			WdfException::Raise("Target must be of type Control or HtmlPage");
+			WdfException::Raise("Target must be of type Renderable");
 		return $this;
 	}
 	
 	/**
-	 * Adds this control before another control.
+	 * Adds this Renderable before another Renderable.
 	 * 
-	 * In fact it will be inserted before the other control into the other controls parent.
+	 * In fact it will be inserted before the other Renderable into the other Renderables parent.
 	 * @param Renderable $target Object of type <Renderable>
-	 * @return Control `$this`
+	 * @return Renderable `$this`
 	 */
 	function insertBefore($target)
 	{
@@ -397,6 +447,9 @@ abstract class Renderable
 	
 	/**
 	 * Inserts content after this element.
+	 * 
+	 * @param mixed $content Content to be inserted
+	 * @return Renderable `$this`
 	 */
 	function after($content)
 	{

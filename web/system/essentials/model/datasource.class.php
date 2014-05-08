@@ -51,6 +51,18 @@ class DataSource
 	public $Driver;
 	public $LastStatement = false;
     
+	/**
+	 * Returns a <DataSource> by name.
+	 * 
+	 * You may use this as alternative for <Model>::$DefaultDatasource by ignoring the $name parameter;
+	 * <code php>
+	 * $a = Model::$DefaultDatasource;
+	 * // is the same as
+	 * $b = DataSource::Get();
+	 * </code>
+	 * @param string $name Aliasname for the datasource or (default) false to get the default datasource
+	 * @return DataSource The requested datasource
+	 */
 	public static function Get($name=false)
 	{
 		if( !$name )
@@ -58,6 +70,21 @@ class DataSource
 		return model_datasource($name);
 	}
 
+	/**
+	 * Sets the default datasource.
+	 * 
+	 * This is nicer alternative to setting <Model>::$DefaultDatasource manually.
+	 * <code php>
+	 * Datasource::SetDefault('system');
+	 * // or
+	 * $ds = model_datasource('system');
+	 * Datasource::SetDefault($ds);
+	 * // or
+	 * Model::$DefaultDatasource = model_datasource('system');
+	 * </code>
+	 * @param string|DataSource $ds The default datasource or it's aliasname
+	 * return void
+	 */
 	public static function SetDefault($ds)
 	{
 		if( !($ds instanceof DataSource) )

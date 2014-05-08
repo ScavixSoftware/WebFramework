@@ -126,6 +126,12 @@ class Args
 		self::$_ignore_case = $ignore;
 	}
 	
+	/**
+	 * Clears all internal buffers.
+	 * 
+	 * In some cases it may be usefule to let <Args> parse again instead of relying on previously calculated values.
+	 * return void
+	 */
 	public static function clearBuffer()
 	{
 		self::$_buffer = array();

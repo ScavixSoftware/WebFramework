@@ -609,12 +609,34 @@ function default_string($constant,$text)
  */
 function tds($constant,$text){ return default_string($constant, $text); }
 
+/**
+ * @shortcut for <clear_trans_data>() followed by <add_trans_data>($name,$data)
+ */
 function set_trans_data($name,$data)
 {
 	clear_trans_data();
 	add_trans_data($name, $data);
 }
 
+/**
+ * Adds data to the automatic translation system.
+ * 
+ * Use this to add a bunch of data to the translation system.
+ * Sample is best to understand:
+ * <code php>
+ * function SomeControllersInitMethod()
+ * {
+ *     $str_const = default_string('TXT_TEST','Hello {user.name}! I want to tell you all about {product.name}. Is {user.email} your email address?');
+ *     add_trans_data('user',UserModel::Make()->eq('id',1)->current());
+ *     add_trans_data('product',ProductModel::Make()->eq('id',1)->current());
+ *     $this->content($str_content);
+ * }
+ * </code>
+ * @param string $name Name of the data
+ * @param mixed $data The data do add. Can be int, bool string, object, array, ...
+ * @param int $depth Current recursion depth. Ignore this, it's internal only.
+ * @return void
+ */
 function add_trans_data($name,$data,$depth=0)
 {
 	if( $data instanceof \ScavixWDF\Model\DataSource )
@@ -649,6 +671,10 @@ function add_trans_data($name,$data,$depth=0)
 	$GLOBALS['translation']['data'][$name] = $data;
 }
 
+/**
+ * Clears the translation data store.
+ * 
+ */
 function clear_trans_data()
 {
 	$GLOBALS['translation']['data'] = array();

@@ -518,6 +518,21 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		return $res;
     }
 	
+	/**
+	 * Creates a typed <Model> object from array-based data.
+	 * 
+	 * You may optionally add a datasource.
+	 * <code php>
+	 * function make_new_contact(array $data)
+	 * {
+	 *     ContactModel::MakeFromData($data)->Save();
+	 * }
+	 * </code>
+	 * 
+	 * @param array $data Associative array with data
+	 * @param <DataSource> $datasource Optional datasource to assign to the created <Model>
+	 * @return subclass_of_Model The newly created typed <Model>
+	 */
 	public static function MakeFromData($data,$datasource=null)
 	{
 		$className = get_called_class();
@@ -536,6 +551,16 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		return $res;
 	}
 	
+	/**
+	 * Typecasts a <Model> (sub-)class to another type.
+	 * 
+	 * <code php>
+	 * $entry = $ds->Query('my_table')->eq('id',1)->current(); // $entry is instance of CommonModel
+	 * $entry = MyTableModel::CastFrom($entry);                // now it is type of MyTableModel
+	 * </code>
+	 * @param <Model> $model Object of (sub-)type <Model>
+	 * @return subclass_of_Model The typed object
+	 */
 	public static function CastFrom($model)
 	{
 		$className = get_called_class();
@@ -816,7 +841,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * Adds a raw SQL part to the statement.
 	 * 
 	 * @param string $sql_statement_part The raw SQL code
-	 * @param array The arguments of the raw SQL query part
+	 * @param array $args The arguments of the raw SQL query part
 	 * @return Model `clone $this`
 	 */
 	public function sql($sql_statement_part,$args=array())

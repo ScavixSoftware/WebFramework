@@ -78,6 +78,14 @@ class uiButton extends uiControl
 		return parent::PreRender($args);
 	}
 	
+	/**
+	 * Creates javascript code to redirect elsewhere on button click.
+	 * 
+ 	 * @param mixed $controller The page to be loaded (can be <Renderable> or string)
+	 * @param string $event The event to be executed
+	 * @param array|string $data Optional data to be passed
+	 * @return uiButton `$this`
+	 */
 	function LinkTo($controller,$method='',$data=array())
 	{
 		$q = buildQuery($controller,$method,$data);
