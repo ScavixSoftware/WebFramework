@@ -75,21 +75,22 @@ class DataSource
 	 * 
 	 * This is nicer alternative to setting <Model>::$DefaultDatasource manually.
 	 * <code php>
-	 * Datasource::SetDefault('system');
+	 * $ds = Datasource::SetDefault('system');
 	 * // or
 	 * $ds = model_datasource('system');
 	 * Datasource::SetDefault($ds);
 	 * // or
-	 * Model::$DefaultDatasource = model_datasource('system');
+	 * $ds = Model::$DefaultDatasource = model_datasource('system');
 	 * </code>
-	 * @param string|DataSource $ds The default datasource or it's aliasname
-	 * return void
+	 * @param mixed $ds The default datasource or it's aliasname
+	 * @return DataSource The newly set default <DataSource> object
 	 */
 	public static function SetDefault($ds)
 	{
 		if( !($ds instanceof DataSource) )
 			$ds = model_datasource($ds);
 		Model::$DefaultDatasource = $ds;
+		return $ds;
 	}
 	
     function __construct($alias=false, $dsn=false, $username=false, $password=false)

@@ -286,6 +286,14 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		return $this;
 	}
 	
+	/**
+	 * Sets up an SQL query (optionally with arguments) as data for this visualization.
+	 * 
+	 * @param string $sql The SQL statement
+	 * @param array $args Optional arguments
+	 * @param mixed $datasource Optional <DataSource> to be used
+	 * @return GoogleVisualization `$this`
+	 */
 	function setSqlQuery($sql,$args=array(),$datasource=false)
 	{
 		if( $datasource )
@@ -347,6 +355,12 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		return $this;
 	}
 	
+	/**
+	 * Interconnects two visualizations 'select' events.
+	 * 
+	 * @param GoogleVisualization $other_vis The other visualization
+	 * @return GoogleVisualization `$this`
+	 */
 	function linkSelect($other_vis)
 	{
 		$js = "google.visualization.events.addListener($('#{$this->id}').data('googlechart'), 'select', function(){ $('#{$other_vis->id}').data('googlechart').setSelection($('#{$this->id}').data('googlechart').getSelection()); });";

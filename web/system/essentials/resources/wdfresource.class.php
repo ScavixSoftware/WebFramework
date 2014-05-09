@@ -39,7 +39,7 @@ class WdfResource implements ICallable
 	 * Writes best matching and of course correct caching headers to the browser
 	 * for a given file (full path).
 	 * @param string $file Full path and filename
-	 * return void
+	 * @return void
 	 */
 	public static function ValidatedCacheResponse($file)
 	{

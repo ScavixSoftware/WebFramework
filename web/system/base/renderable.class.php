@@ -323,7 +323,7 @@ abstract class Renderable
 	 * 
 	 * This works exactly as <Renderable::content> but will return `$this` instead of the appended content.
 	 * @param mixed $content The content to be appended
-	 * return Renderable `$this`
+	 * @return Renderable `$this`
 	 */
 	function append($content)
 	{

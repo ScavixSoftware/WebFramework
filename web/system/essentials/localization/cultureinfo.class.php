@@ -292,7 +292,7 @@ class CultureInfo
 	 * This is not very nicely globalozed, but it works for now.
 	 * @param int $durationInSeconds Duration to be formatted
 	 * @param bool $days_as_hours If true, no days will be printed, but hours may extend the 23 mark
-	 * return string Formatted duration string
+	 * @return string Formatted duration string
 	 */
 	function FormatDuration($durationInSeconds,$days_as_hours=false)
 	{

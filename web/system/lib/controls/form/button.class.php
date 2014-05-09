@@ -74,8 +74,8 @@ class Button extends Input
 	/**
 	 * Creates javascript code to redirect elsewhere on button click.
 	 * 
- 	 * @param mixed $controller The page to be loaded (can be <Renderable> or string)
-	 * @param string $event The event to be executed
+ 	 * @param mixed $controller The controller to be loaded (can be <Renderable> or string)
+	 * @param string $method The method to be executed
 	 * @param array|string $data Optional data to be passed
 	 * @return Button `$this`
 	 */

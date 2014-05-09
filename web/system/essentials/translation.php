@@ -674,6 +674,7 @@ function add_trans_data($name,$data,$depth=0)
 /**
  * Clears the translation data store.
  * 
+ * @return void
  */
 function clear_trans_data()
 {

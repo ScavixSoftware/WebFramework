@@ -530,7 +530,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * </code>
 	 * 
 	 * @param array $data Associative array with data
-	 * @param <DataSource> $datasource Optional datasource to assign to the created <Model>
+	 * @param DataSource $datasource Optional datasource to assign to the created <Model>
 	 * @return subclass_of_Model The newly created typed <Model>
 	 */
 	public static function MakeFromData($data,$datasource=null)
@@ -558,7 +558,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * $entry = $ds->Query('my_table')->eq('id',1)->current(); // $entry is instance of CommonModel
 	 * $entry = MyTableModel::CastFrom($entry);                // now it is type of MyTableModel
 	 * </code>
-	 * @param <Model> $model Object of (sub-)type <Model>
+	 * @param Model $model Object of (sub-)type <Model>
 	 * @return subclass_of_Model The typed object
 	 */
 	public static function CastFrom($model)
