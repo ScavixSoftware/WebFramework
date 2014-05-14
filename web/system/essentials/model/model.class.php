@@ -69,14 +69,14 @@ abstract class Model implements Iterator, Countable, ArrayAccess
     protected $_ds = false;
     protected $_tableSchema = false;
 
-	protected $_query = false;
+	var $_query = false;
 	protected $_results = false;
 	protected $_index = 0;
 	protected $_fieldValues = array();
 	protected $_dbValues = array();
 	
-	protected $_querySql = false;
-	protected $_queryArgs = array();
+	var $_querySql = false;
+	var $_queryArgs = array();
 	
 	var $_saved = false;
 
@@ -260,7 +260,9 @@ abstract class Model implements Iterator, Countable, ArrayAccess
     }
 	
 	function __wakeup()
-	{ 
+	{
+		if( isset($this->_query) )
+			return;
 		$q = $this->_ds->Query($this->GetTableName());
 		foreach( $this->GetPrimaryColumns() as $pk )
 			$q = $q->eq($pk,$this->$pk);
@@ -708,8 +710,19 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	public function AsArray()
 	{
 		$res = array();
-		foreach( $this->GetColumnNames() as $cn )
-			$res[$cn] = $this->__typedValue($cn);
+		$filter = func_get_args();
+		if( count($filter)>0 )
+		{
+			foreach( $filter as $cn )
+				if( isset($this->$cn) )
+					$res[$cn] = $this->__typedValue($cn);
+		}
+		else
+		{
+			foreach( $this->GetColumnNames() as $cn )
+				if( count($filter)==0 || in_array($cn, $filter) )
+					$res[$cn] = $this->__typedValue($cn);
+		}
 		return $res;
 	}
 	

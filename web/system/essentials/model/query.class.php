@@ -36,24 +36,27 @@ use ScavixWDF\WdfDbException;
  */
 class Query
 {
-	protected $_object = false;
-	protected $_ds = false;
-	protected $_knownmodels = array();
+	var $_object = false;
+	var $_ds = false;
+	var $_knownmodels = array();
 
-	protected $_initialSequence = false;
-	protected $_where = false;
-	protected $_currentTree = false;
+	var $_initialSequence = false;
+	var $_where = false;
+	var $_currentTree = false;
 
-	protected $_values = array();
-	protected $_statement = false;
+	var $_values = array();
+	var $_statement = false;
 
     function __construct(&$obj,&$datasource,$conditions_separator="WHERE")
 	{
-		$this->_object = $obj;
-		$this->_ds = $datasource;
-		$this->_where = new ConditionTree(-1,"AND",$conditions_separator);
-		$this->_currentTree = $this->_where;
-		$this->_knownmodels = array($obj);
+		if( !unserializer_active() )
+		{
+			$this->_object = $obj;
+			$this->_ds = $datasource;
+			$this->_where = new ConditionTree(-1,"AND",$conditions_separator);
+			$this->_currentTree = $this->_where;
+			$this->_knownmodels = array($obj);
+		}
 	}
 	
 	function __toString()

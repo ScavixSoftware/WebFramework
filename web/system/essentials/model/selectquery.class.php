@@ -32,19 +32,22 @@ namespace ScavixWDF\Model;
  */
 class SelectQuery extends Query
 {
-	protected $_groupBy = array();
-	protected $_having = false;
-	protected $_orderBy = array();
-	protected $_limit = array();
-	protected $_join = array();
+	var $_groupBy = array();
+	var $_having = false;
+	var $_orderBy = array();
+	var $_limit = array();
+	var $_join = array();
 
-	function __construct(&$obj,&$datasource,$select_statement=false)
+	function __construct(&$obj=null,&$datasource=null,$select_statement=false)
 	{
 		parent::__construct($obj,$datasource,$select_statement?"":"WHERE");
-		if( !$select_statement )
-			$this->_initialSequence = "SELECT * FROM `{$obj->GetTableName()}`";
-		else
-			$this->_initialSequence = "";
+		if( !unserializer_active() )
+		{
+			if( !$select_statement )
+				$this->_initialSequence = "SELECT * FROM `{$obj->GetTableName()}`";
+			else
+				$this->_initialSequence = "";
+		}
 	}
 
 	function setResultFields($fields_as_array_or_commaseparated)
