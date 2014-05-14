@@ -29,6 +29,7 @@ namespace ScavixWDF\Controls\Table;
 
 use ScavixWDF\Base\AjaxResponse;
 use ScavixWDF\Base\Control;
+use ScavixWDF\Controls\Anchor;
 use ScavixWDF\Localization\CultureInfo;
 use ScavixWDF\WdfException;
 
@@ -51,6 +52,14 @@ class Table extends Control
 	var $RowOptions = array();
 	var $ColFormats = array();
 	var $Culture = false;
+	
+	var $DataCallback = false;
+	
+	var $ItemsPerPage = false;
+	var $CurrentPage = false;
+	var $MaxPagesToShow = false;
+	var $TotalItems = false;
+	var $HidePager = false;
 	
 	function __initialize()
 	{
@@ -246,6 +255,18 @@ class Table extends Control
 	 */
 	function WdfRender()
     {
+		if( $this->DataCallback )
+		{
+			$this->Clear();
+			$args = array($this);
+			system_call_user_func_array_byref($this->DataCallback[0], $this->DataCallback[1], $args);
+		}
+			
+		if( $this->ItemsPerPage && !$this->HidePager )
+		{
+			$pager = $this->RenderPager();
+			$this->content($pager);
+		}
         if( $this->footer )
             $this->prepend($this->footer);//array_merge(array($this->footer),$this->_content);
         if( $this->header )
@@ -518,5 +539,75 @@ class Table extends Control
 	function OnReordered($rows)
 	{
 		return call_user_func_array($this->_sortHandler,array($this,$rows));
+	}
+	
+	/**
+	 * Adds a Pager to the table
+	 * 
+	 * Will be displayed in the tables footer.
+	 * @param int $total_items Total number of items
+	 * @param int $items_per_page Items per page to be displayed
+	 * @param int $current_page One (1) based index of current page
+	 * @param int $max_pages_to_show Maximum links to pages to be shown
+	 * @return DatabaseTable `$this`
+	 */
+	function AddPager($total_items, $items_per_page = 15, $current_page=1, $max_pages_to_show=10)
+	{
+		$this->TotalItems = $total_items;
+		$this->ItemsPerPage = $items_per_page;
+		$this->CurrentPage = $current_page;
+		$this->MaxPagesToShow = $max_pages_to_show;
+		store_object($this);
+		return $this;
+	}
+	
+	function SetDataCallback($handler,$method)
+	{
+		$this->DataCallback = array($handler,$method);
+	}
+	
+	/**
+	 * @internal Will be polled via AJAX to change the page if you defined a pager using <DatabaseTable::AddPager>
+	 * @attribute[RequestParam('number','int')]
+	 */
+	function GotoPage($number)
+	{
+		$this->CurrentPage = $number;
+	}
+	
+	protected function RenderPager()
+	{
+		$pages = ceil($this->TotalItems / $this->ItemsPerPage);
+		if( $pages < 2 )
+			return;
+		
+		log_debug("RenderPager: {$this->CurrentPage}/$pages");
+		$ui = new Control('div');
+		$ui->addClass("pager");
+
+		if( $this->CurrentPage > 1 )
+		{
+			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage(1)","|&lt;") );
+			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage(".($this->CurrentPage-1).")","&lt;") );
+		}
+
+		$start = 1;
+		while( $pages > $this->MaxPagesToShow && $this->CurrentPage > $start + $this->MaxPagesToShow / 2 )
+			$start++;
+
+		for( $i=$start; $i<=$pages && $i<($start+$this->MaxPagesToShow); $i++ )
+		{
+			if( $i == $this->CurrentPage )
+				$ui->content("<span class='current'>$i</span>");
+			else
+				$ui->content(new Anchor("javascript: $('#$this->id').gotoPage($i)",$i));
+		}
+
+		if( $this->CurrentPage < $pages )
+		{
+			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage(".($this->CurrentPage+1).")","&gt;") );
+			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage($pages)","&gt;|") );
+		}
+		return $ui;
 	}
 }

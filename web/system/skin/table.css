@@ -28,3 +28,33 @@
 
 .ui-table-actions > div { cursor: pointer; float:left; display: inline-block; width: 16px; }
 .ui-table-actions > div.ui-state-hover { margin: -1px; }
+
+.table .pager
+{
+	position: absolute;
+}
+
+.table .pager a, 
+.table .pager a:link, 
+.table .pager a:visited, 
+.table .pager a:active
+{
+	text-decoration: none;
+	border: 1px solid transparent;
+	color: black;
+	font-weight: normal;
+	padding-left :5px;
+	padding-right :2px;
+	margin-right :2px;
+}
+
+.table .pager a:hover
+{
+	border: 1px solid black;
+}
+
+.table .pager .current
+{
+	color: black;
+	font-weight: bold;
+}

@@ -63,10 +63,6 @@ class DatabaseTable extends Table
 	var $OnAddRow = false;
 	var $ExecuteSqlHandler = false;
 
-	var $ItemsPerPage = false;
-	var $CurrentPage = false;
-	var $MaxPagesToShow = false;
-	
 	public $noDataAsRow = false;
 	public $contentNoData = "TXT_NO_DATA_FOUND";
 
@@ -310,6 +306,7 @@ class DatabaseTable extends Table
 				
 			$td = $this->SetColFormat(0,"")->NewCell($this->contentNoData);
 			$td->colspan = $this->header->GetMaxCellCount();
+			$this->HidePager = true;
 		}
         else
         {
@@ -331,10 +328,7 @@ class DatabaseTable extends Table
 				$this->AddDataToRow($raw_row);
             }
 			if( $this->ItemsPerPage )
-			{
-				$pager = $this->RenderPager();
-				$this->content($pager);
-			}
+				$this->HidePager = false;
         }
 		parent::PreRender($args);
 	}
@@ -515,63 +509,16 @@ class DatabaseTable extends Table
 	}
 	
 	/**
-	 * Adds a Pager to the table
-	 * 
-	 * Will be displayed in the tables footer.
-	 * @param int $items_per_page Items per page to be displayed
-	 * @param int $current_page One (1) based index of current page
-	 * @param int $max_pages_to_show Maximum links to pages to be shown
-	 * @return DatabaseTable `$this`
+	 * @override <Table::AddPager> and hides $total_items argument
 	 */
 	function AddPager($items_per_page = 15, $current_page=1, $max_pages_to_show=10)
 	{
-		$this->ItemsPerPage = $items_per_page;
-		$this->CurrentPage = $current_page;
-		$this->MaxPagesToShow = $max_pages_to_show;
-		return $this;
-	}
-	
-	/**
-	 * @internal Will be polled via AJAX to change the page if you defined a pager using <DatabaseTable::AddPager>
-	 * @attribute[RequestParam('number','int')]
-	 */
-	function GotoPage($number)
-	{
-		$this->CurrentPage = $number;
+		return parent::AddPager(0,$items_per_page,$current_page,$max_pages_to_show);
 	}
 	
 	protected function RenderPager()
 	{
-		$pages = $this->ResultSet->GetpagingInfo('total_pages');
-		if( $pages < 2 )
-			return;
-		
-		$ui = new Control('div');
-		$ui->addClass("pager");
-
-		if( $this->CurrentPage > 1 )
-		{
-			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage(1)","|&lt;") );
-			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage(".($this->CurrentPage-1).")","&lt;") );
-		}
-
-		$start = 1;
-		while( $pages > $this->MaxPagesToShow && $this->CurrentPage > $start + $this->MaxPagesToShow / 2 )
-			$start++;
-
-		for( $i=$start; $i<=$pages && $i<($start+$this->MaxPagesToShow); $i++ )
-		{
-			if( $i == $this->CurrentPage )
-				$ui->content("<span class='current'>$i</span>");
-			else
-				$ui->content(new Anchor("javascript: $('#$this->id').gotoPage($i)",$i));
-		}
-
-		if( $this->CurrentPage < $pages )
-		{
-			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage(".($this->CurrentPage+1).")","&gt;") );
-			$ui->content( new Anchor("javascript: $('#$this->id').gotoPage($pages)","&gt;|") );
-		}
-		return $ui;
+		$this->TotalItems = $this->ResultSet->GetpagingInfo('total_rows');
+		return parent::RenderPager();
 	}
 }
