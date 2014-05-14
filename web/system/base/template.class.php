@@ -295,6 +295,9 @@ class Template extends Renderable
 			unset($$key);
 		foreach( $buf as $key=>&$val )
 			$$key = $val;
+		
+		if( system_is_ajax_call() && count($this->_script)>0 )
+			$contents .= "<script> ".implode("\n",$this->_script)."</script>";
         
 		return $contents;
 	}
