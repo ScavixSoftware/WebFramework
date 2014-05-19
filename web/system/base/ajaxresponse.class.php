@@ -160,7 +160,7 @@ class AjaxResponse
 	 */
 	public static function Reload()
 	{
-		return AjaxResponse::Js("document.location.reload();");
+		return AjaxResponse::Js("document.location.reload();",true);
 	}
 	
 	/**
