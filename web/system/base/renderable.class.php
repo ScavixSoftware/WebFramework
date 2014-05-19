@@ -453,7 +453,7 @@ abstract class Renderable
 	 */
 	function after($content)
 	{
-		$this->par()->insert($content,$this->next());
+		$this->par()->insert($content,$this->par()->indexOf($this)+1);
 		return $this;
 	}
 }
