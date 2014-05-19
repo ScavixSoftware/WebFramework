@@ -44,7 +44,8 @@ class uiButton extends uiControl
 			$this->_icon = self::Icon($icon);
 		
 		$this->type = "button";
-		$this->content($text);
+		if( $text )
+			$this->content($text);
 	}
 	
 	/**
@@ -60,6 +61,12 @@ class uiButton extends uiControl
 		if( $onclick ) $res->onclick = $onclick;
 		return $res;
 	}
+	
+	function setIcon($icon)
+	{
+		$this->_icon = self::Icon($icon);
+		return $this;
+	}
 
 	/**
 	 * @override
@@ -73,7 +80,14 @@ class uiButton extends uiControl
 			$opts = array();
 			if(isset($this->_icon))
 				$opts['icons'] = array('primary'=>"ui-icon-".$this->_icon);
-			$controller->addDocReady("$('#".$this->id."').button(".system_to_json($opts).");");
+			
+			if( count($this->_content)==0 )
+				$opts['text'] = false;
+			
+			if( $controller instanceof \ScavixWDF\Base\HtmlPage )
+				$controller->addDocReady("$('#".$this->id."').button(".system_to_json($opts).");");
+			else
+				$controller->script("$('#".$this->id."').button(".system_to_json($opts).");");
 		}
 		return parent::PreRender($args);
 	}
