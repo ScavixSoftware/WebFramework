@@ -93,17 +93,7 @@ body.sysadmin div.navigation
 {
 	background-color: #d9d9d9;
     border-bottom: 1px dotted #5d5d5d;
-    
-/*    border-left: 1px dotted gray;
-    border-bottom: 1px dotted gray;
-    display: block;
-    margin: 0;
-    padding: 10px 22px 10px 10px;
-    width: 200px;
-	position: fixed;
-	right: 0;
-	top: 0;
-	z-index: 99999;*/
+	height: 37px;
 }
 
 body.sysadmin div.navigation a,
