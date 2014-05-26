@@ -62,6 +62,12 @@ class uiButton extends uiControl
 		return $res;
 	}
 	
+	/**
+	 * Sets the <uiButton>s icon.
+	 * 
+	 * @param string $icon Valid <uiControl::Icon>
+	 * @return uiButton `$this`
+	 */
 	function setIcon($icon)
 	{
 		$this->_icon = self::Icon($icon);

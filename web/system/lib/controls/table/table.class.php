@@ -544,7 +544,8 @@ class Table extends Control
 	/**
 	 * Adds a Pager to the table
 	 * 
-	 * Will be displayed in the tables footer.
+	 * Will be displayed in the tables footer. See <Table::SetDataCallback> for details how to
+	 * add data to a paged table.
 	 * @param int $total_items Total number of items
 	 * @param int $items_per_page Items per page to be displayed
 	 * @param int $current_page One (1) based index of current page
@@ -561,9 +562,18 @@ class Table extends Control
 		return $this;
 	}
 	
+	/**
+	 * Sets a handler to be called whenever the table needs data.
+	 * 
+	 * Use this in conjuction with <Table::AddPager> to generate dynamic data.
+	 * @param object $handler Object that will handle the request.
+	 * @param string $method Name of the method to be called
+	 * @return Table `$this`
+	 */
 	function SetDataCallback($handler,$method)
 	{
 		$this->DataCallback = array($handler,$method);
+		return $this;
 	}
 	
 	/**
