@@ -146,6 +146,7 @@ $GLOBALS['html_skip_if_empty'] = array_combine($GLOBALS['html_skip_if_empty'], $
 /**
  * Base class for interactive webpage content like AJAX TextInputs.
  * 
+ * @attribute[Resource('jquery.js')]
  */
 class Control extends Renderable
 {

@@ -30,7 +30,6 @@ use ScavixWDF\WdfException;
 /**
  * Base class for all HTML related stuff.
  * 
- * @attribute[Resource('jquery.js')]
  */
 abstract class Renderable 
 {
