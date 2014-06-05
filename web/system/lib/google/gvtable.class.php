@@ -27,7 +27,7 @@ namespace ScavixWDF\Google;
 /**
  * A data table
  * 
- * See https://developers.google.com/chart/interactive/docs/gallery
+ * See https://google-developers.appspot.com/chart/interactive/docs/gallery/table
  */
 class gvTable extends GoogleVisualization
 {

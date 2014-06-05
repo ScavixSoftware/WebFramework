@@ -12,3 +12,20 @@
 	background-color: lightgray;
 	height: 100%;
 }
+
+.google-visualization-table-tr-head, .google-visualization-table-tr-head td
+{
+	font-weight: normal !important;
+}
+
+.google-visualization-table-table caption
+{
+	font-weight: bold;
+	text-align: left;
+	font-size: 14px;
+}
+
+.google-visualization-table-tr-head .gradient, .google-visualization-table-tr-head-nonstrict .gradient, .google-visualization-table-div-page .gradient
+{
+	background: #f4f3f3 !important;
+}

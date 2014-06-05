@@ -318,7 +318,7 @@ class CultureInfo
 		}
 		else
 			$ret .= ' '.$minutes.':';
-		$ret .= str_pad($seconds, 2, '0', STR_PAD_LEFT);
+		$ret .= str_pad(round($seconds, 0), 2, '0', STR_PAD_LEFT);
 		return trim($ret);
 	}
 
