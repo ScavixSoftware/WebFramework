@@ -965,7 +965,7 @@ function ifnull()
 }
 
 /**
- * Shorthand IF funcation.
+ * Shorthand IF function.
  * 
  * This function is something similar to the ?: syntax for IF control structures.
  * Complicated to explain, here's a sample:
@@ -983,4 +983,53 @@ function ifnull()
 function sif($condition,$true_value,$false_value)
 {
 	return $condition?$true_value:$false_value;
+}
+
+/**
+ * Returns true if an object's/array's property/key is set.
+ * 
+ * <avail> is a shorthand function to recursively check if an object property or array key is present and set.
+ * It needs at least two arguments: The object/array to check and a property/key to check. If you want to check
+ * more deeply just add more arguments.
+ * In fact using avail is equivalent to using <isset> and `== true`.
+ * See this sample and you will understand:
+ * <code php>
+ * $o = new stdClass();
+ * $o->attributes = new stdClass();
+ * $o->attributes->url = 'http://www.scavix.com';
+ * $a = array();
+ * $a['system']['atad'] = 'wrong order';
+ * if( avail($o,'attributes','url') )
+ *     log_debug("URL",$o->attributes->url);
+ * if( isset($o) && is_object($o->attributes) && isset($o->attributes->url) && $o->attributes->url )
+ *     log_debug("URL",$o->attributes->url);
+ * if( avail($a,'system','data') )
+ *     log_debug("SysData",$a['system']['data']);
+ * if( isset($a) && is_array($a['system']) && isset($a['system']['data']) && $a['system']['data'] )
+ *     log_debug("SysData",$a['system']['data']);
+ * </code>
+ * @return boolean True if the requested data is available, else false
+ */
+function avail()
+{
+	$args = func_get_args();
+	if( count($args) < 2 )
+		ScavixWDF\WdfException::Raise("avail needs at least two arguments");
+	
+	$ar = array_shift($args);
+	if( !is_array($ar) && !is_object($ar) )
+		return false;
+	$ar = (array)$ar;
+	$l = array_pop($args);
+	foreach( $args as $a )
+	{
+		if( !isset($ar[$a]) )
+			return false;
+		if( !is_array($ar[$a]) && !is_object($ar[$a]) )
+			return false;
+		$ar = (array)$ar[$a];
+	}
+	if( !isset($ar[$l]) )
+		return false;
+	return $ar[$l] == true; // note the weak comparision!
 }
