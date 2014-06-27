@@ -45,7 +45,7 @@ function internal_getCultureInfo($cultureCode)
 			$ci->DateTimeFormat = $dtf;
 			$ci->CurrencyFormat = new CurrencyFormat('2','.',',','$','USD','$%v','-$%v','US Dollar','US Dollar');
 			$ci->NumberFormat = new NumberFormat('2','.',',','-%v');
-			$ci->PercentFormat = new PercentFormat('2','.',',','%v %','-%v%');
+			$ci->PercentFormat = new PercentFormat('2','.',',','%v%','-%v%');
 			$ci->Region = internal_getRegion('US');
 			$ci->Parent = internal_getLanguage('en');
 			return $ci;
@@ -60,7 +60,7 @@ function internal_getCultureInfo($cultureCode)
 			$ci->DateTimeFormat = $dtf;
 			$ci->CurrencyFormat = new CurrencyFormat('2',',','.','€','EUR','%v €','-%v €','Euro','Euro');
 			$ci->NumberFormat = new NumberFormat('2',',','.','-%v');
-			$ci->PercentFormat = new PercentFormat('2',',','.','% %v','-%v%');
+			$ci->PercentFormat = new PercentFormat('2',',','.','%v%','-%v%');
 			$ci->Region = internal_getRegion('DE');
 			$ci->Parent = internal_getLanguage('de');
 			return $ci;

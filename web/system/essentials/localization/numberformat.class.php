@@ -64,10 +64,10 @@ class NumberFormat
 			$ord = uniord($this->GroupSeparator);
 			$val = str_replace($this->GroupSeparator[0],"&#$ord;",$val);
 		}
-		//log_debug($val);
+//		log_debug($val);
 		if( $number >= 0 )
 			return $val;
-		return str_replace("%v", $val, $this->NegativeFormat);
+		return str_replace('--', '-', str_replace("%v", $val, $this->NegativeFormat));		// avoid "--" in value (negative number and - in format)
 	}
 
 	/**

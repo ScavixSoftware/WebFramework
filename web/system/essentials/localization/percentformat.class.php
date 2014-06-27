@@ -64,6 +64,6 @@ class PercentFormat
 		}
 		if( $number >= 0 )
 			return str_replace("%v", $val, $this->PositiveFormat);
-		return str_replace("%v", $val, $this->NegativeFormat);
+		return str_replace('--', '-', str_replace("%v", $val, $this->NegativeFormat));		// avoid "--" in value (negative number and - in format)
 	}
 }

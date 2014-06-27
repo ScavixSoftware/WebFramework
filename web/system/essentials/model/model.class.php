@@ -411,8 +411,20 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		$res->_query->limit(0,1);
 		$res->__ensureResults();
 		$res = $res->current();
-		if( $res && isset($res->$property) )
-			return $res->$property;
+		if($res)
+		{
+			if(is_array($property))
+			{
+				// multiple fields requested
+				$ret = array();
+				foreach($property as $p)
+					$ret[$p] = $res->$p;
+				return $ret;
+			}
+			else
+				if(isset($res->$property))
+					return $res->$property;
+		}
 		return $default;
 	}
 	
