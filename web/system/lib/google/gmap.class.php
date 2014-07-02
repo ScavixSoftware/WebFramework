@@ -44,6 +44,8 @@ class gMap extends GoogleControl
 	private $_markers = array();
 	private $_addresses = array();
 	
+	var $AutoShowHints = false;
+	
 	/**
 	 * @param array $options See https://developers.google.com/maps/documentation/javascript/tutorial#MapOptions
 	 */
@@ -63,6 +65,8 @@ class gMap extends GoogleControl
 		$id = $this->id;
         $this->_basicOptions['center'] = '[jscode]'.$this->_basicOptions['center'];
         $this->_basicOptions['mapTypeId'] = '[jscode]'.$this->_basicOptions['mapTypeId'];
+		if( $this->AutoShowHints ) 
+			$this->_basicOptions['autoShowHints'] = true;
 		$init = array("wdf.gmap.init('$id',".system_to_json($this->_basicOptions).");");
 		
 		foreach( $this->_markers as $m )
@@ -72,7 +76,10 @@ class gMap extends GoogleControl
 		}
 		foreach( $this->_addresses as $a )
 		{
-			$init[] = "wdf.gmap.addAddress('$id',".json_encode($a).");";
+			if( is_array($a) )
+				$init[] = "wdf.gmap.addAddress('$id',".json_encode($a['address']).",".json_encode($a['title']).");";
+			else
+				$init[] = "wdf.gmap.addAddress('$id',".json_encode($a).");";
 		}
     	$init[] = "wdf.gmap.showAllMarkers('$id');";
 			
@@ -117,9 +124,9 @@ class gMap extends GoogleControl
 	 * @param string $address The address as string
 	 * @return gMap `$this`
 	 */
-	function AddAddress($address)
+	function AddAddress($address,$title=false)
 	{
-		$this->_addresses[] = $address;
+		$this->_addresses[] = $title?array('address'=>$address,'title'=>$title):$address;
 		return $this;
 	}
 	

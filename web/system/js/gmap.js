@@ -33,10 +33,13 @@
 		
 		init: function(id,options)
 		{
+			$('#'+id).data('autoShowHints',options['autoShowHints']?true:false);
+			if( options['autoShowHints'] )
+				delete(options['autoShowHints']);
 			this.maps[id] = new google.maps.Map($('#'+id).get(0),options);
 		},
 		
-		addAddress: function(id, address)
+		addAddress: function(id, address, tooltip)
 		{
 			if( !this.geocoder )
 				this.geocoder = new google.maps.Geocoder();
@@ -49,10 +52,10 @@
 					var i = result.length - 1;
 					if(i >= 0)
 					{
-						wdf.gmap.addMarker(id,
+						var m = wdf.gmap.addMarker(id,
 							result[i].geometry.location.lat(),
 							result[i].geometry.location.lng(),
-							{title:result[i].formatted_address});
+							{title:tooltip||result[i].formatted_address});
 					}
 					else if(req.address.indexOf(","))
 						wdf.gmap.addAddress(id, req.address.substr(req.address.indexOf(",")+1));
@@ -81,10 +84,32 @@
 			var marker = new google.maps.Marker(opts);
 			google.maps.event.addListener(marker, 'click', function() { wdf.gmap.markerClicked.fire(id,marker); } );
 
+			var oc = false;
 			if( options )
+			{
 				for(var p in options)
+				{
 					if(p == "onclick")
+					{
 						google.maps.event.addListener(marker, 'click', function() { eval(options["onclick"]); } );
+						oc = true;
+						break;
+					}
+				}
+			}
+			
+			if( !oc && marker.title )
+			{
+				var curmap = this.maps[id];
+				var infowindow = new google.maps.InfoWindow({content: marker.title,closeBoxURL: ""});
+				google.maps.event.addListener(marker, 'click', function(){ infowindow.open(curmap,marker); });
+				if( $('#'+id).data('autoShowHints') )
+					google.maps.event.addListenerOnce(curmap, 'idle', function()
+					{
+						new google.maps.event.trigger( marker, 'click' );
+						$('.gm-style-iw').width($('.gm-style-iw').parent().width());
+					});
+			}
 			
 			if( !this.markers[id] )
 				this.markers[id] = [];
@@ -93,7 +118,7 @@
 		
 		showAllMarkers: function(id)
 		{
-			var bounds;
+			var bounds, multi = false;
 			if( this.markers[id] && this.markers[id].length == 1 )
 			{
 				bounds = new google.maps.LatLngBounds(this.markers[id][0].position,this.markers[id][0].position);
@@ -103,9 +128,18 @@
 			{
 				bounds = new google.maps.LatLngBounds();
 				for(var i=0; i<this.markers[id].length; i++)
+				{
+					if( bounds.contains(this.markers[id][i].position) )
+						continue;
 					bounds.extend(this.markers[id][i].position);
-				this.maps[id].setCenter(bounds.getCenter());
-				this.maps[id].fitBounds(bounds);
+					if( i > 0 )
+						multi = true;
+				}
+				if( multi )
+				{
+					this.maps[id].setCenter(bounds.getCenter());
+					this.maps[id].fitBounds(bounds);
+				}
 			}
 		}
 	};
