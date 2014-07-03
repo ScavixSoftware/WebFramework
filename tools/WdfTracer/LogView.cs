@@ -170,9 +170,10 @@ namespace WdfTracer
         private DateTime maxDateTime = DateTime.MinValue;
         private DateTime[] currentDateTimeFilter = null;
 
-        private Regex textlineReg1 = new Regex(@"\[(\d{4}-\d{2}-\d{2}\x20\d{2}:\d{2}:\d{2}\.\d*)\]\x20\[([^\]]*)\]\x20\(([^\)]*)\)\t(.*)");
-        private Regex textlineReg2 = new Regex(@"^\[([^\]]+)\]\s(.*)");
+        //private Regex textlineReg1 = new Regex(@"\[(\d{4}-\d{2}-\d{2}\x20\d{2}:\d{2}:\d{2}\.\d*)\]\x20\[([^\]]*)\]\x20\(([^\)]*)\)\t(.*)");
+        //private Regex textlineReg2 = new Regex(@"^\[([^\]]+)\]\s(.*)");
         private Regex textlineReg = null;
+        private List<Regex> textLinePatterns = new List<Regex>();
 
         #endregion
 
@@ -200,7 +201,15 @@ namespace WdfTracer
             Progress = new ProgressOverlay();
             Progress.OnCancelled += new CancelledDelegate(Progress_OnCancelled);
 
-            textlineReg = textlineReg1;
+            foreach (string p in File.ReadAllLines("textline.patterns"))
+            {
+                string l = p.Trim();
+                if (l == "")
+                    continue;
+                Regex r = new Regex(l,RegexOptions.IgnoreCase);
+                textLinePatterns.Add(r);
+            }
+            textlineReg = textLinePatterns[0];
         }
 
         #region common stuff
@@ -455,27 +464,32 @@ namespace WdfTracer
 
             if (!m.Success && enable_format_detection)
             {
-                textlineReg = textlineReg2;
-                m = textlineReg.Match(line);
+                int i = textLinePatterns.IndexOf(textlineReg) + 1;
+                if (i > 0 && i < textLinePatterns.Count)
+                {
+                    textlineReg = textLinePatterns[i];
+                    m = textlineReg.Match(line);
+                }
             }
 
             Entry test = null;
             if (m.Success)
             {
                 test = new Entry();
-                test.Created = DateTime.Parse(m.Groups[1].Value.Substring(0,20));
-                if (m.Groups.Count < 4)
+                string[] gn = textlineReg.GetGroupNames();
+                if (gn.Contains("y") && gn.Contains("m") && gn.Contains("d") && gn.Contains("h") && gn.Contains("i") && gn.Contains("s"))
                 {
-                    test.Severity = "";
-                    test.Categories = new List<string>();
-                    test.Message = m.Groups[2].Value;
+                    test.Created = new DateTime(
+                        int.Parse(m.Groups["y"].Value), txtToMonth(m.Groups["m"].Value), int.Parse(m.Groups["d"].Value),
+                        int.Parse(m.Groups["h"].Value), int.Parse(m.Groups["i"].Value), int.Parse(m.Groups["s"].Value)
+                        );
                 }
-                else
-                {
-                    test.Severity = m.Groups[2].Value;
-                    test.Categories = new List<string>(m.Groups[3].Value.Split(categorySplitter));
-                    test.Message = m.Groups[4].Value;
-                }
+                else if (gn.Contains("date"))
+                    test.Created = DateTime.Parse(m.Groups["date"].Value);
+
+                test.Severity = gn.Contains("sev")?m.Groups["sev"].Value:"";
+                test.Categories = gn.Contains("sev")?new List<string>(m.Groups["cat"].Value.Split(categorySplitter)):new List<string>();
+                test.Message = gn.Contains("msg")?m.Groups["msg"].Value:"";
                 return test;
             }
 
@@ -485,6 +499,28 @@ namespace WdfTracer
                 lastEntry.PostCreation();
             }
             return null;
+        }
+
+        private int txtToMonth(string month)
+        {
+            switch (month.ToLower())
+            {
+                case "jan": return 1;
+                case "feb": return 2;
+                case "mar": return 3;
+                case "apr": return 4;
+                case "may": return 5;
+                case "jun": return 6;
+                case "jul": return 7;
+                case "aug": return 8;
+                case "sep": return 9;
+                case "oct":
+                case "okt":
+                    return 10;
+                case "nov": return 11;
+                case "dec": return 12;
+            }
+            return int.Parse(month);
         }
 
         private bool IsVisibleItem(Entry o)
