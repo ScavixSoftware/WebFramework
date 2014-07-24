@@ -80,6 +80,7 @@ class TranslationAdmin extends TranslationAdminBase
 	
 	private function _languageSelect($lang)
 	{
+		global $CONFIG;
 		$sel = new Select();
 		$sel->SetCurrentValue($lang);
 		$known = $sel->CreateGroup('Languages with translations');
@@ -91,7 +92,11 @@ class TranslationAdmin extends TranslationAdminBase
 		foreach( Localization::get_language_names() as $code=>$name )
 		{
 			if( isset($counts[$code]) )
+			{
 				$name = "$name ({$counts[$code]})";
+				if( $code == $CONFIG['localization']['default_language'] )
+					$name .= " [default]";
+			}
 			$sel->AddOption($code,$name,false,(isset($counts[$code])&&$counts[$code]>0)?$known:$avail);
 		}
 		return $sel;
@@ -195,10 +200,12 @@ class TranslationAdmin extends TranslationAdminBase
 	 * @attribute[RequestParam('lang','string',false)]
 	 * @attribute[RequestParam('offset','int',0)]
 	 * @attribute[RequestParam('search','text','')]
+	 * @attribute[RequestParam('untranslated','bool',false)]
 	 */
-	function Translate($lang,$offset,$search)
+	function Translate($lang,$offset,$search,$untranslated)
 	{
 		global $CONFIG;
+		if( $untranslated ) $search = '';
 		$lang = $lang?$lang:$CONFIG['localization']['default_language'];
 		$_SESSION['trans_admin_lang'] = $lang;
 		$_SESSION['trans_admin_offset'] = $offset;
@@ -214,8 +221,15 @@ class TranslationAdmin extends TranslationAdminBase
 		$form->AddText('search',$search);
 		$form->AddHidden('offset',0);
 		$form->AddSubmit('Search');
-		$form->content("<span style='color:gray'>(? matches single char, * machtes any/no char)</span>");
+		$form->content("<span style='color:gray'>(?:=single char, *:=any/no char)</span>");
 
+		if( $lang != $CONFIG['localization']['default_language'] )
+		{
+			$form->content("&nbsp;&nbsp;&nbsp;Or ");
+		    $form->AddHidden('untranslated',0)->id = 'untranslated';
+			Button::Make("Show untranslated","$('#untranslated').val('1').closest('form').submit();")->appendTo($form);
+		}
+		
 		$tab = Table::Make()->addClass('translations')
 			->SetHeader('Term','Default','Content','')
 			->setData('lang',$lang)
@@ -226,12 +240,19 @@ class TranslationAdmin extends TranslationAdminBase
 		{
 			$rs = $this->_searchQuery($CONFIG['localization']['default_language']);
 			foreach( $rs as $row )
-				$defaults[$row['id']] = $row['content'];
+				$defaults[$row['id']] = $row['content'];			
 		}
-		$rs = $this->_searchQuery($lang,$search)->page($offset,10);
+		if( $untranslated )
+		{
+			$done = $this->ds->Query('wdf_translations')->eq('lang',$lang)->enumerate('id');
+			$todo = array_diff(array_keys($defaults), $done);
+			$rs = $this->_searchQuery($CONFIG['localization']['default_language'])->in('id',$todo)->page($offset,10);
+		}
+		else
+			$rs = $this->_searchQuery($lang,$search)->page($offset,10);
 		foreach( $rs as $term )
 		{
-			$ta = new TextArea($term->content);
+			$ta = new TextArea($untranslated?'':$term->content);
 			$ta->class = $term->id;
 			$btn = new Button('Save');
 			$btn->addClass('save')->setData('term',$term->id);
@@ -255,7 +276,7 @@ class TranslationAdmin extends TranslationAdminBase
 			if( $page == $pi['current_page'] )
 				$this->content("<b>$label</b>");
 			else
-				$this->content(new Anchor(buildQuery('TranslationAdmin','Translate',"lang=$lang&offset=$offset&search=$search"),"$label"));
+				$this->content(new Anchor(buildQuery('TranslationAdmin','Translate',"lang=$lang&offset=$offset&search=$search&untranslated=".($untranslated?1:0)),"$label"));
 			$this->content("&nbsp;");
 		}
 	}
