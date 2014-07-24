@@ -1,5 +1,4 @@
 Chart sample
 ============
 
-This is the sample code used in the charting article at codeproject.com:          
-[Chart Roulette](http://www.codeproject.com/Articles/grlsmpf)
+This is a sample on how to use the charts provided by the WebFramework in your web application.
