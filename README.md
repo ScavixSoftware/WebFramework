@@ -11,8 +11,9 @@ Folders
 `/netbeans/` Contains a NetBeans project for the contents of the /web/ folder        
 `/tools/` Currently only contains PhpTracer which is a tool to monitor logfiles, written in C#        
 `/web/documentor/` An app, we use this to create the [API reference documentation](https://github.com/ScavixSoftware/WebFramework/wiki)        
-`/web/sample_blog/` A sample blog application using the WebFramework        
-`/web/sample_shop/` A sample shop application using the WebFramework        
+`/web/sample_blog/` A sample blog application using the WebFramework
+`/web/sample_shop/` A sample shop application using the WebFramework
+`/web/sample_chart/` A sample on how to show charts in your application based on the WebFramework
 `/web/system/` The framework code        
 
 Resources
