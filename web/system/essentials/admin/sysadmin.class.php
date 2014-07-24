@@ -54,6 +54,10 @@ class SysAdmin extends HtmlPage
     {
         global $CONFIG;
 		
+		// sometimes state-/UI-less sites (like APIs) trickout the AJAX detection by setting this.
+		// as we need UI this must be reset here
+		unset($GLOBALS['result_of_system_is_ajax_call']); 
+		
 		header("Content-Type: text/html; charset=utf-8"); // overwrite previously set header to ensure we deliver HTML
 		unset($CONFIG["use_compiled_js"]);
 		unset($CONFIG["use_compiled_css"]);

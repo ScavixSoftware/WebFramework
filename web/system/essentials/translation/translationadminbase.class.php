@@ -56,6 +56,10 @@ abstract class TranslationAdminBase extends SysAdmin
 				$ns->set($col,$row->$col);
             $this->_contentdiv->content($ns);
         }
+		if( !isset($row) )
+			$this->_contentdiv->content("<p>no requested strings found</p>");
+		$this->_contentdiv->content("<h1>Manually add string</h1>");
+		Template::Make('translationnewstringmanually')->appendTo($this->_contentdiv);
     }
     
     /**

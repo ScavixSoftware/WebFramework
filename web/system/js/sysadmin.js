@@ -27,11 +27,15 @@ wdf.ready.add(function()
     
     $('table.new_string input.create').click( function()
     { 
-        var term = $(this).data('term');
-        var text = encodeURIComponent($('textarea.'+term).val()||'');
+        var term = $(this).data('term') || $(this).closest('.new_string').find('[name="term"]').val();
+        var text = encodeURIComponent( $('textarea.'+term).val() || ($(this).closest('.new_string').find('textarea').val()||'') );
+
         wdf.controller.post('CreateString',{term:term,text:text},function()
         {
-			$('table.'+term).fadeOut( function(){ $('table.'+term).remove(); } );
+			if( $('table.'+term).length > 0 )
+				$('table.'+term).fadeOut( function(){ $('table.'+term).remove(); } );
+			else
+				wdf.reloadWithoutArgs();
         });
     });
     
