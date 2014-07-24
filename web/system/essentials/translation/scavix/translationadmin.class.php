@@ -221,27 +221,23 @@ class TranslationAdmin extends TranslationAdminBase
 			->setData('lang',$lang)
 			->appendTo($this);
 		
+		$defaults = array();
 		if( $lang != $CONFIG['localization']['default_language'] )
 		{
-			$translated = array();
-			$rs = $this->_searchQuery($lang);
+			$rs = $this->_searchQuery($CONFIG['localization']['default_language']);
 			foreach( $rs as $row )
-				$translated[$row['id']] = $row['content'];
+				$defaults[$row['id']] = $row['content'];
 		}
-		$rs = $this->_searchQuery($CONFIG['localization']['default_language'],$search)->page($offset,10);
+		$rs = $this->_searchQuery($lang,$search)->page($offset,10);
 		foreach( $rs as $term )
 		{
-			if( isset($translated) )
-				$translation = isset($translated[$term->id])?$translated[$term->id]:'';
-			else
-				$translation = $term->content;
-			
-			$ta = new TextArea($translation);
+			$ta = new TextArea($term->content);
 			$ta->class = $term->id;
 			$btn = new Button('Save');
 			$btn->addClass('save')->setData('term',$term->id);
 			
-			$tab->AddNewRow($term->id,htmlspecialchars($term->content),$ta,$btn);
+			$def = isset($defaults[$term->id])?$defaults[$term->id]:($lang==$CONFIG['localization']['default_language']?$term->content:'');
+			$tab->AddNewRow($term->id,htmlspecialchars($def),$ta,$btn);
 			
 			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
 				->addClass('term_action rename')->setData('term', $term->id)->content('rename');
