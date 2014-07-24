@@ -2,11 +2,8 @@ Scavix Software Web Development Framework
 =========================================
 
 The Scavix Software Web Development Framework has been build to assist developers in creating rich web applications.      
-It is essence of what we need all the time in our daily work so it focuses on that things. It provides you with
-everything you need from the database layer to the UI so that you can focus on the business logic without loosing
-yourself in the thousant baby-steps that need to be implemented for every project in the one or other manner.        
-        
-To give you a quick start there's a nice article over at codeproject describing how to use: 
+It's the foundation of all functionalities we need in our daily work so that we don't need to reinvent the wheel for each new customer project. It provides you with everything you need from the database access layer to the UI development so that you can focus on the business logic of the application without loosing yourself in the thousands of baby-steps that need to be implemented for every project.        
+To give you a quick start, here's a nice article over at codeproject describing how to use this framework: 
 [Ultra-Rapid PHP Application Development](http://www.codeproject.com/Articles/553018/Ultra-Rapid-PHP-Application-Development)
 
 Folders
@@ -14,9 +11,9 @@ Folders
 `/netbeans/` Contains a NetBeans project for the contents of the /web/ folder        
 `/tools/` Currently only contains PhpTracer which is a tool to monitor logfiles, written in C#        
 `/web/documentor/` An app, we use this to create the [API reference documentation](https://github.com/ScavixSoftware/WebFramework/wiki)        
-`/web/sample_blog/` A sample blog using the WebFramework        
-`/web/sample_shop/` A sample shop using the WebFramework        
-`/web/system/` The WebFramework code        
+`/web/sample_blog/` A sample blog application using the WebFramework        
+`/web/sample_shop/` A sample shop application using the WebFramework        
+`/web/system/` The framework code        
 
 Resources
 ---------
