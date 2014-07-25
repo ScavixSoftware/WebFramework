@@ -89,6 +89,7 @@ class TranslationAdmin extends TranslationAdminBase
 		$counts = array();
 		foreach( $this->ds->ExecuteSql("SELECT lang,count(*) as cnt FROM wdf_translations GROUP BY lang") as $row )
 			$counts[$row['lang']] = intval($row['cnt']);
+		$total = max($counts);
 		foreach( Localization::get_language_names() as $code=>$name )
 		{
 			if( isset($counts[$code]) )
@@ -96,6 +97,8 @@ class TranslationAdmin extends TranslationAdminBase
 				$name = "$name ({$counts[$code]})";
 				if( $code == $CONFIG['localization']['default_language'] )
 					$name .= " [default]";
+				else
+					$name .= " [". floor($counts[$code]/$total*100) ."%]";
 			}
 			$sel->AddOption($code,$name,false,(isset($counts[$code])&&$counts[$code]>0)?$known:$avail);
 		}
@@ -184,15 +187,20 @@ class TranslationAdmin extends TranslationAdminBase
         return $this->DeleteString($term);
     }
 	
-	private function _searchQuery($lang,$search=false)
+	private function _searchQuery($offset,$lang,$search=false,$untranslated=false)
 	{
-		$rs = $this->ds->Query('wdf_translations')->eq('lang',$lang);
+		$sql = "select 
+			o.id as 'id', o.content as 'def', 
+			(select i.content from wdf_translations i where i.id=o.id and i.lang=?) as 'trans' 
+		from wdf_translations o where o.lang='en' {having} order by id asc limit $offset,10";
+		if( $untranslated )
+			return $this->ds->ExecuteSql(str_replace("{having}","having isnull(trans) or trans=''",$sql),$lang);
 		if( !$search )
-			return $rs;
+			return $this->ds->ExecuteSql(str_replace("{having}","",$sql),$lang);
 		$s = str_replace(array('_','%'), array('\_','\%'), $this->ds->EscapeArgument($search));
 		$s = str_replace(array('?','*'),array('_','%'),$s);
 		$s = "%$s%";
-		return $rs->orX(2)->like('id',$s)->like('content',$s);
+		return $this->ds->ExecuteSql(str_replace("{having}","having id like ? or def like ? or trans like ?",$sql),array($lang,$s,$s,$s));
 	}
 	
 	/**
@@ -234,37 +242,22 @@ class TranslationAdmin extends TranslationAdminBase
 			->SetHeader('Term','Default','Content','')
 			->setData('lang',$lang)
 			->appendTo($this);
-		
-		$defaults = array();
-		if( $lang != $CONFIG['localization']['default_language'] )
-		{
-			$rs = $this->_searchQuery($CONFIG['localization']['default_language']);
-			foreach( $rs as $row )
-				$defaults[$row['id']] = $row['content'];			
-		}
-		if( $untranslated )
-		{
-			$done = $this->ds->Query('wdf_translations')->eq('lang',$lang)->enumerate('id');
-			$todo = array_diff(array_keys($defaults), $done);
-			$rs = $this->_searchQuery($CONFIG['localization']['default_language'])->in('id',$todo)->page($offset,10);
-		}
-		else
-			$rs = $this->_searchQuery($lang,$search)->page($offset,10);
+
+		$rs = $this->_searchQuery($offset,$lang,$search,$untranslated);
 		foreach( $rs as $term )
 		{
-			$ta = new TextArea($untranslated?'':$term->content);
-			$ta->class = $term->id;
+			$ta = new TextArea($untranslated?'':$term['trans']);
+			$ta->class = $term['id'];
 			$btn = new Button('Save');
-			$btn->addClass('save')->setData('term',$term->id);
+			$btn->addClass('save')->setData('term',$term['id']);
 			
-			$def = isset($defaults[$term->id])?$defaults[$term->id]:($lang==$CONFIG['localization']['default_language']?$term->content:'');
-			$tab->AddNewRow($term->id,htmlspecialchars($def),$ta,$btn);
+			$tab->AddNewRow($term['id'],htmlspecialchars($term['def']),$ta,$btn);
 			
 			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
-				->addClass('term_action rename')->setData('term', $term->id)->content('rename');
+				->addClass('term_action rename')->setData('term', $term['id'])->content('rename');
 			$tab->GetCurrentRow()->GetCell(0)->content("&nbsp;");
 			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
-				->addClass('term_action remove')->setData('term', $term->id)->content('remove');
+				->addClass('term_action remove')->setData('term', $term['id'])->content('remove');
 		}
 		
 		$pi = $rs->GetPagingInfo();
