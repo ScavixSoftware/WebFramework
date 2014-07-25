@@ -58,13 +58,17 @@ class DateTimeEx extends DateTime
 	 */
 	public static function Make($source)
 	{
-		if( $source instanceof DateTimeEx )
-			return clone $source;
-		if( $source instanceof DateTime )
-			return new DateTimeEx( $source->format('c') );
-		if( is_numeric($source) )
-			return new DateTimeEx( date('c',$source) );
-		return new DateTimeEx($source);
+		if( $source )
+		{
+			if( $source instanceof DateTimeEx )
+				return clone $source;
+			if( $source instanceof DateTime )
+				return new DateTimeEx( $source->format('c') );
+			if( is_numeric($source) )
+				return new DateTimeEx( date('c',$source) );
+			return new DateTimeEx($source);
+		}
+		return new DateTimeEx();
 	}
 	
 	/**
@@ -75,6 +79,54 @@ class DateTimeEx extends DateTime
 	public static function Now()
 	{
 		return new DateTimeEx();
+	}
+	
+	/**
+	 * Returns a new DateTimeEx object representing the current day at midnight.
+	 * 
+	 * @return DateTimeEx The created instance
+	 */
+	public static function Today()
+	{
+		return new DateTimeEx(date('Y-m-d 0:00:00'));
+	}
+	
+	/**
+	 * Returns a new DateTimeEx object representing the first day of the year.
+	 * 
+	 * If `$date` is given that date's first day of year will be returned.
+	 * @param mixed $date Starting point for the calculation
+	 * @return DateTimeEx The created instance
+	 */
+	public static function FirstDayOfYear($date=false)
+	{
+		return new DateTimeEx(date('Y-1-1 00:00:00', intval(DateTimeEx::Make($date)->format('U'))));
+	}
+	
+	/**
+	 * Returns a new DateTimeEx object representing the first day of the month.
+	 * 
+	 * If `$date` is given that date's first day of month will be returned.
+	 * @param mixed $date Starting point for the calculation
+	 * @return DateTimeEx The created instance
+	 */
+	public static function FirstDayOfMonth($date=false)
+	{
+		return new DateTimeEx(date('Y-m-1 00:00:00', intval(DateTimeEx::Make($date)->format('U'))));
+	}
+	
+	/**
+	 * Returns a new DateTimeEx object representing the first day of the week.
+	 * 
+	 * If `$date` is given that date's first day of week will be returned.
+	 * @param mixed $date Starting point for the calculation
+	 * @return DateTimeEx The created instance
+	 */
+	public static function FirstDayOfWeek($date=false)
+	{
+		$dt = new DateTimeEx(date('Y-m-d 0:00:00', intval(DateTimeEx::Make($date)->format('U'))));
+		$dt->sub(new DateInterval('P'.($dt->format('w') > 0 ? $dt->format('w')-1 : 7).'D'));
+		return $dt;
 	}
 	
 	/**

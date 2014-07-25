@@ -26,12 +26,12 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 namespace ScavixWDF\Localization;
-use ScavixWDF\Base\DateTimeEx;
 
 use Closure;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use ScavixWDF\Base\DateTimeEx;
 use ScavixWDF\WdfException;
 
 /**
