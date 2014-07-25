@@ -255,7 +255,7 @@ class MySql implements IDatabaseDriver
 	 */
 	function getPagingInfo($sql,$input_arguments=null)
 	{
-		if( !preg_match('/LIMIT\s+([\d\s,]+)/', $sql, $amounts) )
+		if( !preg_match('/LIMIT\s+([\d\s,]+)/i', $sql, $amounts) )
 			return false;
 		
 		$amounts = explode(",",$amounts[1]);
@@ -266,7 +266,7 @@ class MySql implements IDatabaseDriver
 		$offset = intval($offset);
 		$length = intval($length);
 		
-		$sql = preg_replace('/LIMIT\s+[\d\s,]+/', '', $sql);
+		$sql = preg_replace('/LIMIT\s+[\d\s,]+/i', '', $sql);
 		$sql = "SELECT count(*) FROM ($sql) AS x";
 		$stmt = $this->_pdo->prepare($sql);
 		if( is_null($input_arguments) )
