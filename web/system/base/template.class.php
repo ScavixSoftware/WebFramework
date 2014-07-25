@@ -62,6 +62,7 @@ class Template extends Renderable
 			$tpl_file = $template_basename;
 		else
 		{
+			$tpl_file = false;
 			foreach( array_reverse(cfg_get('system','tpl_ext')) as $tpl_ext )
 			{
 				$tpl_file = __search_file_for_class($template_basename,$tpl_ext);

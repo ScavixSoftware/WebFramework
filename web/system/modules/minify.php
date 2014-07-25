@@ -26,6 +26,7 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+use ScavixWDF\Base\Template;
 use ScavixWDF\Reflection\ResourceAttribute;
 use ScavixWDF\Reflection\WdfReflector;
 use ScavixWDF\WdfException;
@@ -89,13 +90,21 @@ function minify_forbidden($classname)
 	}
 	try
 	{
-		$ref = WdfReflector::GetInstance($classname);
+		$ref = WdfReflector::GetInstance($classname);		
 		return count($ref->GetClassAttributes('NoMinify')) > 0;
 	}
-	catch(Exception $ex)
+	catch(Exception $ignored)
 	{
-		WdfException::Log("minify_forbidden($classname)",$ex);
-		return false;
+		try
+		{
+			Template::Make($classname); // check if the name refers to an anonymous template
+			return false;
+		}
+		catch (Exception $ex)
+		{
+			WdfException::Log("minify_forbidden($classname)",$ex);
+			return false;
+		}
 	}
 }
 
@@ -168,6 +177,11 @@ function minify_js($paths,$target_file)
 		else
 			$code .= $js."\n";
 	}
+	
+	global $ext_resources;
+	foreach( array_unique($ext_resources) as $ext )
+		$code .= "$.getScript('$ext', function(){ wdf.debug('external script loaded:','$ext'); });";
+	
 	file_put_contents($target_file, $code);
 }
 
@@ -294,9 +308,10 @@ function minify_css_translate_url($match)
  */
 function minify_collect_files($paths,$kind)
 {
-	global $dependency_info, $res_file_storage;
+	global $dependency_info, $res_file_storage, $ext_resources;
 	$dependency_info = array();
 	$res_file_storage = array();
+	$ext_resources = array();
 	
 	foreach( $paths as $path )
 	{
@@ -362,11 +377,11 @@ function minify_resolve_dependencies($classname,&$dependency_info,&$res_file_sto
  */
 function minify_collect_from_file($kind,$f,$debug_path='')
 {
-	global $dependency_info, $res_file_storage;
+	global $dependency_info, $res_file_storage, $ext_resources;
 	
 	if( !$f )
 		return;
-	$classname = strtolower(basename($f,".class.php"));
+	$classname = fq_class_name(array_shift(explode('.',basename($f))) );
 	if( isset($res_file_storage[$classname]) || minify_forbidden($classname) )
 		return;
 	
@@ -405,7 +420,12 @@ function minify_collect_from_file($kind,$f,$debug_path='')
 				}
 				break;
 			case 'instanciated':
-				if( preg_match_all('/new\s+([^\(]+)\(/', $content, $matches, PREG_SET_ORDER) )
+				$matches = array();
+				if( preg_match_all('/new\s+([^\(]+)\(/', $content, $by_new, PREG_SET_ORDER) )
+					$matches = array_merge($matches,$by_new);
+				if( preg_match_all('/\s+([^:\s\(\)]+)::Make\(/Ui', $content, $by_make, PREG_SET_ORDER) )
+					$matches = array_merge($matches,$by_make);
+				if( count($matches)>0 )
 				{
 //					log_debug("minify_collect_from_file [$debug_path/$classname]: INSTANCIATED",$matches);
 					foreach( $matches as $m )
@@ -429,9 +449,14 @@ function minify_collect_from_file($kind,$f,$debug_path='')
 			case 'static':
 				try
 				{
-					$buf = ResourceAttribute::ResolveAll(ResourceAttribute::Collect($classname));
-					foreach( $buf as $b )
+					foreach( ResourceAttribute::Collect($classname) as $resource )
 					{
+						$b = $resource->Resolve();
+						if( $resource instanceof \ScavixWDF\Reflection\ExternalResourceAttribute )
+						{
+							$ext_resources[] = $b;
+							continue;
+						}
 						if( !ends_with($b, $kind) )
 							continue;
 						$b = strtolower($b);

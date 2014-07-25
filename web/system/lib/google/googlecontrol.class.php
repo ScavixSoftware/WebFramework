@@ -31,7 +31,6 @@ use ScavixWDF\Base\HtmlPage;
  * Base class for all google controls.
  * 
  * Ensures all libraries are loaded correctly and stuff.
- * @attribute[ExternalResource('//www.google.com/jsapi')]
  */
 class GoogleControl extends Control
 {
@@ -44,6 +43,9 @@ class GoogleControl extends Control
 	function __initialize($tag='span')
 	{
 		parent::__initialize($tag);
+		$page = current_controller(false);
+		if( $page instanceof HtmlPage )
+			$page->addJs('//www.google.com/jsapi');
 	}
 	
 	/**
