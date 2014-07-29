@@ -46,9 +46,10 @@ class WdfResource implements ICallable
 		$etag = md5($file);
 		$days = 365*86400;
 		$cached = cache_get("etag_$etag",false);
-		$mtime = date("D, d M Y H:i:s",filemtime($file));
-		header("Expires: ".date("D, d M Y H:i:s",time()+$days));
+		$mtime = gmdate("D, d M Y H:i:s GMT",filemtime($file));
+		header("Expires: ".gmdate("D, d M Y H:i:s e",time()+$days));
 		header("Last-Modified: ".$mtime);
+		header('Pragma: public');
 		header("Cache-Control: public, max-age=$days");
 		header("ETag: $etag");
 		$headers = getallheaders();
@@ -93,6 +94,36 @@ class WdfResource implements ICallable
 		header('Content-Type: text/css');
 		WdfResource::ValidatedCacheResponse($res);
 		readfile($res);
+		die();
+	}
+	
+	/**
+	 * @internal Compiles a LESS file to CSS and delivers that to the browser
+	 * @attribute[RequestParam('file','string')]
+	 */
+	function CompileLess($file)
+	{
+		$less = resFile(basename($file),true);
+		$css = sys_get_temp_dir().'/'.md5($file).'.css';
+		$cacheFile = sys_get_temp_dir().'/'.md5($file).'.cache';
+		
+		header('Content-Type: text/css');
+		
+		if( file_exists($css) && file_exists($cacheFile) )
+			$cache = unserialize(file_get_contents($cacheFile));
+		else
+			$cache = $less;
+		
+		require_once(__DIR__.'/lessphp/lessc.inc.php');
+		$compiler = new \lessc();
+		$newCache = $compiler->cachedCompile($cache);
+		if( !is_array($cache) || $newCache["updated"] > $cache["updated"] )
+		{
+			file_put_contents($cacheFile, serialize($newCache));
+			file_put_contents($css, $newCache['compiled']);
+		}
+		WdfResource::ValidatedCacheResponse($less);
+		readfile($css);
 		die();
 	}
 }

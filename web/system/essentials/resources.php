@@ -67,7 +67,7 @@ function resources_init()
 	);
 	$CONFIG['resources'][] = array
 	(
-		'ext' => 'css|png|jpg|jpeg|gif|htc|ico',
+		'ext' => 'css|png|jpg|jpeg|gif|htc|ico|less',
 		'path' => realpath(__DIR__.'/../skin/'),
 		'url' => $CONFIG['resources_system_url_root'].'skin/',
 		'append_nc' => true,
@@ -82,15 +82,16 @@ function resources_init()
  * @param string $filename The resource name
  * @param bool $return_url If true returns an URL, else returns true or false depending on if the resource exists
  * @param bool $as_local_path If true returns not URL, but a filepath in local filesystem. Needs $return_url=true.
+ * @param bool $nocache If true skips all internal caches and peforms a search now
  * @return string Depending on $return_url returns: (the resource URL or false on error) OR (true or false)
  */
-function resourceExists($filename, $return_url = false, $as_local_path = false)
+function resourceExists($filename, $return_url = false, $as_local_path = false, $nocache = false)
 {
 	global $CONFIG;
 
 	$cnc = substr(appendVersion('/'),1);
 	$key = (isSSL()?"resource_ssl_$filename":"resource_$filename")."_{$cnc}".($as_local_path?"_l":"");
-	if( ($res = cache_get($key)) !== false )
+	if( !$nocache && (($res = cache_get($key)) !== false) )
 		return $return_url?$res:($res != "0");
 
 	$ext = pathinfo($filename,PATHINFO_EXTENSION);
@@ -110,7 +111,8 @@ function resourceExists($filename, $return_url = false, $as_local_path = false)
 		$res = can_nocache()
 			?$conf['url'].$nc.$filename
 			:$conf['url'].$filename."?_nc=".substr($nc,2,-1);
-		cache_set($key, $res);
+		if( !$nocache )
+			cache_set($key, $res);
 		return $return_url?$res:true;
 	}
 	cache_set($key, "0");

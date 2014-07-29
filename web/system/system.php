@@ -270,6 +270,17 @@ function system_parse_request_path()
 {
 	if( isset($_REQUEST['wdf_route']) )
 	{
+		// test for *.less request -> need to compile that to css
+		if( ends_iwith($_REQUEST['wdf_route'],".less") )
+		{
+			$GLOBALS['routing_args'] = array($_REQUEST['wdf_route']);
+			unset($_REQUEST['wdf_route']);
+			unset($_GET['wdf_route']);
+			return array('ScavixWDF\WdfResource','CompileLess');
+		}
+		
+		// now for the normal processing
+		$wdf_route = $_REQUEST['wdf_route'];
 		$GLOBALS['wdf_route'] = $path = explode("/",$_REQUEST['wdf_route'],3);
 		unset($_REQUEST['wdf_route']);
 		unset($_GET['wdf_route']);

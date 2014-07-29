@@ -128,7 +128,8 @@ class HtmlPage extends Template implements ICallable
 		$this->js = array_reverse($this->js,true);
 		foreach( array_reverse($res) as $r )
 		{
-			if( starts_with(pathinfo($r,PATHINFO_EXTENSION), 'css') )
+			$ext = pathinfo($r,PATHINFO_EXTENSION);
+			if( starts_with($ext,'css') || starts_with($ext,'less') )
 				$this->addCss($r);
 			else
 				$this->addjs($r);

@@ -44,6 +44,7 @@
 #
 #	# redirect inexistant requests to index.php
 #	SetEnv WDF_FEATURES_REWRITE on
+#   RewriteCond %{REQUEST_FILENAME} .*\.less$ [NC,OR]
 #	RewriteCond %{REQUEST_FILENAME} !-f
 #	RewriteCond %{REQUEST_FILENAME} !-d
 #	RewriteCond %{REQUEST_URI} !index.php
@@ -102,7 +103,7 @@
 			ExpiresDefault "now plus 2 hours"
 			Header append Cache-Control "proxy-revalidate"
 		</FilesMatch>
-		<FilesMatch "\.(js|css)$">
+		<FilesMatch "\.(js|css|less)$">
 			ExpiresDefault "now plus 5 weeks"
 			Header append Cache-Control "proxy-revalidate"
 		</FilesMatch>

@@ -193,6 +193,7 @@ function minify_css($paths,$target_file,$nc_argument=false)
 	require_once(__DIR__."/minify/cssmin.php");
 	global $current_url;
 	$files = minify_collect_files($paths, 'css');
+	$files = array_merge($files,minify_collect_files($paths, 'less'));
 	log_debug("CSS files to minify: ",$files);	
 	//die("stopped");
 	$code = "";

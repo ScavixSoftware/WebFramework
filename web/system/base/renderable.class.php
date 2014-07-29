@@ -130,6 +130,8 @@ abstract class Renderable
 					{
 						if( resourceExists("$fnl.css") )
 							$res[] = resFile("$fnl.css");
+						elseif( resourceExists("$fnl.less") )
+							$res[] = resFile("$fnl.less");
 						if( resourceExists("$fnl.js") )
 							$res[] = resFile("$fnl.js");
 					}
@@ -144,6 +146,8 @@ abstract class Renderable
 				{
 					if( resourceExists("$cnl.css") )
 						$parents[] = resFile("$cnl.css");
+					elseif( resourceExists("$cnl.less") )
+						$parents[] = resFile("$cnl.less");
 					if( resourceExists("$cnl.js") )
 						$parents[] = resFile("$cnl.js");
 					//log_debug("info",fq_class_name($classname),get_parent_class(fq_class_name($classname)));
