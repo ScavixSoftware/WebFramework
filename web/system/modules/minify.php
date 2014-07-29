@@ -281,6 +281,8 @@ function minify_css($paths,$target_file,$nc_argument=false)
 			}
 		}
 	}
+	foreach( array('0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f') as $c )
+		$code = str_ireplace("#$c$c$c$c$c$c", "#$c$c$c", $code);
 	file_put_contents($target_file, $code);
 }
 
@@ -290,8 +292,12 @@ function minify_css($paths,$target_file,$nc_argument=false)
 function minify_css_translate_url($match)
 {
 	global $current_url;
+	
+	$url = trim($match[1],"\"' ");
+	if(starts_with($url, 'data:') )
+		return $match[0];
 	$copy = $current_url;
-	$url = parse_url(trim($match[1],"\"' "));
+	$url = parse_url($url);
 	$url = array_merge($copy,$url);	
 	if( isset($url['host']) )
 	{
