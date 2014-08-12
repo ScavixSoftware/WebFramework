@@ -474,19 +474,38 @@ function is_in()
 }
 
 /**
- * Tests if the first given argument is an array and contains one of the others
+ * Tests if the first given argument contains one of the others.
  * 
- * Use like this: `contains(array('Hello','nice','World'),'some','other','nice','words')`
+ * First argument may be an array or a string.
+ * If array, all entries will be checked for equality with at least one of the other given arguments.
+ * If string, <contains> performs a <stripos> check with each other given argument and returns true if at least one matched.
+ * Use like this: 
+ * <code php>
+ * contains(array('Hello','nice','World'),'some','other','nice','words'); // true
+ * contains('Hello nice World','some','other','nice','words'); // true
+ * contains('Hello nice World','some','other','words'); // false
+ * </code>
  * @return bool true or false
  */
 function contains()
 {
 	$args = func_get_args();
 	$array = array_shift($args);
-	foreach( $args as $a )
-		if( in_array($a,$array) )
-			return true;
-	return false;
+	if( is_array($array) )
+	{
+		foreach( $args as $a )
+			if( in_array($a,$array) )
+				return true;
+		return false;
+	}
+	if( is_string($array) )
+	{
+		foreach( $args as $a )
+			if( stripos($array,$a) )
+				return true;
+		return false;
+	}
+	WdfException::Raise('First argument needs to be of type array or string');
 }
 
 /**
