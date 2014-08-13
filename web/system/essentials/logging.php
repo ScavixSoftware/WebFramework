@@ -317,7 +317,7 @@ function log_return($label,$value)
  * </code>
  * @param bool $condition true or false
  * @param_array mixed $a1,$a2,$a3,$a4,$a5,$a6,$a7,$a8,$a9,$a10 Values to be logged
- * @return void
+ * @return bool Returns the $condition itself (true|false)
  */
 function log_if($condition,$a1=null,$a2=null,$a3=null,$a4=null,$a5=null,$a6=null,$a7=null,$a8=null,$a9=null,$a10=null)
 {
