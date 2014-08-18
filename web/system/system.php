@@ -404,7 +404,7 @@ function system_execute()
 		(system_method_exists($current_controller,'__method_exists') && $current_controller->__method_exists($current_event) ) )
 	{
 		$content = system_invoke_request($current_controller,$current_event,HOOK_PRE_EXECUTE);
-	}
+	}else $content = '';
 	
 	execute_hooks(HOOK_POST_EXECUTE);
 	@set_time_limit(ini_get('max_execution_time'));
