@@ -230,7 +230,7 @@ function translation_add_unknown_strings($unknown_constants)
 	{
 		$ds = model_datasource($CONFIG['translation']['sync']['datasource']);
 		$ds->ExecuteSql("CREATE TABLE IF NOT EXISTS wdf_unknown_strings (
-			term VARCHAR(255) NOT NULL,
+			term VARCHAR(150) NOT NULL,
 			last_hit DATETIME NOT NULL,
 			hits INT DEFAULT 0,
 			default_val TEXT,
