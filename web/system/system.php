@@ -217,8 +217,6 @@ function system_init($application_name, $skip_header = false, $logging_category=
 		logging_add_category($logging_category);
 	logging_set_user(); // works as both (session and logging) are now essentials
 	
-	//if( $CONFIG['error']['clean_each_run'] )
-	//	log_debug("=== Initialization (modules already loaded =================================");
 	session_run();
 	
 	// auto-load all system-modules defined in $CONFIG['system']['modules']
@@ -781,7 +779,6 @@ function __set_classpath_order($class_path_order)
  */
 function system_spl_autoload($class_name)
 {
-//	log_debug("system_spl_autoload($class_name)");
 	if(($class_name == "") || ($class_name{0} == "<"))
 		return;  // it's html
     try
@@ -790,7 +787,6 @@ function system_spl_autoload($class_name)
 		{
 			$orig = $class_name;
 			$class_name = array_pop(explode('\\',$class_name));
-//			log_debug("Simplifying FQ classname '$orig' to '$class_name'");
 		}
         $file = __search_file_for_class($class_name);
         if( $file && is_readable($file) )
@@ -1022,7 +1018,6 @@ function buildQuery($controller,$event="",$data="", $url_root=false)
 
 	if( !$url_root )
 		$url_root = $CONFIG['system']['url_root'];
-	//log_debug($url_root,$route,($data?"?$data":""));
 	return $url_root.$route.($data?"?$data":"");
 }
 
@@ -1550,7 +1545,6 @@ function fq_class_name($classname)
 			WdfException::Raise("Ambigous classname: $classname",$GLOBALS['system_class_alias'][$cnl]);
 		return $GLOBALS['system_class_alias'][$cnl];
 	}
-	//log_debug("fq_class_name($classname) NOOP");
 	return $classname;
 }
 

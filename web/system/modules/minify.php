@@ -273,8 +273,6 @@ function minify_css($paths,$target_file,$nc_argument=false)
 									}
 							}
 						}
-//						else
-//							log_debug("[$k] already defined [$f -> {$map[$k]}]");
 						unset($mem);
 					}
 				}
@@ -341,8 +339,6 @@ function minify_collect_files($paths,$kind)
 			$done_templates[] = $tpl_ext;
 		}
 	}
-	
-	log_debug("minify file info",$dependency_info,$res_file_storage);
 	
 	$res = array();
 	$classes = array_keys($res_file_storage);
@@ -415,7 +411,6 @@ function minify_collect_from_file($kind,$f,$debug_path='')
 			case 'inherited':
 				if( preg_match_all('/class\s+[^\s]+\s+extends\s+([^\s]+)/', $content, $matches, PREG_SET_ORDER) )
 				{
-//					log_debug("minify_collect_from_file [$debug_path/$classname]: INHERITED",$matches);
 					foreach( $matches as $m )
 					{
 						$file_for_class = __search_file_for_class($m[1]);
@@ -434,7 +429,6 @@ function minify_collect_from_file($kind,$f,$debug_path='')
 					$matches = array_merge($matches,$by_make);
 				if( count($matches)>0 )
 				{
-//					log_debug("minify_collect_from_file [$debug_path/$classname]: INSTANCIATED",$matches);
 					foreach( $matches as $m )
 					{
 						$file_for_class = __search_file_for_class($m[1]);

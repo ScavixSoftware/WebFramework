@@ -360,7 +360,6 @@ class TimeFrame
 
 		$s = TimeFrame::FirstDate();
 		$e = TimeFrame::LastDate();
-//		log_debug("s: ".date("Y-m-d H:i:s", $s)." e: ".date("Y-m-d H:i:s", $e));
 		
 		return TimeFrame::_generateSQL($s,$e);
 	}

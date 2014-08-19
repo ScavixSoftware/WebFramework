@@ -191,7 +191,6 @@ class DataSource
 		$this->_password = $ds->_password;
 		$this->_pdo = $ds->_pdo;
 		$this->Driver = $ds->Driver;
-		log_debug($this->_storage_id." -> ".$this->Database(),"HOOK::__wakeup_extended");
 	}
 	
 	function __equals(&$ds)

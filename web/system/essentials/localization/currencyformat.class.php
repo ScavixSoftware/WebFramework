@@ -92,18 +92,14 @@ class CurrencyFormat
 	 */
 	function StrToCurrencyValue($str)
 	{
-//		log_debug("StrToCurrencyValue($str)");
-//		log_debug($this);
 		$number =  str_replace($this->GroupSeparator,"",$str);
 		$number =  str_replace($this->Code,"",$number);
 		$number =  str_replace($this->Symbol,"",$number);
-//		log_debug($number);
 		if( $this->DecimalSeparator != '.' )
 			$number =  str_replace($this->DecimalSeparator,".",$number);
 
 		if( !is_numeric($number) )
 			return false;
-//		log_debug(floatval($number));
 		return floatval($number);
 	}
 }

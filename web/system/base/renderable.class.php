@@ -140,7 +140,6 @@ abstract class Renderable
 				// finally include the 'self' stuff (<classname>.js,...)
 				// Note: these can be forced to be loaded in static if they require to be loaded before the contents resources
 				$classname = get_class_simple($template);
-				//log_debug("checking res $classname");
 				$parents = array(); $cnl = strtolower($classname);
 				do
 				{
@@ -150,9 +149,7 @@ abstract class Renderable
 						$parents[] = resFile("$cnl.less");
 					if( resourceExists("$cnl.js") )
 						$parents[] = resFile("$cnl.js");
-					//log_debug("info",fq_class_name($classname),get_parent_class(fq_class_name($classname)));
 					$classname = array_pop(explode('\\',get_parent_class(fq_class_name($classname))));
-					//log_debug("  parent = $classname");
 					$cnl = strtolower($classname);
 				}
 				while($classname != "");

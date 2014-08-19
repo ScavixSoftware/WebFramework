@@ -202,7 +202,6 @@ class CellFormat
 				case 'negative':
 					if( floatval($content) < 0 )
 					{
-//						log_debug("$cond => $css");
 						return $css;
 					}
 					break;
@@ -210,12 +209,10 @@ class CellFormat
 				case 'positive':
 					if( floatval($content) > 0 )
 					{
-//						log_debug("$cond => $css");
 						return $css;
 					}
 					break;
 				case 'copy':
-//					log_debug("$cond => ".render_var($css));
 					return $css->GetConditonalCss();
 					break;
 			}

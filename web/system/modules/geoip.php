@@ -153,15 +153,10 @@ function get_countrycode_by_ip($ipaddr = false)
 	if( isset($_SESSION['geoip_countrycode_by_ip_'.$ipaddr]) && $_SESSION['geoip_countrycode_by_ip_'.$ipaddr] != "" )
 		return $_SESSION['geoip_countrycode_by_ip_'.$ipaddr];
 
-//	// maxmind installed as server module?
-//	if(isset($_SERVER["GEOIP_COUNTRY_CODE"]))
-//		return $_SERVER["GEOIP_COUNTRY_CODE"];
-
 	if( function_exists('geoip_open') )
 	{
 		$gi = geoip_open($GLOBALS['CONFIG']['geoip']['city_dat_file'],GEOIP_STANDARD);
 		$country_code = geoip_country_code_by_addr($gi,$ipaddr);
-//		log_debug("country: ".$country_code);
 		geoip_close($gi);
 	}
 	else

@@ -591,7 +591,6 @@ class Table extends Control
 		if( $pages < 2 )
 			return;
 		
-		log_debug("RenderPager: {$this->CurrentPage}/$pages");
 		$ui = new Control('div');
 		$ui->addClass("pager");
 

@@ -60,11 +60,9 @@ class NumberFormat
 		$val = number_format($number,$decimals!==false?$decimals:$this->DecimalDigits,$this->DecimalSeparator,$this->GroupSeparator);
 		if( strlen($this->GroupSeparator) > 0 && !$use_plain )
 		{
-			//log_debug("plain");
 			$ord = uniord($this->GroupSeparator);
 			$val = str_replace($this->GroupSeparator[0],"&#$ord;",$val);
 		}
-//		log_debug($val);
 		if( $number >= 0 )
 			return $val;
 		return str_replace('--', '-', str_replace("%v", $val, $this->NegativeFormat));		// avoid "--" in value (negative number and - in format)

@@ -391,9 +391,7 @@ class DatabaseTable extends Table implements ICallable
 		$copy->ItemsPerPage = false; 
 		if( $ci )
 			$copy->Culture = $ci;
-		log_debug("EXPORT querying ",$copy->Sql);
 		$copy->GetData();
-		log_debug("EXPORT collecting");
 		
 		$res = array();
 		$copy->ResultSet->FetchMode = PDO::FETCH_ASSOC;
@@ -416,7 +414,6 @@ class DatabaseTable extends Table implements ICallable
 			
 			$res[] = $row;
 		}
-		log_debug("EXPORT data complete");
 		return $res;
 	}
 	
@@ -493,7 +490,6 @@ class DatabaseTable extends Table implements ICallable
 			}
 			$csv[] = implode($sep,$csv_line);
 		}
-		log_debug("EXPORT delivering");
 		
 		$csv = implode($newline,$csv);
 		$filename = str_replace("{date}",date("Y-m-d_H-i-s"),self::$export_def[self::EXPORT_FORMAT_CSV]['fn']);

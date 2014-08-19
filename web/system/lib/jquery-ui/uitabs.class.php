@@ -51,7 +51,6 @@ class uiTabs extends uiControl
 	 */
 	public function PreRender($args = array())
 	{
-		log_debug(__METHOD__);
 		$this->script("$('#{self}').tabs(".system_to_json($this->Options).")");
 		return parent::PreRender($args);
 	}

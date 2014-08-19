@@ -207,7 +207,6 @@ function is_mail($string)
  */
 function mail_validate($email,$check_dns_too=true)
 {
-//	log_debug("mail_validate($email)");
 	if( !filter_var($email,FILTER_VALIDATE_EMAIL) )
 		return false;
 

@@ -86,12 +86,9 @@ class WdfReflector extends ReflectionClass
 		$mtime = cache_get("filemtime_$fn");
 		if( ($mtime === false) || ($ftime > $mtime) )
 		{
-//			log_debug("Updating cache for $fn (ftime: $ftime mtime: $mtime");
 			$res->UpdateCache();
 			cache_set("filemtime_$fn",$ftime);
 		}
-//		else
-//			log_debug("Using cache (".md5($fn).") for $fn");
 
 		$GLOBALS['reflector_cache'][$classnamel] = $res;
 		return $res;
@@ -330,7 +327,6 @@ class WdfReflector extends ReflectionClass
 					}
 				}
 			}
-			//log_debug("method not found: ".$this->getName()."::$method_name");
 			return array();
 		}
 

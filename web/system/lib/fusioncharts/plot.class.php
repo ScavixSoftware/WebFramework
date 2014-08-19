@@ -117,10 +117,7 @@ class Plot
 	{
 		foreach( $this->Data as &$val )
 			if( $val->Label == $label )
-			{
-				//log_debug($this->Title." has value '$label': ".$val->Value);
 				return true;
-			}
 		return false;
 	}
 
@@ -144,7 +141,6 @@ class Plot
 			{
 				if( $max != 0 && $this->Data[$i]->Value != "" )
 					$this->Data[$i]->Value = $this->Data[$i]->Value / $max * 100;
-				//log_debug($this->Title." PercentValue($label,$max) -> ".$this->Data[$i]->Value);
 				break;
 			}
 		}

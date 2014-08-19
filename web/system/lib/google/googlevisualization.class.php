@@ -270,7 +270,6 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	function EntityFromTable($table_name, $alias=false)
 	{
 		$schema = $this->_ds->Driver->getTableSchema($table_name);
-//		log_debug($schema);
 		$entity = array(
 			'table' => $schema->Name,
 			'fields' => array()

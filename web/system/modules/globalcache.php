@@ -192,18 +192,15 @@ function globalcache_set($key, $value, $ttl = false)
 				break;
 
 			case globalcache_CACHE_APC:
-//				log_debug("globalcache_set",$key,$value);
 				return apc_store($GLOBALS["globalcache_key_prefix"].$key, $value, $ttl);
 				break;
 
 			case globalcache_CACHE_ZEND:
-//				log_error("setting $key = $value");
 				return $GLOBALS["zend_cache_object"]->save($value, globalcache_cleanupkey($GLOBALS["globalcache_key_prefix"].$key), array(), $ttl);
 				break;
 
 			case globalcache_CACHE_EACCELERATOR:
 				$ret = eaccelerator_put($GLOBALS["globalcache_key_prefix"].md5($key), $value, ($ttl ? $ttl : 0));
-	//			log_error("globalcache_set: $key v: $value ttl: $ttl eacc: ".($GLOBALS["globalcache_use_eaccelerator"] ? "true" : "false")." ret: ".($ret ? "true" : "false"));
 				return $ret;
 				break;
 

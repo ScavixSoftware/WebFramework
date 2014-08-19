@@ -154,7 +154,6 @@ class Serializer
 	 */
 	function Unserialize($data)
 	{
-//		log_debug("Unserialize(...)",$data);
 		if( !isset($GLOBALS['unserializing_level']) )
 			$GLOBALS['unserializing_level'] = 0;
 		$GLOBALS['unserializing_level']++;

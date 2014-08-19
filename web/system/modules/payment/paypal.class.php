@@ -199,7 +199,6 @@ class PayPal extends PaymentProvider
 		
 		$this->SetVar("tax_cart", round($order->GetTotalVat(), 2));
 
-//		log_debug($this->data);
 		return $this->CheckoutForm($checkoutUrl);
 	}
 	

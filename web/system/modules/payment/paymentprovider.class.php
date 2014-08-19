@@ -110,7 +110,6 @@ abstract class PaymentProvider
 		$q = array();
 		foreach( $this->data as $k=>$v )
 			$q[] = "$k=".urldecode($v);
-		log_debug(get_class($this)."::Redirect -> $url?$q",$url,$q,$this->data);
 		redirect("$url?$q");
 	}
 	

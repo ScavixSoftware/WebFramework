@@ -246,7 +246,6 @@ class Gate2Shop extends PaymentProvider
 		
 		// check checksum
 		$checksum = md5($CONFIG["payment"]["gate2shop"]["secret_key"].$ipndata["ppp_status"].$ipndata["PPP_TransactionID"]);
-//		log_debug($checksum." -> ".$CONFIG["payment"]["gate2shop"]["secret_key"]."-".$ipndata["ppp_status"]."-".$ipndata["PPP_TransactionID"]);
 		if($checksum != $ipndata["responsechecksum"])
 		{
 			log_error("Gate2Shop: Checksum don't consist with response");
@@ -304,7 +303,6 @@ class Gate2Shop extends PaymentProvider
 		
 		// check checksum
 		$checksum = md5($CONFIG["payment"]["gate2shop"]["secret_key"].$ipndata["totalAmount"].$ipndata["currency"].$ipndata["responseTimeStamp"].$ipndata["PPP_TransactionID"].$ipndata["Status"].$ipndata["productId"]);
-//		log_debug($checksum." -> ".$CONFIG["payment"]["gate2shop"]["secret_key"]."-".$ipndata["ppp_status"]."-".$ipndata["PPP_TransactionID"]);
 		if($checksum != $ipndata["advanceResponseChecksum"])
 		{
 			log_error("Gate2Shop: Checksum don't consist with response");

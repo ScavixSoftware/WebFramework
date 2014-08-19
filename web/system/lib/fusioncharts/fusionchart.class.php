@@ -241,13 +241,7 @@ class FusionChart extends Control
 							$this->Plots[$j]->Data[$k]->Label != $this->Plots[$i]->Data[$k]->Label
 						) )
 					{
-						//log_debug($this->Plots[$j]->Title.": Inserting zero value ".$this->Plots[$i]->Data[$k]->Label);
-//						if( strpos($this->Type,"Bar") === false && strpos($this->Type,"Column") === false )
-//							$this->Plots[$j]->Insert(0,$this->Plots[$i]->Data[$k]->Label,0);
-//						else
-							$this->Plots[$j]->Insert("",$this->Plots[$i]->Data[$k]->Label,0);
-//						$v = $this->Plots[$j]->Insert(0,$k);
-//						$v->Label = $this->Plots[$i]->Data[$k]->Label;
+						$this->Plots[$j]->Insert("",$this->Plots[$i]->Data[$k]->Label,0);
 					}
 				}
 			}
@@ -256,11 +250,9 @@ class FusionChart extends Control
 		// recalc values if chart should fill to 100%
 		if( $this->ShowAsPercent && count($this->Plots) > 0 )
 		{
-			//log_debug(get_class($this)." showing as percent");
 			foreach( $this->Plots[0]->GetLabels() as $lab )
 			{
 				$sum = 0;
-//				log_debug("Processing '$lab'...");
 				foreach( $this->Plots as &$plot )
 				{
 					$tmp_val = $plot->getValue($lab);
@@ -472,7 +464,6 @@ class FusionChart extends Control
 			$ret .= "<apply toObject='ANCHORS' styles='myBevel' />";
 	    $ret .= "</application></styles>";
 		$ret .= "</chart>";
-//log_debug($ret);
 		return $ret;
 	}
 

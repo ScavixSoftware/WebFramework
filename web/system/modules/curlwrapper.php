@@ -160,7 +160,6 @@ function downloadFile($url, $postdata = false, $request_header = array(), $follo
 	{
 		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 		curl_setopt($ch, CURLOPT_USERPWD, "{$parsed_url['user']}:{$parsed_url['pass']}");
-		log_debug("Using credentials: {$parsed_url['user']}:{$parsed_url['pass']}");
 	}
 
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 0);

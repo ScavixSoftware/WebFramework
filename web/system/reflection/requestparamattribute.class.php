@@ -115,7 +115,6 @@ class RequestParamAttribute extends WdfAttribute
 				$GLOBALS['request_param_detected_ci'] = $CONFIG['requestparam']['ci_detection_func']();
 			else
 				$GLOBALS['request_param_detected_ci'] = Localization::detectCulture();
-//			log_debug($CONFIG['requestparam']['ci_detection_func']);
 		}
 		$ci = $GLOBALS['request_param_detected_ci'];
 

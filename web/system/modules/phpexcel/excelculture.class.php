@@ -77,7 +77,6 @@ class ExcelCulture extends CultureInfo
 					$this->CurrencyFormat->GroupSeparator.'##0'.
 					$this->CurrencyFormat->DecimalSeparator.
 					str_repeat('0', $this->CurrencyFormat->DecimalDigits);
-				log_debug("CurrencyFormat -> ".$res);
 				$pos = str_replace('%v', $res, $this->CurrencyFormat->PositiveFormat);
 				$neg = str_replace('%v', $res, $this->CurrencyFormat->NegativeFormat);
 				self::$FORMAT_MAP[$f] = "$pos;$neg";
@@ -86,7 +85,6 @@ class ExcelCulture extends CultureInfo
 			case 'integer':
 				$res = '#'.
 					$this->NumberFormat->GroupSeparator.'##0';
-				log_debug("IntegerFormat -> ".$res);
 				$pos = $res;
 				$neg = str_replace('%v', $res, $this->NumberFormat->NegativeFormat);
 				self::$FORMAT_MAP[$f] = "$pos;$neg";
@@ -97,7 +95,6 @@ class ExcelCulture extends CultureInfo
 					$this->NumberFormat->GroupSeparator.'##0'.
 					$this->NumberFormat->DecimalSeparator.
 					str_repeat('0', $this->NumberFormat->DecimalDigits);
-				log_debug("DoubleFormat -> ".$res);
 				$pos = $res;
 				$neg = str_replace('%v', $res, $this->NumberFormat->NegativeFormat);
 				self::$FORMAT_MAP[$f] = "$pos;$neg";

@@ -45,7 +45,6 @@ class uiCurrencyInput extends uiControl
 
 		$e = floor($defvalue);
 		$c = round(($defvalue-$e),2) * 100;
-		log_debug("CurrencyInput($id): $defvalue $e $c");
 
 		$id = $this->id;
 		$this->class = "currencyinput ui-widget-content ui-widget ui-corner-all";
