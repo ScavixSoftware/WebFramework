@@ -380,13 +380,19 @@ class ConditionTree
 
 		$sql = array();
 		foreach( $this->_conditions as $c )
+		{
 			if( is_string($c) )
-				$sql[] = $c;
+				$s = $c;
 			elseif( $c instanceof Condition )
-				$sql[] = $c->__toSql();
+				$s = $c->__toSql();
 			else
-				$sql[] = $c->__generateSql();
-
+				$s = $c->__generateSql();
+			if( $s )
+				$sql[] = $s;
+		}
+		if( count($sql) == 0 )
+			return "";
+			
 		if( $this->_parent )
 			$sql = "(".implode(" {$this->_operator} ",$sql).")";
 		else
