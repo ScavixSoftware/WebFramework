@@ -149,6 +149,8 @@ class Template extends Renderable
 	 */
 	public function set($name, $value)
 	{
+		if( $value instanceof Renderable )
+			$value->_parent = $this;
 		$this->_data[$name] = $value;
 		if( $name == 'id' )
 			$this->_storage_id = $value;
@@ -174,6 +176,8 @@ class Template extends Renderable
 	 */
 	public function add2var($name, $value)
 	{
+		if( $value instanceof Renderable )
+			$value->_parent = $this;
 		if( !isset($this->_data[$name]) )
 			$this->_data[$name] = array($value);
 		elseif( !is_array($this->_data[$name]) )
