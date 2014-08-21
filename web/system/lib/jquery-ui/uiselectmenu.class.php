@@ -46,7 +46,6 @@ class uiSelectMenu extends uiControl
     function __initialize($options = array())
 	{
 		parent::__initialize("select");
-		$this->script("$('#{$this->id}').selectmenu();");
 	}
 
 	private function addIcon($path)

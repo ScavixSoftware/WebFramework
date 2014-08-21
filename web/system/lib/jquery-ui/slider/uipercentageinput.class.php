@@ -41,6 +41,7 @@ class uiPercentageInput extends uiControl
 	function __initialize($defvalue=0, $onchange="",$decimal_point=',')
 	{
 		parent::__initialize("div");
+		$this->InitFunctionName = false;
 
 		$defvalue = floatval(str_replace(",",".",$defvalue));
 

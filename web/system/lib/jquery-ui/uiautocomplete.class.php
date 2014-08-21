@@ -57,13 +57,4 @@ class uiAutocomplete extends uiControl
 		$this->hidden->onchange = $function;
 		return $this;
 	}
-
-	/**
-	 * @override
-	 */
-	function PreRender($args = array())
-	{
-		$this->script("$('#{$this->id}').autocomplete(".system_to_json($this->Options).");");
-		parent::PreRender($args);
-	}
 }

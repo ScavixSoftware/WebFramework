@@ -61,6 +61,8 @@ class uiDialog extends uiControl
 		
 		$rem = system_is_ajax_call()?".remove()":'';
 		$this->CloseButtonAction = "function(){ $('#{$this->id}').dialog('close')$rem; }";
+		
+		$this->InitFunctionName = false;
 	}
 
 	/**

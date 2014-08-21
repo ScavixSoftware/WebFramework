@@ -63,7 +63,6 @@ class uiButtonSet extends uiControl
 					$this->script("$('#{$this->buttons[$index]['button']->id}').$event(function(){ $function }); ");
 				}
 			}
-			$this->script("$(function(){ $('#".$this->id."').buttonset(); });");
 		}
 		parent::PreRender($args);
 	}

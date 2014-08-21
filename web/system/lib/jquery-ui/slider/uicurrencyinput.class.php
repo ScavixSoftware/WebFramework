@@ -40,6 +40,7 @@ class uiCurrencyInput extends uiControl
 	function __initialize($defvalue=0, $onchange="")
 	{
 		parent::__initialize("div");
+		$this->InitFunctionName = false;
 
 		$defvalue = floatval(str_replace(",",".",$defvalue));
 

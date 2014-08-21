@@ -47,6 +47,8 @@ class uiMessage extends uiControl
 		$sub->class = "ui-state-$type ui-corner-all";
 		$sub->content("<span class='ui-icon ui-icon-close' onclick=\"$(this).parent().parent().slideUp('fast', function(){ $(this).remove(); })\"></span>");
 		$sub->content("<p><span class='ui-icon ui-icon-$icon'></span>$message</p>");
+		
+		$this->InitFunctionName = false;
 	}
 	
 	/**

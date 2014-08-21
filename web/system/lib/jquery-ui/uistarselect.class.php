@@ -98,6 +98,7 @@ class uiStarSelect extends uiControl
 			$this->content($this->CreateSelect($this->id."_select"));
 		}
 		
+		$this->InitFunctionName = false;
 		$script = "$('#{$this->id}').stars($this->Options);";
 		$this->script($script);
 

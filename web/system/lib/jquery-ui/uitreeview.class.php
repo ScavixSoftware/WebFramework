@@ -57,17 +57,10 @@ class uiTreeView extends uiControl
 	 */
 	function  PreRender($args=array())
 	{
-		if( $this->Url || $this->NodeSelected )
-		{
-			$options = new StdClass();
-			if( $this->Url )
-				$options->url = $this->Url;
-			if( $this->NodeSelected )
-				$options->nodeSelected = $this->NodeSelected;
-			$this->script("$('#".$this->id."').treeview(".system_to_json($options).");");
-		}
-		else
-			$this->script("$('#".$this->id."').treeview({});");
+		if( $this->Url )
+			$this->opt('url',$this->Url);
+		if( $this->NodeSelected )
+			$this->opt('nodeSelected',$this->NodeSelected);
 		return parent::PreRender($args);
 	}
 

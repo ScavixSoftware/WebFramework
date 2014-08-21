@@ -50,30 +50,22 @@ class uiSlider extends uiControl
 	 */
 	function PreRender($args = array())
 	{
-		$opts = array();
 		if( $this->min !== false )
-			$opts['min'] = $this->min;
+			$this->opt('min',$this->min);
 		if( $this->max !== false )
-			$opts['max'] = $this->max;
+			$this->opt('max', $this->max);
 		if( $this->value !== false )
-			$opts['value'] = $this->value;
+			$this->opt('value', $this->value);
 		if( $this->range !== false )
-			$opts['range'] = $this->range;
+			$this->opt('range', $this->range);
 		if( $this->onslide !== false )
-			$opts['slide'] = $this->onslide;
+			$this->opt('slide', $this->onslide);
 		if( $this->values !== false )
-		{
-			if( !is_array( $this->values ) )
-				$this->values = array($this->values);
-			$opts['values'] = "[".implode(",",$this->values)."]";
-		}
+			$this->opt('values', force_array($this->values));
 		
-		$opts = array_merge($opts,$this->Options);
-		if( $opts['value'] > $opts['max'] ) $opts['value'] = $opts['max'];
-		if( $opts['value'] < $opts['min'] ) $opts['value'] = $opts['min'];
+		if( $this->opt('value') > $this->opt('max') ) $this->opt('value',$this->opt('max'));
+		if( $this->opt('value') < $this->opt('min') ) $this->opt('value',$this->opt('min'));
 
-		$opts = system_to_json($opts);
-		$this->script("$('#{$this->id}').slider($opts);");
 		parent::PreRender($args);
 	}
 }

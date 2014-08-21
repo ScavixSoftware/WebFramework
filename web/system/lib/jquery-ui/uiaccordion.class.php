@@ -59,8 +59,6 @@ class uiAccordion extends uiControl
 			$this->content("<h3>$section</h3>");
 			$this->content($section_content);
 		}
-		
-		$this->script("$('#".$this->id."').accordion(".system_to_json($this->Options).")");
 		parent::PreRender($args);
 	}
 

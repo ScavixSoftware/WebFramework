@@ -81,19 +81,11 @@ class uiButton extends uiControl
 	{
 		if( count($args) > 0 )
 		{
-			$controller = $args[0];
-			
-			$opts = array();
 			if(isset($this->_icon))
-				$opts['icons'] = array('primary'=>"ui-icon-".$this->_icon);
+				$this->opt('icons',array('primary'=>"ui-icon-".$this->_icon));
 			
 			if( count($this->_content)==0 )
-				$opts['text'] = false;
-			
-			if( $controller instanceof \ScavixWDF\Base\HtmlPage )
-				$controller->addDocReady("$('#".$this->id."').button(".system_to_json($opts).");");
-			else
-				$controller->script("$('#".$this->id."').button(".system_to_json($opts).");");
+				$this->opt('text',false);
 		}
 		return parent::PreRender($args);
 	}

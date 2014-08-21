@@ -122,6 +122,23 @@ class uiControl extends Control
 		'grip-diagonal-se'
 	);
 	protected $Options = array();
+	protected $InitFunctionName;
+	
+	function __initialize($tag = "")
+	{
+		parent::__initialize($tag);
+		$this->InitFunctionName = strtolower(preg_replace('/^ui/', '', get_class_simple($this)));
+	}
+	
+	/**
+	 * @override
+	 */
+	function PreRender($args = array())
+	{
+		if( $this->InitFunctionName )
+			$this->script("$('#{$this->id}').{$this->InitFunctionName}(".system_to_json($this->Options).");");
+		parent::PreRender($args);
+	}
 	
 	/**
 	 * Ensures that an icon is valid

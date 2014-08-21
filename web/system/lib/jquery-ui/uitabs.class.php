@@ -47,15 +47,6 @@ class uiTabs extends uiControl
 	}
 
 	/**
-	 * @override
-	 */
-	public function PreRender($args = array())
-	{
-		$this->script("$('#{self}').tabs(".system_to_json($this->Options).")");
-		return parent::PreRender($args);
-	}
-
-	/**
 	 * Adds a new tab to the tabcontrol.
 	 * 
 	 * @param string $label Tab-Button label

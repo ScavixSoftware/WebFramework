@@ -42,6 +42,7 @@ class uiNavigation extends uiControl
 	{
 		global $CONFIG;
 		parent::__initialize("ul");
+		$this->InitFunctionName = false;
 		if( !$is_sub_navigation )
 			$this->script("$('#".$this->id."').navigation({root_uri:'".$CONFIG['system']['console_uri']."',item_width:130});");
 	}

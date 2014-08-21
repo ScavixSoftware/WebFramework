@@ -46,15 +46,6 @@ class uiContainer extends uiControl
 		$this->Options = $options;
 		$this->title = $title;
 	}
-	
-	/**
-	 * @override
-	 */
-	function PreRender($args = array())
-	{
-		$this->script("$('#{self}').container(".system_to_json($this->Options).");");
-		parent::PreRender($args);
-	}
 
 	/**
 	 * Adds a button to the header section.

@@ -41,7 +41,6 @@ default_string('TXT_DP_CURRENT', 'Today');
 class uiDatePicker extends uiControl
 {
 	protected $CultureInfo = false;
-	protected $init_code = "datepicker";
 
 	/**
 	 * @param mixed $value The default value
@@ -57,13 +56,11 @@ class uiDatePicker extends uiControl
 			'closeText' => 'TXT_DP_CLOSE',
 			'currentText' => 'TXT_DP_CURRENT',
 		);
+		$this->type = 'date';
 		if( $value )
 		{
 			if( !$inline )
-			{
 				$this->value = $value;
-				$this->type = 'text';
-			}
 			else
 				$this->Options['defaultDate'] = $value;
 		}
@@ -86,7 +83,6 @@ class uiDatePicker extends uiControl
 				?$this->CultureInfo->FormatDate($this->Options['defaultDate'],DateTimeFormat::DF_SHORTDATE)
 				:$this->CultureInfo->FormatDateTime($this->Options['defaultDate']);
 
-		$this->script("$('#{$this->id}').{$this->init_code}(".system_to_json($this->Options).");");
 		parent::PreRender($args);
 	}
 
