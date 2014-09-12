@@ -223,7 +223,10 @@ abstract class Renderable
 	{
 		foreach( $this->_content as &$c )
 			if( $c instanceof Renderable )
+			{
 				$c->_parent = false;
+				release_hooks($c);
+			}
 		$this->_content = array();
 		return $this;
 	}

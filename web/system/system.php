@@ -578,6 +578,25 @@ function register_hook($type,&$handler_obj,$handler_method)
 }
 
 /**
+ * Removes previously registered hook handler from all hook types.
+ * 
+ * This is automatically called when content is removed from <Renderable> objects to avoid performing actions on objects that are not part
+ * of the DOM anymore.
+ * @param object $handler_obj The object taht shall be removed from the hanlder stack
+ * @retunr void
+ */
+function release_hooks($handler_obj)
+{
+	foreach( $GLOBALS['system']['hooks'] as $type=>$stack )
+		foreach( $stack as $i=>$def )
+			if( $def[0] == $handler_obj )
+				unset( $GLOBALS['system']['hooks'][$type][$i] );
+			
+	foreach( $GLOBALS['system']['hooks'] as $type=>$stack )
+		$GLOBALS['system']['hooks'][$type] = array_values($stack);
+}
+
+/**
  * Executes a system hook (calls all registered handlers).
  * 
  * This is very internal, but no magic: just loops all registered handlers and calls them.
