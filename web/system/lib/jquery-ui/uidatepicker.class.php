@@ -56,7 +56,7 @@ class uiDatePicker extends uiControl
 			'closeText' => 'TXT_DP_CLOSE',
 			'currentText' => 'TXT_DP_CURRENT',
 		);
-		$this->type = 'date';
+		$this->type = 'text';
 		if( $value )
 		{
 			if( !$inline )

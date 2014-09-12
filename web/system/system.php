@@ -524,16 +524,17 @@ function system_die($reason,$additional_message='')
 	{
 		$res = AjaxResponse::Error($reason."\n".$additional_message,true);
 		die($res->Render());
-		$code = "alert(unescape(".json_encode($reason."\n".$additional_message)."));";
-		$res = new stdClass();
-		$res->html = "<script>$code</script>";
-		die(system_to_json($res));
+//		$code = "alert(unescape(".json_encode($reason."\n".$additional_message)."));";
+//		$res = new stdClass();
+//		$res->html = "<script>$code</script>";
+//		die(system_to_json($res));
 	}
 	else
 	{
 		$stacktrace = system_stacktrace_to_string($stacktrace);
 		$res  = "<html><head><title>Fatal system error</title></head>";
 		$res .= "<body>";
+		$res .= "<h1>Fatal system error occured</h1>";
 		if(isDev())
 			$res .= "<pre>$reason</pre><pre>$additional_message</pre><pre>".$stacktrace."</pre>";
 		else

@@ -86,6 +86,7 @@ function logging_init()
 	
 	set_error_handler('global_error_handler');
 	set_exception_handler('global_exception_handler');
+	register_shutdown_function('global_fatal_handler');
 }
 
 /**
@@ -94,7 +95,7 @@ function logging_init()
 function global_error_handler($errno, $errstr, $errfile, $errline)
 {
 	global $LOGGING_ERROR_NAMES;
-	
+
 	// Use error_reporting() to check if @ operator is in use.
 	// This works as we set error_reporting(E_ALL|E_STRICT) in logging_init().
 	if ( error_reporting() == 0 )
@@ -133,6 +134,34 @@ function global_exception_handler($ex)
 		foreach( $GLOBALS['logging_logger'] as $l )
 			$l->fatal($ex);
 		system_die($ex);
+	}
+	catch(Exception $fatal)
+	{
+		foreach( $GLOBALS['logging_logger'] as $l )
+		{
+			$l->addCategory("NESTED_EXCEPTION");
+			$l->fatal($fatal);
+			$l->removeCategory("NESTED_EXCEPTION");
+		}
+	}
+}
+
+/**
+ * @internal Global shutdown handler. See <register-shutdown-function>
+ */
+function global_fatal_handler()
+{
+	$error = error_get_last();
+	if(($error === NULL) || ($error['type'] !== E_ERROR))
+		return;
+	$ex = new WdfException($error["message"]);
+	try
+	{
+		// system_die will handle logging itself. perhaps restructure that to
+		// keep things in place and let that function only handle the exception
+		foreach( $GLOBALS['logging_logger'] as $l )
+			$l->fatal($ex);
+		system_die($ex, var_export($error, true));
 	}
 	catch(Exception $fatal)
 	{

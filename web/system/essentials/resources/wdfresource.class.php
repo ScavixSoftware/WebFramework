@@ -91,7 +91,14 @@ class WdfResource implements ICallable
 	{
 		$res = explode("?",$res);
 		$res = realpath(__DIR__."/../../skin/".$res[0]);
-		header('Content-Type: text/css');
+		if(ends_iwith($res, '.css'))
+			header('Content-Type: text/css');
+		elseif(ends_iwith($res, '.png'))
+			header('Content-Type: image/png');
+		elseif(ends_iwith($res, '.jpg'))
+			header('Content-Type: image/jpeg');
+		elseif(ends_iwith($res, '.gif'))
+			header('Content-Type: image/gif');
 		WdfResource::ValidatedCacheResponse($res);
 		readfile($res);
 		die();
