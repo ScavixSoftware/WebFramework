@@ -71,6 +71,12 @@ class LogEntry
 			else
 				$t0['location'] = "*UNKNOWN*";
 			
+			if( $t0['function'] == 'system_render_object_tree' ||
+				$t0['function'] == 'global_error_handler' ||
+				$t0['function'] == 'WdfRender' ||
+				$t0['function'] == 'WdfRenderAsRoot' )
+				$t0['args'] = array("*TRUNCATED*");
+			
 			foreach( $t0['args'] as $ai=>$a)
 			{
 				if( !is_object($a) && !is_array($a) )
@@ -91,6 +97,8 @@ class LogEntry
 		}
 		
 		if( $stack[count($stack)-1]['function'] == 'system_execute' )
+			array_pop($stack);
+		if( $stack[count($stack)-1]['function'] == 'system_exit' )
 			array_pop($stack);
 		if( $stack[count($stack)-1]['function'] == 'system_invoke_request' )
 			array_pop($stack);
