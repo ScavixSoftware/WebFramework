@@ -446,9 +446,18 @@ function logging_render_var($content,&$stack=array(),$indent="")
 		}
 		else
 		{
+			$is_renderable = $content instanceof ScavixWDF\Base\Renderable;
 			$res[] = "Object(".get_class($content).")\n$indent{";
 			foreach( get_object_vars($content) as $name=>$val )
 			{
+				if( $is_renderable )
+				{
+					if( $name == '_parent' )
+					{
+						$res[] = $indent."\t->$name: *PARENT*";
+						continue;
+					}
+				}
 				if( $val === $content )
 					$res[] = $indent."\t->$name: *RECURSION*";
 				else

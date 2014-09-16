@@ -53,6 +53,8 @@ class LogEntry
 	
 	private function cleanupTrace($stacktrace,$max_trace_depth)
 	{
+		$args = array();
+		$info = array();
 		$stack = array();
 		$stcnt = count($stacktrace);
 		foreach($stacktrace as $i=>$t0)
@@ -68,10 +70,33 @@ class LogEntry
 			}
 			else
 				$t0['location'] = "*UNKNOWN*";
+			
+			foreach( $t0['args'] as $ai=>$a)
+			{
+				if( !is_object($a) && !is_array($a) )
+					continue;
+				$index = array_search($a, $args, true);
+				if( $index !== false )
+				{
+					$t0['args'][$ai] = $info[$index];
+					continue;
+				}
+				$args[] = $a;
+				$info[] = "*SEE ARG ".$t0['function']."[$ai]*";
+			}
+			
 			$stack[] = $t0;
 			if( count($stack) == $max_trace_depth )
 				break;
 		}
+		
+		if( $stack[count($stack)-1]['function'] == 'system_execute' )
+			array_pop($stack);
+		if( $stack[count($stack)-1]['function'] == 'system_invoke_request' )
+			array_pop($stack);
+		if( $stack[count($stack)-1]['function'] == 'call_user_func_array' )
+			array_pop($stack);
+		
 		return $stack;
 	}
     
