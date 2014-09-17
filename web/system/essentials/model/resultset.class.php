@@ -352,6 +352,25 @@ class ResultSet implements Iterator, ArrayAccess
 	}
 	
 	/**
+	 * Returns a row
+	 * 
+	 * Will return the first result row as array.
+	 * Useful when for example querying for min/max values like this:
+	 * <code php>
+	 * list($min,$max) = $ds->ExecuteSql("SELECT min(a), max(a) FROM some_table")->fetchRow(false);
+	 * </code>
+	 * @param bool $assoc If true returns an associative array, else only array values are returned
+	 * @return array The next rows values or false on error
+	 */
+	function fetchRow($assoc=true)
+	{
+		$row = $this->fetch();
+		if( !$row )
+			return false;
+		return $assoc?$row:array_values($row);
+	}
+	
+	/**
 	 * Returns information about paging
 	 * 
 	 * Result will be an array with these keys: 'rows_per_page', 'current_page', 'total_pages', 'total_rows', 'offset'

@@ -530,7 +530,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 			return $q->current();
 		}
 		else
-			$res->__init_db_values();
+			$res->__init_db_values(true);
 		return $res;
     }
 	
