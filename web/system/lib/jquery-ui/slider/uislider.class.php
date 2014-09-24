@@ -33,16 +33,10 @@ use ScavixWDF\JQueryUI\uiControl;
  */
 class uiSlider extends uiControl
 {
-	var $min = 1;
-	var $max = 100;
-	var $value = 10;
-	var $range = false;
-	var $onslide = false;
-	var $values = false;
-
 	function __initialize()
 	{
 		parent::__initialize("div");
+		$this->opt('min', 1)->opt('max', 100)->opt('value', 1);
 	}
 
 	/**
@@ -50,19 +44,6 @@ class uiSlider extends uiControl
 	 */
 	function PreRender($args = array())
 	{
-		if( $this->min !== false )
-			$this->opt('min',$this->min);
-		if( $this->max !== false )
-			$this->opt('max', $this->max);
-		if( $this->value !== false )
-			$this->opt('value', $this->value);
-		if( $this->range !== false )
-			$this->opt('range', $this->range);
-		if( $this->onslide !== false )
-			$this->opt('slide', $this->onslide);
-		if( $this->values !== false )
-			$this->opt('values', force_array($this->values));
-		
 		if( $this->opt('value') > $this->opt('max') ) $this->opt('value',$this->opt('max'));
 		if( $this->opt('value') < $this->opt('min') ) $this->opt('value',$this->opt('min'));
 

@@ -168,6 +168,7 @@ class uiControl extends Control
 	{
 		if( $value === null )
 			return $this->Options[$name];
+		log_debug($this->id.': '.$name.' > '.$value);
 		$this->Options[$name] = $value;
 		return $this;
 	}
