@@ -93,9 +93,19 @@ class Serializer
 			if( $data instanceof ADORecordSet_mysql || $data instanceof PDOStatement || $data instanceof Closure )
 				return "n:\n";
 			if( $data instanceof DateTimeEx )
-				return "x:".$data->format('c')."\n";
+			{
+				$dtres = $data->format('c');
+				if( substr($dtres,0,4)=="-001" )
+					$dtres = "";
+				return "x:$dtres\n";
+			}
 			if( $data instanceof DateTime )
-				return "d:".$data->format('c')."\n";
+			{
+				$dtres = $data->format('c');
+				if( substr($dtres,0,4)=="-001" )
+					$dtres = "";
+				return "d:$dtres\n";
+			}
 			if( $data instanceof Reflector )
 				return "y:".$data->getName()."\n";
 			if( $data instanceof SimpleXMLElement )
@@ -178,33 +188,38 @@ class Serializer
 			$line = substr($line, 2);
 		}
 
-		switch( $type )
+		try
 		{
-			case 's':
-				return str_replace("\\n","\n",$line);
-			case 'i':
-				return intval($line);
-			case 'a':
-				$res = array();
-				for($i=0; $i<$line; $i++)
-				{
-					$key = $this->Unser_Inner();
-					$res[$key] = $this->Unser_Inner();
-				}
-				return $res;
-			case 'd':
-				return new DateTime($line);
-			case 'x':
-				return new DateTimeEx($line);
-			case 'y':
-				return new WdfReflector($line);
-			case 'z':
-				return simplexml_load_string(stripcslashes($line));
-			case 'o':
-				list($id,$len,$type,$datasource) = explode(':',$line);
-				$datasource = $datasource?model_datasource($datasource):null;
+			switch( $type )
+			{
+				case 's':
+					return str_replace("\\n","\n",$line);
+				case 'i':
+					return intval($line);
+				case 'a':
+					$res = array();
+					for($i=0; $i<$line; $i++)
+					{
+						$key = $this->Unser_Inner();
+						$res[$key] = $this->Unser_Inner();
+					}
+					return $res;
+				case 'd':
+					if( !$line )
+						return null;
+					return new DateTime($line);
+				case 'x':
+					if( !$line )
+						return null;
+					return new DateTimeEx($line);
+				case 'y':
+					return new WdfReflector($line);
+				case 'z':
+					return simplexml_load_string(stripcslashes($line));
+				case 'o':
+					list($id,$len,$type,$alias) = explode(':',$line);
+					$datasource = $alias?model_datasource($alias):null;
 
-				try{
 					$this->Stack[$id] = new $type($datasource);
 					for($i=0; $i<$len; $i++)
 					{
@@ -217,29 +232,31 @@ class Serializer
 
 					if( system_method_exists($this->Stack[$id],'__wakeup') )
 						$this->Stack[$id]->__wakeup();
-					
-				}catch(Exception $ex){
-					WdfException::Log("Unserialise Exception in line '$orig_line' ($id,$len,$type,$datasource)",$ex);
+
+					return $this->Stack[$id];
+
+				case 'r':
+					if( !isset($this->Stack[intval($line)]) )
+						WdfException::Raise("Trying to reference unknown object.");
+					if( $this->Stack[intval($line)] instanceof DataSource )
+						return model_datasource($this->Stack[intval($line)]->_storage_id);
+					return $this->Stack[intval($line)];
+				case 'm':
+					return model_datasource($line);
+				case 'n':
 					return null;
-				}
-				return $this->Stack[$id];
-				
-			case 'r':
-				if( !isset($this->Stack[intval($line)]) )
-					WdfException::Raise("Trying to reference unknown object.");
-				if( $this->Stack[intval($line)] instanceof DataSource )
-					return model_datasource($this->Stack[intval($line)]->_storage_id);
-				return $this->Stack[intval($line)];
-			case 'm':
-				return model_datasource($line);
-			case 'n':
-				return null;
-			case 'f':
-				return floatval($line);
-			case 'b':
-				return $line==1;
-			default:
-				WdfException::Raise("Unserialize found unknown datatype '$type'. Line was $orig_line");
+				case 'f':
+					return floatval($line);
+				case 'b':
+					return $line==1;
+				default:
+					WdfException::Raise("Unserialize found unknown datatype '$type'. Line was $orig_line");
+			}
+		}
+		catch(Exception $ex)
+		{
+			WdfException::Log("Unserialize Exception in line '$orig_line'");
+			return null;
 		}
 	}
 }

@@ -604,6 +604,8 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 */
 	public static function EnsureDateTime($value,$convert_now_to_value=false)
 	{
+		if( $value === null )
+			return null;
 		if( $value instanceof DateTimeEx )
 			return $value;
 		if( $value instanceof DateTime )
@@ -625,11 +627,18 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 				return $res;
 			}
 			else
+			{
+				// add eventually missing time part
+				$value = preg_replace(
+						'/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/',
+						'$1-$2-$3 00:00:00',
+						$value);
 				// add eventually missing fractional seconds part to ISO 8601 format
 				$value = preg_replace(
 						'/([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})([+-]{1})([0-9]{2}):([0-9]{2})/',
 						'$1-$2-$3T$4:$5:$6.00$7$8:$9',
 						$value);
+			}
 		}
 		elseif( is_integer($value) )
 		{
