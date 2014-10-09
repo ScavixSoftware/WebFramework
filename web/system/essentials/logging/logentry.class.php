@@ -59,6 +59,9 @@ class LogEntry
 		$stcnt = count($stacktrace);
 		foreach($stacktrace as $i=>$t0)
 		{
+			if( isset($t0['object']) )
+				unset($t0['object']);
+			
 			if( isset($t0['file']) )
 			{
 				if( ends_with($t0['file'],"/essentials/logging/logger.class.php") ||
@@ -87,6 +90,9 @@ class LogEntry
 					$t0['args'][$ai] = $info[$index];
 					continue;
 				}
+				$stacklen = strlen(@json_encode($a));
+				if( $stacklen>1000 )
+					$t0['args'][$ai] = $a = "*ARGUMENT_TOO_LARGE[$stacklen bytes]*";
 				$args[] = $a;
 				$info[] = "*SEE ARG ".$t0['function']."[$ai]*";
 			}
