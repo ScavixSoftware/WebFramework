@@ -383,19 +383,22 @@ class Table extends Control
 				case 'left':
 					$cg->SetCol($i,false,'left');
 					$head->GetCell($i)->align = 'left';
-					$foot->GetCell($i)->align = 'left';
+					if(!is_null($foot->GetCell($i)))
+						$foot->GetCell($i)->align = 'left';
 					break;
 				case 'r':
 				case 'right':
 					$cg->SetCol($i,false,'right');
 					$head->GetCell($i)->align = 'right';
-                    $foot->GetCell($i)->align = 'right';
+					if(!is_null($foot->GetCell($i)))
+						$foot->GetCell($i)->align = 'right';
 					break;
 				case 'c':
 				case 'center':
 					$cg->SetCol($i,false,'center');
 					$head->GetCell($i)->align = 'center';
-                    $foot->GetCell($i)->align = 'center';
+					if(!is_null($foot->GetCell($i)))
+						$foot->GetCell($i)->align = 'center';
 					break;
 			}
 		}
