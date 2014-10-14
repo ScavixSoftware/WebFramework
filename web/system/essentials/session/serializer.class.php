@@ -255,7 +255,7 @@ class Serializer
 		}
 		catch(Exception $ex)
 		{
-			WdfException::Log("Unserialize Exception in line '$orig_line'");
+			WdfException::Log($ex);
 			return null;
 		}
 	}

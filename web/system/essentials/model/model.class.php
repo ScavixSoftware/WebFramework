@@ -253,7 +253,8 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		{
 			if( !isset($this->_cacheKey) || !$this->_cacheKey )
 				$this->_cacheKey = $this->_ds->Database().$this->_className;
-			$this->__ensureTableSchema();
+			if( !unserializer_active() )
+				$this->__ensureTableSchema();
 		}
 		else
 			log_trace("Missing datasource argument");
@@ -368,7 +369,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		
 		if( !$this->_ds )
 			WdfDbException::Raise("Missing Datasource");
-
+		
 		if( !isset(self::$_schemaCache[$this->_cacheKey]) )
 		{
 			self::$_schemaCache[$this->_cacheKey] = $this->_tableSchema = $this->_ds->Driver->getTableSchema($this->GetTableName());
