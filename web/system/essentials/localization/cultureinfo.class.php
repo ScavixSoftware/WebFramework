@@ -404,13 +404,13 @@ class CultureInfo
 	}
 	
 	/**
-	 * @shortcut <PercentFormat::Format($number)
+	 * @shortcut <PercentFormat::Format($number, $decimals)
 	 */
-	function FormatPercent($number)
+	function FormatPercent($number, $decimals=false)
 	{
 		if( $this->PercentFormat )
-			return $this->PercentFormat->Format($number);
-		return $this->FormatNumber($number)."%";
+			return $this->PercentFormat->Format($number, $decimals);
+		return $this->FormatNumber($number, $decimals)."%";
 	}
 
 	/**

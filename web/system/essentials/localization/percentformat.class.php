@@ -54,9 +54,11 @@ class PercentFormat
 	 * @param float $number The value to be formatted
 	 * @return string The formatted string
 	 */
-	function Format($number)
+	function Format($number,$decimals=false)
 	{
-		$val = number_format($number,$this->DecimalDigits,$this->DecimalSeparator,$this->GroupSeparator);
+		if($decimals === false)
+			$decimals = $this->DecimalDigits;
+		$val = number_format($number,$decimals,$this->DecimalSeparator,$this->GroupSeparator);
 		if( strlen($this->GroupSeparator) > 0 );
 		{
 			$ord = uniord($this->GroupSeparator);
