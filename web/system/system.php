@@ -1023,9 +1023,20 @@ function buildQuery($controller,$event="",$data="", $url_root=false)
 		if( '#' != substr($event, 0, 1) )
 				$route .= '/';			
 	}
-	
+
+	/**
+	 * data can contain a # to jump to named anchors i.e. on redirect
+	 */
+	$hash = false;
 	if( is_array($data) )
+	{
+		if(isset($data['#']))
+		{
+			$hash = $data['#'];
+			unset($data['#']);
+		}
 		$data = http_build_query($data);
+	}
 	
 	if( !can_rewrite() )
 	{
@@ -1038,7 +1049,7 @@ function buildQuery($controller,$event="",$data="", $url_root=false)
 
 	if( !$url_root )
 		$url_root = $CONFIG['system']['url_root'];
-	return $url_root.$route.($data?"?$data":"");
+	return $url_root.$route.($data?"?$data":"").($hash?'#'.$hash:'');
 }
 
 /**
