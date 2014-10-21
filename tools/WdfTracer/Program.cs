@@ -73,7 +73,14 @@ namespace WdfTracer
 
             public void InformMainformAboutException(Exception ex)
             {
-                (MainForm as Form1).ProgramExceptionOccured(ex);
+                try
+                {
+                    (MainForm as Form1).ProgramExceptionOccured(ex);
+                } 
+                catch(Exception ex2) 
+                {
+                    MessageBox.Show(ex2.Message, "Exception occured"); 
+                }
             }
 
             public void InformMainformAboutViewerChange()
@@ -226,27 +233,34 @@ namespace WdfTracer
                 if (s.Executable != null && File.Exists(s.Executable))
                     continue;
 
-                Log("Searching viewer " + s.Name);
-                string[] files = GetFiles(@"C:\", s.ExeSearchName)
-                    .OrderBy(item => item, new NaturalStringComparer())
-                    .ToArray();
-
-                if (files.Length < 1)
+                try
                 {
-                    Log(s.Name + " not found. Not installed? Not on drive 'C:'?");
-                    s.SeemsNotInstalled = true;
-                    controller.InformMainformAboutViewerChange();
-                    continue;
-                }
-                else if (files.Length > 1)
-                    Log(s.Name + " found multiple times, taking first." + Environment.NewLine + string.Join(Environment.NewLine, files.ToArray()));
+                    Log("Searching viewer " + s.Name);
+                    string[] files = GetFiles(@"C:\", s.ExeSearchName)
+                        .OrderBy(item => item, new NaturalStringComparer())
+                        .ToArray();
 
-                s.Executable = files[0];
-                s.Save(ViewerSettings);
-                Log("Found "+s.Name+" executable: '" + s.Executable + "'");
-                if (SelectedViewer == null)
-                    SelectedViewer = s;
-                controller.InformMainformAboutViewerChange();
+                    if (files.Length < 1)
+                    {
+                        Log(s.Name + " not found. Not installed? Not on drive 'C:'?");
+                        s.SeemsNotInstalled = true;
+                        controller.InformMainformAboutViewerChange();
+                        continue;
+                    }
+                    else if (files.Length > 1)
+                        Log(s.Name + " found multiple times, taking first." + Environment.NewLine + string.Join(Environment.NewLine, files.ToArray()));
+
+                    s.Executable = files[0];
+                    s.Save(ViewerSettings);
+                    Log("Found " + s.Name + " executable: '" + s.Executable + "'");
+                    if (SelectedViewer == null)
+                        SelectedViewer = s;
+                    controller.InformMainformAboutViewerChange();
+                }
+                catch (Exception ex)
+                {
+                    Log(ex);
+                }
             }
         }
 

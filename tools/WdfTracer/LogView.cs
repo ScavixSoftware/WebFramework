@@ -201,7 +201,7 @@ namespace WdfTracer
             Progress = new ProgressOverlay();
             Progress.OnCancelled += new CancelledDelegate(Progress_OnCancelled);
 
-            foreach (string p in File.ReadAllLines("textline.patterns"))
+            foreach (string p in File.ReadAllLines(Application.StartupPath + "\\textline.patterns"))
             {
                 string l = p.Trim();
                 if (l == "")

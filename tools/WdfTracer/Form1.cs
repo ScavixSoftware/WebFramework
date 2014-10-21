@@ -142,36 +142,44 @@ namespace WdfTracer
 
         private void OpenFile(string filename)
         {
+            Program.Log("Opening file: " + filename);
             string fn = filename.ToLower();
             bool is_json = fn.EndsWith(".trace") || fn.EndsWith(".trace.gz");
 
-            foreach (TabPage t in tcFileViews.TabPages)
+            try
             {
-                foreach (Control c in t.Controls)
-                    if (c is LogView && (c as LogView).ViewsFile(filename))
-                    {
-                        tcFileViews.SelectedTab = t;
-                        return;
-                    }
-            }
-            LogView lv = new LogView();
-            lv.OnCloseRequested += new CloseRequestDelegate(lv_OnCloseRequested);
-            lv.OnChangeDetected += new ChangeDetected(lv_OnChangeDetected);
-            TabPage page = new TabPage(" " + Path.GetFileName(filename) + " ");
-            page.Controls.Add(lv);
-            page.Controls.Add(lv.Progress);
-            tcFileViews.TabPages.Add(page);
+                foreach (TabPage t in tcFileViews.TabPages)
+                {
+                    foreach (Control c in t.Controls)
+                        if (c is LogView && (c as LogView).ViewsFile(filename))
+                        {
+                            tcFileViews.SelectedTab = t;
+                            return;
+                        }
+                }
+                LogView lv = new LogView();
+                lv.OnCloseRequested += new CloseRequestDelegate(lv_OnCloseRequested);
+                lv.OnChangeDetected += new ChangeDetected(lv_OnChangeDetected);
+                TabPage page = new TabPage(" " + Path.GetFileName(filename) + " ");
+                page.Controls.Add(lv);
+                page.Controls.Add(lv.Progress);
+                tcFileViews.TabPages.Add(page);
 
-            if (!lv.SetFile(filename, is_json))
-            {
-                MessageBox.Show("Unable to open file '" + filename + "'");
-                tcFileViews.TabPages.Remove(page);
+                if (!lv.SetFile(filename, is_json))
+                {
+                    MessageBox.Show("Unable to open file '" + filename + "'");
+                    tcFileViews.TabPages.Remove(page);
+                }
+                else
+                {
+                    page.ToolTipText = filename;
+                    tcFileViews.SelectedTab = page;
+                    Program.AddRecentFile(filename);
+                }
             }
-            else
+            catch(Exception ex)
             {
-                page.ToolTipText = filename;
-                tcFileViews.SelectedTab = page;
-                Program.AddRecentFile(filename);
+                Program.Log(ex);
             }
             InvalidateRecentItems();
         }
