@@ -409,6 +409,21 @@ namespace WdfTracer
                         Program.Log(ex);
                     }
                 }
+                else if (fi.Length > stream.Position)
+                {
+                    long lPos = stream.Position;
+                    try
+                    {
+                        stream.Close();
+                        stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        reader = new StreamReader(stream);
+                        stream.Position = lPos;
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.Log(ex);
+                    }
+                }
 
                 bool updateNeeded = false;
                 string line = "";
