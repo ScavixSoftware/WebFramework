@@ -50,12 +50,12 @@ $(function(){
 <?php if( count($docready) > 0 ): ?>
 	wdf.ready.add(function()
 	{
-	<?=implode("\n\t",$docready);?>
+	<?=implode((isDev() ? "\n" : ""),$docready);?>
 	});
 <?php endif; ?>
 	<?=$wdf_init?>
 });
-	<?=implode("\n\t",$plaindocready)?>
+	<?=implode((isDev() ? "\n" : ""),$plaindocready)?>
 </script>
 </head>
 <body<?=isset($isrtl)?"$isrtl":""?><?=isset($bodyClass)?" class='$bodyClass'":""?>>
