@@ -110,8 +110,8 @@ function equals(&$o1, &$o2)
 {
 	if($o1 === $o2)
 		return true;
-	$iso1 = is_object($o1);
-	$iso2 = is_object($o2);
+	$iso1 = (get_class($o1) !== false); // is_object($o1);
+	$iso2 = (get_class($o2) !== false); //is_object($o2);
 	if(( !$iso1 && $iso2 ) || ( $iso1 && !$iso2 ))
 		return false;
 	if( !$iso1 && !$iso2 )
@@ -127,7 +127,7 @@ function equals(&$o1, &$o2)
 	return (
 		isset($o1->_storage_id) &&
 		isset($o2->_storage_id) &&
-		$o1->_storage_id == $o2->_storage_id
+		$o1->_storage_id === $o2->_storage_id
 	);
 }
 
