@@ -49,8 +49,9 @@ use SimpleXMLElement;
 class Serializer
 {
 	var $Stack;
+	var $clsmap;
+	var $sleepmap;
 	var $Lines;
-//	var $PassedLines;
 
 	/**
 	 * Serializes a value
@@ -61,7 +62,9 @@ class Serializer
 	 */
 	function Serialize(&$data)
 	{
-		$this->Stack = array();
+		$this->Stack  = array();
+		$this->clsmap = array();
+		$this->sleepmap = array();
 		return $this->Ser_Inner($data);
 	}
  
@@ -86,61 +89,6 @@ class Serializer
 			}
 			return $res;
 		}
-		elseif( is_object($data) )
-		{
-			if( $data instanceof DataSource )
-				return "m:".$data->_storage_id."\n";
-			if( $data instanceof ADORecordSet_mysql || $data instanceof PDOStatement || $data instanceof Closure )
-				return "n:\n";
-			if( $data instanceof DateTimeEx )
-			{
-				$dtres = $data->format('c');
-				if( substr($dtres,0,4)=="-001" )
-					$dtres = "";
-				return "x:$dtres\n";
-			}
-			if( $data instanceof DateTime )
-			{
-				$dtres = $data->format('c');
-				if( substr($dtres,0,4)=="-001" )
-					$dtres = "";
-				return "d:$dtres\n";
-			}
-			if( $data instanceof Reflector )
-				return "y:".$data->getName()."\n";
-			if( $data instanceof SimpleXMLElement )
-				return "z:".addcslashes($data->asXML(),"\n")."\n";
-			
-			foreach( $this->Stack as $index=>&$val )
-				if( equals($this->Stack[$index], $data) )
-					return "r:$index\n";
-
-			$this->Stack[] = $data;
-			$id = count($this->Stack) - 1;
-
-			if( system_method_exists($data, '__sleep') )
-				$vars = $data->__sleep();
-			else
-				$vars = array_keys(get_object_vars($data));
-
-            $max = count($vars);
-
-			if( $data instanceof Model)
-				$res = "o:$id:".$max.":".get_class($data).":{$data->DataSourceName()}\n";
-			else
-				$res = "o:$id:".$max.":".get_class($data).":\n";
-			
-            $i = 0;
-//			while($i++<$max)
-			foreach( $vars as $field )
-			{
-//                $field = $vars[$i];
-				$res .= "f:".$this->Ser_Inner($field,$level+1);
-				$res .= "v:".$this->Ser_Inner($data->$field,$level+1);
-			}
-
-			return $res;
-		}
 		elseif( is_bool($data) )
 		{
 			return "b:".($data?'1':'0')."\n";
@@ -152,6 +100,57 @@ class Serializer
 		elseif( empty($data) )
 		{
 			return "n:\n";
+		}
+		else
+		{
+			if( $data instanceof DataSource )
+				return "m:".$data->_storage_id."\n";
+			if( $data instanceof PDOStatement || $data instanceof Closure )
+				return "n:\n";
+			if( $data instanceof DateTimeEx )
+			{
+				$dtres = $data->format('c');
+				if( substr($dtres,0,4)=="-001" )
+					return "x:\n";
+				return "x:$dtres\n";
+			}
+			if( $data instanceof DateTime )
+			{
+				$dtres = $data->format('c');
+				if( substr($dtres,0,4)=="-001" )
+					return "d:\n";
+				return "d:$dtres\n";
+			}
+			if( $data instanceof Reflector )
+				return "y:".$data->getName()."\n";
+			if( $data instanceof SimpleXMLElement )
+				return "z:".addcslashes($data->asXML(),"\n")."\n";
+			
+			$index = array_search($data, $this->Stack, true);
+			if( $index !== false  )
+				return "r:$index\n";
+			$id = count($this->Stack);
+			$this->Stack[] = $data;
+
+			$classname = get_class($data);
+			if( !isset($this->sleepmap[$classname]) )
+				$this->sleepmap[$classname] = method_exists($data,'__sleep');
+			$vars = $this->sleepmap[$classname]
+				?$data->__sleep()
+				:array_keys(get_object_vars($data));
+            $max = count($vars);
+
+			$res = ( $data instanceof Model)
+				?"o:$id:$max:$classname:{$data->DataSourceName()}\n"
+				:"o:$id:$max:$classname:\n";
+			
+			foreach( $vars as $field )
+			{
+				$res .= "f:".$this->Ser_Inner($field,$level+1);
+				$res .= "v:".$this->Ser_Inner($data->$field,$level+1);
+			}
+
+			return $res;
 		}
 	}
 

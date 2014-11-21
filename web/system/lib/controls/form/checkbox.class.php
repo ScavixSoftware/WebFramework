@@ -41,4 +41,13 @@ class CheckBox extends Input
 		parent::__initialize();
 		$this->setType("checkbox")->setName($name)->setValue(1);
 	}
+	
+	function setChecked($on)
+	{
+		if( $on )
+			return $this->attr('checked','checked');
+		if( isset($this->_attributes['checked']) )
+			unset($this->_attributes['checked']);
+		return $this;
+	}
 }

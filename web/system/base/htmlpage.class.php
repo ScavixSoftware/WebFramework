@@ -129,7 +129,7 @@ class HtmlPage extends Template implements ICallable
 		foreach( array_reverse($res) as $r )
 		{
 			$ext = pathinfo($r,PATHINFO_EXTENSION);
-			if( starts_with($ext,'css') || starts_with($ext,'less') )
+			if( $ext == 'css' || $ext == 'less' )
 				$this->addCss($r);
 			else
 				$this->addjs($r);

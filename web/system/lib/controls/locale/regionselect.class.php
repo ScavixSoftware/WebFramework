@@ -84,9 +84,9 @@ class RegionSelect extends Select
 				if( !$reg ) continue;
 				$code = $reg->Code;
 				if( $translations_active )
-					$sorted[$code] = array("name"=>tds("TXT_COUNTRY_".strtoupper($code),$reg->EnglishName),"code",$code);
+					$sorted[$code] = array("name"=>_text(tds("TXT_COUNTRY_".strtoupper($code), $reg->EnglishName)), "code" => $code);
 				else
-					$sorted[$code] = array("name"=>$reg->EnglishName,"code",$code);
+					$sorted[$code] = array("name"=>$reg->EnglishName, "code" => $code);
 			}
 			uasort($sorted, __CLASS__."::compareCountryNames");
 
@@ -122,7 +122,7 @@ class RegionSelect extends Select
 		$regions = $lang->GetRegions(true);
 		$sorted = array();
 		foreach($regions as $code)
-			$sorted[$code] = array("name"=>getString("TXT_COUNTRY_".strtoupper($code)),"code",$code);
+			$sorted[$code] = array("name"=>getString("TXT_COUNTRY_".strtoupper($code)),"code" => $code);
 		uasort($sorted, "RegionSelect::compareCountryNames");
 
 		$res = array();
