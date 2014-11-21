@@ -135,8 +135,6 @@ namespace WdfTracer
         private string filename;
         private GZipStream zipstream;
 
-        //private Stream stream;
-        //private StreamReader reader;
         private long streamPosition =0;
 
         private Thread parser;
@@ -279,7 +277,6 @@ namespace WdfTracer
                 hiddenCategories = new List<string>();
                 knownSeverities = new List<string>();
 
-                //PrepareReader();
                 parser = new Thread(new ThreadStart(Parse));
 
                 cbSeverityFilter_Changed(null, null);
@@ -415,7 +412,6 @@ namespace WdfTracer
             try
             {
                 FileInfo fi = new FileInfo(filename);
-                //streamPosition = fi.Length;
                 if (fi.Length > streamPosition)
                 {
                     reader = PrepareReader();
@@ -426,33 +422,6 @@ namespace WdfTracer
                     reader = PrepareReader();
                     streamPosition = 0;
                 }
-
-                //{
-                //    try
-                //    {
-                //        reader = PrepareReader();
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        Program.Log(ex);
-                //    }
-                //}
-                //else if (fi.Length > streamPosition)
-                //{
-                //    //long lPos = stream.Position;
-                //    try
-                //    {
-                //        //stream.Close();
-                //        //stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                //        //reader = PrepareReader();
-                //        //stream.Position = lPos;
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        Program.Log(ex);
-                //    }
-                //}
-
                 if (reader != null)
                 {
                     bool updateNeeded = false;
