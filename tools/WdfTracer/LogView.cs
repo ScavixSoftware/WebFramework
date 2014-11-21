@@ -42,6 +42,7 @@ using System.Runtime.Serialization;
 using System.Runtime;
 using Microsoft.VisualBasic.Devices;
 using System.Text.RegularExpressions;
+using Timer = System.Threading.Timer;
 
 namespace WdfTracer
 {
@@ -133,8 +134,11 @@ namespace WdfTracer
 
         private string filename;
         private GZipStream zipstream;
-        private Stream stream;
-        private StreamReader reader;
+
+        //private Stream stream;
+        //private StreamReader reader;
+        private long streamPosition =0;
+
         private Thread parser;
         private List<Entry> buffer;
         private List<Entry> visibleItems;
@@ -226,8 +230,8 @@ namespace WdfTracer
                 parser.Abort();
             if (watcher != null)
                 watcher.Dispose();
-            if (reader != null)
-                reader.Close();
+            //if (reader != null)
+            //    reader.Close();
 
             Progress.OnCancelled -= new CancelledDelegate(Progress_OnCancelled);
 
@@ -239,21 +243,26 @@ namespace WdfTracer
             hiddenCategories.Clear();
         }
 
-        private void PrepareReader()
+        private StreamReader PrepareReader()
         {
+            Stream stream;
+
             if (filename.EndsWith(".gz"))
             {
-                FileStream tmp = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                FileStream tmp = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
                 zipstream = new GZipStream(tmp, CompressionMode.Decompress);
                 stream = new MemoryStream();
                 zipstream.CopyTo(stream);
                 zipstream.Close();
                 tmp.Close();
-                stream.Seek(0, SeekOrigin.Begin);
             }
             else
-                stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            reader = new StreamReader(stream);
+                try {stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);}
+                catch(IOException ex)
+                {
+                    return null;
+                }
+            return new StreamReader(stream);
         }
 
         internal bool SetFile(string p, bool is_json)
@@ -270,7 +279,7 @@ namespace WdfTracer
                 hiddenCategories = new List<string>();
                 knownSeverities = new List<string>();
 
-                PrepareReader();
+                //PrepareReader();
                 parser = new Thread(new ThreadStart(Parse));
 
                 cbSeverityFilter_Changed(null, null);
@@ -337,6 +346,9 @@ namespace WdfTracer
             int succ_count = 0;
             string line = "";
             Entry test = null;
+
+            StreamReader reader = PrepareReader();
+
             while (!reader.EndOfStream)
             {
                 try
@@ -366,11 +378,12 @@ namespace WdfTracer
                     err_count++;
                     Program.LogParseError(line, ex);
                 }
-                ReportProgress(0, stream.Length, stream.Position);
 
+                ReportProgress(0, reader.BaseStream.Length, reader.BaseStream.Position);
                 if (succ_count == 0 && err_count > 10)
                 {
                     RequestClose("Invalid tracefile.");
+                    reader.Close();
                     return;
                 }
             }
@@ -383,93 +396,122 @@ namespace WdfTracer
             parser = null;
             InvalidateKnownCategories();
             InvalidateLvEntries();
-            if( stream is FileStream )
+            if (reader.BaseStream is FileStream)
                 watcher = new System.Threading.Timer(new TimerCallback(Watch), null, refreshInterval, Timeout.Infinite);
+            
+            streamPosition = reader.BaseStream.Position;
+            reader.BaseStream.Close();
+            reader.Dispose();
         }
 
         private void Watch(object state)
         {
-            // try to access the reader to test if the file is still open
-            try { bool dummy = reader.EndOfStream; }
-            catch { PrepareReader(); } // if not try to reopen
-
+            if (!File.Exists(filename))
+            {
+                watcher = new System.Threading.Timer(new TimerCallback(Watch), null, 5000, Timeout.Infinite);
+                return;
+            }
+            StreamReader reader = null;
             try
             {
                 FileInfo fi = new FileInfo(filename);
-                if (fi.Length < stream.Position)
+                //streamPosition = fi.Length;
+                if (fi.Length > streamPosition)
                 {
-                    try
-                    {
-                        stream.Close();
-                        stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                        reader = new StreamReader(stream);
-                    }
-                    catch (Exception ex)
-                    {
-                        Program.Log(ex);
-                    }
+                    reader = PrepareReader();
+                    reader.BaseStream.Seek(streamPosition, SeekOrigin.Begin);
                 }
-                else if (fi.Length > stream.Position)
+                else if (fi.Length < streamPosition)
                 {
-                    long lPos = stream.Position;
-                    try
-                    {
-                        stream.Close();
-                        stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                        reader = new StreamReader(stream);
-                        stream.Position = lPos;
-                    }
-                    catch (Exception ex)
-                    {
-                        Program.Log(ex);
-                    }
+                    reader = PrepareReader();
+                    streamPosition = 0;
                 }
 
-                bool updateNeeded = false;
-                string line = "";
-                Entry test = null;
-                while (!reader.EndOfStream)
-                {
-                    try
-                    {
-                        //FreeResources();
-                        line = reader.ReadLine();
-                        if (AsJson)
-                            test = JsonConvert.DeserializeObject<Entry>(line);
-                        else
-                        {
-                            Entry parsed = ParseTextLine(line, test, false);
-                            if (parsed == null)
-                                continue;
-                            test = parsed;
-                        }
+                //{
+                //    try
+                //    {
+                //        reader = PrepareReader();
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Program.Log(ex);
+                //    }
+                //}
+                //else if (fi.Length > streamPosition)
+                //{
+                //    //long lPos = stream.Position;
+                //    try
+                //    {
+                //        //stream.Close();
+                //        //stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                //        //reader = PrepareReader();
+                //        //stream.Position = lPos;
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Program.Log(ex);
+                //    }
+                //}
 
-                        AddToBuffer(test);
-                        if (!updateNeeded)
+                if (reader != null)
+                {
+                    bool updateNeeded = false;
+                    string line = "";
+                    Entry test = null;
+                    while (!reader.EndOfStream)
+                    {
+                        try
                         {
-                            updateNeeded = true;
-                            if (minDateTime == DateTime.MinValue)
-                                minDateTime = test.Created;
+                            //FreeResources();
+                            line = reader.ReadLine();
+                            if (AsJson)
+                                test = JsonConvert.DeserializeObject<Entry>(line);
+                            else
+                            {
+                                Entry parsed = ParseTextLine(line, test, false);
+                                if (parsed == null)
+                                    continue;
+                                test = parsed;
+                            }
+
+                            AddToBuffer(test);
+                            if (!updateNeeded)
+                            {
+                                updateNeeded = true;
+                                if (minDateTime == DateTime.MinValue)
+                                    minDateTime = test.Created;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Program.LogParseError(line, ex);
                         }
                     }
-                    catch (Exception ex)
+                    streamPosition = fi.Length;
+                    if (updateNeeded)
                     {
-                        Program.LogParseError(line,ex);
+                        maxDateTime = buffer[buffer.Count - 1].Created;
+                        InvalidateKnownCategories();
+                        InvalidateLvEntries();
+                        if (OnChangeDetected != null)
+                            OnChangeDetected(this);
                     }
-                }
-                if (updateNeeded)
-                {
-                    maxDateTime = buffer[buffer.Count - 1].Created;
-                    InvalidateKnownCategories();
-                    InvalidateLvEntries();
-                    if (OnChangeDetected != null)
-                        OnChangeDetected(this);
                 }
             }
             catch (Exception ex)
             {
                 Program.Log(ex);
+
             }
+            finally
+            {
+                if (reader != null)
+                {
+                    reader.BaseStream.Close();
+                    reader.Dispose();
+                }
+            }
+            
             watcher = new System.Threading.Timer(new TimerCallback(Watch), null, refreshInterval, Timeout.Infinite);
         }
 

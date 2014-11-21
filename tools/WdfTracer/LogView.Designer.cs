@@ -42,10 +42,10 @@ namespace WdfTracer
             if (disposing )
             {
                 if (components != null) components.Dispose();
-                if (reader != null) reader.Dispose();
+                //if (reader != null) reader.Dispose();
                 if (watcher != null) watcher.Dispose();
                 if (zipstream != null) zipstream.Dispose();
-                if (stream != null) stream.Dispose();
+                //if (stream != null) stream.Dispose();
                 if (memChecker != null) memChecker.Dispose();
                 if (filterTimer != null) filterTimer.Dispose();
             }
