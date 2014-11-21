@@ -283,7 +283,7 @@ class DataSource
 		if( !system_is_module_loaded('globalcache') )
 			return $this->ExecuteSql($sql, $prms);
 		
-		$key = 'DB_Cache_Sql_'.md5( $sql.serialize($prms) );
+		$key = 'DB_Cache_Sql_'.md5( $sql.serialize($prms).$lifetime );
 		$null = null;
 		if( is_null($res = cache_get($key, $null, true, false)) )
 		{
@@ -308,7 +308,7 @@ class DataSource
 		if( !system_is_module_loaded('globalcache') )
 			return $this->DLookUp($field_name, $table_name, $where_condition, $parameter);
 		
-		$key = 'DB_Cache_Look_'.md5( $field_name.$table_name.$where_condition.serialize($parameter) );
+		$key = 'DB_Cache_Look_'.md5( $field_name.$table_name.$where_condition.serialize($parameter).$lifetime );
 		$null = null;
 		if( is_null($res = cache_get($key, $null, true, false)) )
 		{
@@ -418,7 +418,7 @@ class DataSource
 		if( !system_is_module_loaded('globalcache') )
 			return $this->ExecuteScalar($sql, $prms);
 		
-		$key = 'SB_Cache_Scalar_'.md5( $sql.serialize($prms) );
+		$key = 'SB_Cache_Scalar_'.md5( $sql.serialize($prms).$lifetime );
 		$null = null;
 		if( is_null($res = cache_get($key, $null, true, false)) )
 		{

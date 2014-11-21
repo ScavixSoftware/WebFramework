@@ -106,16 +106,20 @@ function unserializer_active()
  * @param object $o2 Second object to compare
  * @return bool true if eual, else false
  */
-function equals(&$o1, &$o2)
+function equals(&$o1, &$o2, $compare_classes=true)
 {
 	if($o1 === $o2)
 		return true;
-	$iso1 = is_object($o1);
-	$iso2 = is_object($o2);
-	if(( !$iso1 && $iso2 ) || ( $iso1 && !$iso2 ))
-		return false;
-	if( !$iso1 && !$iso2 )
-		return ($o1 === $o2);
+	
+	if( $compare_classes )
+	{
+		$iso1 = is_object($o1);
+		$iso2 = is_object($o2);
+		if(( !$iso1 && $iso2 ) || ( $iso1 && !$iso2 ))
+			return false;
+		if( !$iso1 && !$iso2 )
+			return ($o1 === $o2);
+	}
 	
 	if( ($o1 instanceof Closure) || !($o2 instanceof Closure) )
 		return false;
