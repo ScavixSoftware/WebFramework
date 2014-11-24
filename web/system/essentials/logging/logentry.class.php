@@ -80,23 +80,6 @@ class LogEntry
 				$t0['function'] == 'WdfRenderAsRoot' )
 				$t0['args'] = array("*TRUNCATED*");
 			
-			foreach( $t0['args'] as $ai=>$a)
-			{
-				if( !is_object($a) && !is_array($a) )
-					continue;
-				$index = array_search($a, $args, true);
-				if( $index !== false )
-				{
-					$t0['args'][$ai] = $info[$index];
-					continue;
-				}
-				$stacklen = strlen(@json_encode($a));
-				if( $stacklen>1000 )
-					$t0['args'][$ai] = $a = "*ARGUMENT_TOO_LARGE[$stacklen bytes]*";
-				$args[] = $a;
-				$info[] = "*SEE ARG ".$t0['function']."[$ai]*";
-			}
-			
 			$stack[] = $t0;
 			if( count($stack) == $max_trace_depth )
 				break;
