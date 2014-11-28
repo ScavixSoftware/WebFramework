@@ -412,6 +412,20 @@ function starts_with($string,$start)
 	return strpos($string,$start) === 0;
 }
 
+function starts_iwith($string,$start)
+{
+	if( func_num_args() > 2 )
+	{
+		$args = func_get_args();
+		array_shift($args);
+		foreach( $args as $start )
+			if( stripos($string,$start) === 0 )
+				return true;
+		return false;
+	}
+	return stripos($string,$start) === 0;
+}
+
 /**
  * Checks if a string ends with another one.
  * 
