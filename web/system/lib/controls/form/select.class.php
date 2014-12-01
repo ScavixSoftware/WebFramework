@@ -135,5 +135,18 @@ class Select extends Control
 			$opt->disabled = 'disabled';
 		return $this->content($opt);
 	}
+	
+	/**
+	 * Creates a label element for this select.
+	 * 
+	 * Note that this only ensures that the label is correctly assigned to this select.
+	 * It will not add it somewhere!
+	 * @param string $text Text for the label
+	 * @return Label The created label element
+	 */
+	function CreateLabel($text)
+	{
+		return new Label($text,$this->id);
+	}
 }
 
