@@ -85,6 +85,12 @@ class Select extends Control
 	 */
 	function AddOption($value, $label = "", $selected = false, $opt_group=false)
 	{
+		$this->CreateOption($value,$label,$selected,$opt_group);
+		return $this;
+	}
+	
+	function CreateOption($value, $label="", $selected = false, $opt_group=false)
+	{
 		$label = $label==""?$value:$label;
 		$this->_options[$value] = $label;
 		if( !$this->_first_option_value )
@@ -92,17 +98,16 @@ class Select extends Control
 
 		if( !$selected && $this->_current !== false )
 			$selected = $value == $this->_current;
-		$selected = $selected?" selected='selected'":"";
-//		$opt = "<option value='$value'$selected>".htmlspecialchars($label)."</option>\r\n";
-		$opt = "<option ";
-		if($value !== '')
-			$opt .= "value='$value'";
-		$opt .= "$selected>".$label."</option>\r\n";
+		
+		$opt = Control::Make('option')->append($label?$label:$value);
+		if( $selected )
+			$opt->attr("selected","selected");
+		if( $value!=='' )
+			$opt->attr("value",$value);
+		
 		if( $opt_group )
-			$opt_group->content($opt);
-		else
-			$this->content($opt);
-		return $this;
+			return $opt_group->content($opt);
+		return $this->content($opt);
 	}
 
 	/**
