@@ -515,7 +515,7 @@ function contains()
 	if( is_string($array) )
 	{
 		foreach( $args as $a )
-			if( stripos($array,$a) )
+			if( stripos($array,$a) !== false )
 				return true;
 		return false;
 	}
