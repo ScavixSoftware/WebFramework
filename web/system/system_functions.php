@@ -857,8 +857,16 @@ function system_glob_rec($directory='',$pattern='*.*')
 {
 	system_ensure_path_ending($directory);
 	$paths = system_glob($directory.'*', GLOB_MARK|GLOB_ONLYDIR|GLOB_NOSORT);
-	$files = system_glob($directory.$pattern);
-	foreach($paths as $path) { $files = array_merge($files,system_glob_rec($path,$pattern)); }
+	if( $pattern )
+	{
+		$files = system_glob($directory.$pattern);
+		foreach($paths as $path) { $files = array_merge($files,system_glob_rec($path,$pattern)); }
+	}
+	else
+	{
+		$files = $paths;
+		foreach($paths as $path) { $files = array_merge($files,system_glob_rec($path,$pattern)); }
+	}
 	return $files;
 }
 
