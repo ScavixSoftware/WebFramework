@@ -166,6 +166,9 @@ function downloadFile($url, $postdata = false, $request_header = array(), $follo
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 	
+	if( !$cookie_file && $follow_location )
+		$cookie_file = tempnam(sys_get_temp_dir(), "downloadFile_cookie_");
+	
 	if( $cookie_file )
 	{
 		curl_setopt($ch,CURLOPT_COOKIEJAR,$cookie_file);
@@ -208,7 +211,7 @@ function downloadFile_header($ch, $header)
 		$p = explode(";",$res[1]);
 		foreach( $p as $part )
 		{
-			$args = explode("=",$part);
+			$args = explode("=",trim($part));
 			if( count($args) < 2 || $args[0] != 'filename' )
 				continue;
 			
