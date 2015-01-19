@@ -56,12 +56,15 @@ class Template extends Renderable
 	 * @param string $template_basename Name of the template
 	 * @return Template The created template
 	 */
-	static function Make($template_basename)
+	static function Make($template_basename=false)
 	{
-		if( file_exists($template_basename) )
+		$className = get_called_class();
+		if( $template_basename && file_exists($template_basename) )
 			$tpl_file = $template_basename;
 		else
 		{
+			if( !$template_basename )
+				$template_basename = $className;
 			$tpl_file = false;
 			foreach( array_reverse(cfg_get('system','tpl_ext')) as $tpl_ext )
 			{
@@ -72,7 +75,8 @@ class Template extends Renderable
 		}
 		if( !$tpl_file )
 			WdfException::Raise("Template not found: $template_basename");
-		$res = new Template($tpl_file);
+		
+		$res = new $className($tpl_file);
 		return $res;
 	}
 	
