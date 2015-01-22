@@ -994,7 +994,7 @@ function ifnull()
 	$data = array_shift($args);
 	
 	if( count($args) == 0 )
-		ScavixWDF\WdfException::Raise("ifnull needs at least two arguments");
+		ScavixWDF\WdfException::Raise("ifnull needs at least one argument");
 	
 	if( is_array($data) )
 		$data = (object)$data;
@@ -1079,4 +1079,34 @@ function avail()
 	if( !isset($ar[$l]) )
 		return false;
 	return $ar[$l] == true; // note the weak comparision!
+}
+
+/**
+ * Returns the first property of an object that is available.
+ * 
+ * See <ifnull> for a detailed description as this works the same way.
+ * Difference is that this only checks against null but also if a value is set (weak comparison against false).
+ * @return mixed The first set value or null of none found
+ */
+function ifavail()
+{
+	$args = func_get_args();
+	$data = array_shift($args);
+	
+	if( count($args) == 0 )
+		ScavixWDF\WdfException::Raise("ifavail needs at one argument");
+	
+	if( is_array($data) )
+		$data = (object)$data;
+	if( !is_object($data) )
+	{
+		foreach( func_get_args() as $arg )
+			if( $arg )
+				return $arg;
+		return null;
+	}
+	foreach( $args as $n )
+		if( avail($data,$n) )
+			return $data->$n;
+	return null;
 }
