@@ -74,7 +74,7 @@ class TranslationAdmin extends TranslationAdminBase
         $rs = $this->ds->ExecuteSql("SELECT id,content FROM wdf_translations WHERE lang=?",$lang_code);
         $res = $defaults;
         foreach( $rs as $lang )
-            $res[$lang['id']] = isset($lang['content'])&&$lang['content']?$lang['content']:'';
+            $res[$lang['id']] = isset($lang['content'])?"{$lang['content']}":'';
 		return $res;
     }
 	

@@ -99,7 +99,7 @@ class Select extends Control
 		if( !$selected && $this->_current !== false )
 			$selected = $value == $this->_current;
 		
-		$opt = Control::Make('option')->append($label?$label:$value);
+		$opt = Control::Make('option')->append($label!==""?$label:$value);
 		if( $selected )
 			$opt->attr("selected","selected");
 		if( $value!=='' )
