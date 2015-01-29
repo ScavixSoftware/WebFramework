@@ -385,12 +385,16 @@ function geoip_close($gi) {
   return fclose($gi->filehandle);
 }
 
-function geoip_country_id_by_name($gi, $name) {
-  $addr = gethostbyname($name);
-  if (!$addr || $addr == $name) {
-    return false;
-  }
-  return geoip_country_id_by_addr($gi, $addr);
+function geoip_country_id_by_name($gi, $name)
+{
+	$la = ip2long($name);
+	if( $la < 0 || $la === false )
+		$addr = long2ip($la);
+	else
+		$addr = gethostbyname($name);
+	if (!$addr || $addr == $name)
+		return false;
+	return geoip_country_id_by_addr($gi, $addr);
 }
 
 function geoip_country_code_by_name($gi, $name) {
