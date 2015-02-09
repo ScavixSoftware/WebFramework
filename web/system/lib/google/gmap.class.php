@@ -40,7 +40,7 @@ class gMap extends GoogleControl
 	const TERRAIN = 'google.maps.MapTypeId.TERRAIN';
 	
 	var $gmOptions = array('sensor'=>false,'language'=>'en','region'=>'DE');
-	private $_basicOptions = array('center'=>'new google.maps.LatLng(-34.397, 150.644)','zoom'=>13,'mapTypeId'=>self::ROADMAP);
+	private $_basicOptions = array('center'=>'new google.maps.LatLng(-34.397, 150.644)','zoom'=>13,'mapTypeId'=>self::ROADMAP,'scrollwheel'=>false);
 	private $_markers = array();
 	private $_addresses = array();
 	
