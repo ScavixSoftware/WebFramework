@@ -107,7 +107,7 @@
 					google.maps.event.addListenerOnce(curmap, 'idle', function()
 					{
 						new google.maps.event.trigger( marker, 'click' );
-						$('.gm-style-iw').width($('.gm-style-iw').parent().width());
+//						$('.gm-style-iw').width($('.gm-style-iw').parent().width());
 					});
 			}
 			
