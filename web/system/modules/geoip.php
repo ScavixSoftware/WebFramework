@@ -219,14 +219,15 @@ function get_timezone_by_ip($ip = false)
     $ret = cache_get($key);
 	if( $ret )
 		return $ret;
-			
+	
+	/*
 	// new url with api key:
-	$url = "http://api.ipinfodb.com/v2/ip_query.php?key=6a6ef9d4d82491036a4f3dbd465d52d2e2d5253d1285a3dda02b65752b5474f8&ip=".$GLOBALS['current_ip_addr']."&timezone=true";
+	$url = "https://api.ipinfodb.com/v3/ip-city/?key=ae4dea477cd8a36cc678c582c3f990fb57a5aae696f878b4e0eee70afa53bf1e&ip=".$GLOBALS['current_ip_addr']."&format=xml";
 	try
 	{
 		$xml = downloadData($url, false, false, 60 * 60, 2);
 	}catch(Exception $ex){ WdfException::Log("Unable to get Timezone for ".$ip." ($url)",$ex); return false; }
-	if( preg_match_all('/<TimezoneName>([^<]*)<\/TimezoneName>/', $xml, $zone, PREG_SET_ORDER) )
+	if( preg_match_all('/<timeZone>([^<]*)<\/timeZone>/', $xml, $zone, PREG_SET_ORDER) )
 	{
 		$zone = $zone[0];
 		if($zone[1] != "")
@@ -236,6 +237,20 @@ function get_timezone_by_ip($ip = false)
 		}
 	}
 //	log_error("No timezone found for ".$GLOBALS['current_ip_addr']." via ipinfodb.com");
+	 */
+	
+	$url = "http://ip-api.com/php/".$ip;
+	try
+	{
+		$data = @unserialize(downloadData($url, false, false, 60 * 60, 2));
+	}catch(Exception $ex){ WdfException::Log("Unable to get Timezone for ".$ip." ($url) ".$ex->getMessage(),$ex); return false; }
+	if($data && $data['status'] == 'success')
+	{
+		$zone = $data['timezone'];
+		cache_set($key, $zone, 24 * 60 * 60);
+		return $zone;
+	}
+	log_error("No timezone found for ".$ip." via ip-api.com");
 
 	$coords = get_coordinates_by_ip($ip);
 	if($coords === false)
@@ -248,7 +263,7 @@ function get_timezone_by_ip($ip = false)
 	// ALTERNATIVE 1:
 //	ws.geonames.org had only timeouts on 2/10/2010...
 //	$url = "http://ws.geonames.org/timezone?lat=".$coords['latitude'].'&lng='.$coords['longitude'];
-	$url = "http://api.geonames.org/timezone?lat=".$coords['latitude'].'&lng='.$coords['longitude']."&username=scendix";
+	$url = "http://api.geonames.org/timezone?lat=".$coords['latitude'].'&lng='.$coords['longitude']."&username=scavix";
 	try
 	{
 		$xml = downloadData($url, false, false, 60 * 60, 2);
