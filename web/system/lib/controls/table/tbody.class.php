@@ -90,7 +90,7 @@ class TBody extends Control
 		if( $data )
 		{
             $i = 0;
-			foreach( $data as $rowdata )
+			foreach( force_array($data) as $rowdata )
             {
 				$cell = $this->current_row->NewCell($rowdata);
                 if($this->table && $this->table->colgroup && isset($this->table->colgroup->_content[$i]) &&
