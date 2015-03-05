@@ -34,6 +34,8 @@ use ScavixWDF\Base\Control;
  */
 class uiMessage extends uiControl
 {
+	var $sub;
+	
 	function __initialize($message,$type='highlight')
 	{
 		parent::__initialize('div');
@@ -43,10 +45,10 @@ class uiMessage extends uiControl
 			$message = getString($message);
 		$icon = $type=='highlight'?'info':'alert';
 		
-		$sub = $this->content( new Control('div') );
-		$sub->class = "ui-state-$type ui-corner-all";
-		$sub->content("<span class='ui-icon ui-icon-close' onclick=\"$(this).parent().parent().slideUp('fast', function(){ $(this).remove(); })\"></span>");
-		$sub->content("<p><span class='ui-icon ui-icon-$icon'></span>$message</p>");
+		$this->sub = $this->content( new Control('div') );
+		$this->sub->class = "ui-state-$type ui-corner-all";
+		$this->sub->content("<span class='ui-icon ui-icon-close' onclick=\"$(this).parent().parent().slideUp('fast', function(){ $(this).remove(); })\"></span>");
+		$this->sub->content("<p><span class='ui-icon ui-icon-$icon'></span>$message</p>");
 		
 		$this->InitFunctionName = false;
 	}
@@ -71,5 +73,22 @@ class uiMessage extends uiControl
 	static function Error($message)
 	{
 		return new uiMessage($message,'error');
+	}
+	
+	function content($content, $replace = false)
+	{
+		if( $this->sub )
+		{
+			$this->sub->insert($content,1);
+			return $this;
+		}
+		return parent::content($content, $replace);
+	}
+	
+	function append($content)
+	{
+		if( $this->sub )
+			return $this->sub->insert($content,1);
+		return parent::append($content);
 	}
 }
