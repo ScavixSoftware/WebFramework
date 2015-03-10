@@ -122,9 +122,14 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 
 	$mail->WordWrap = 80;
 
-	$env = getEnvironment();
-    if( isNotLive() && !starts_with($subject, "[$env]"))
-        $subject = "[$env] $subject";
+	if( starts_with($subject, "[nomark]") )
+		$subject = trim(str_replace("[nomark]","",$subject));
+	else
+	{
+		$env = getEnvironment();
+	    if( isNotLive() && !starts_with($subject, "[$env]"))
+			$subject = "[$env] $subject";
+	}
 	
 	$mail->Subject = $subject;
 	$mail->ContentType = "text/html";
