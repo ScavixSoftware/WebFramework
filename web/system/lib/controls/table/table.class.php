@@ -300,7 +300,10 @@ class Table extends Control
 				}
 			}
         }
-		return parent::WdfRender();
+		$res = parent::WdfRender();
+		if( $this->DataCallback )
+			$this->Clear();
+		return $res;
     }
 	
 /* --------------- High level methods returning $this for easy usage --------------------- */
