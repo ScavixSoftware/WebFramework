@@ -142,7 +142,7 @@ class DateTimeEx extends DateTime
 	 * @param string $interval See <DateInterval::createFromDateString>
 	 * @return DateTimeEx A new instance
 	 */
-	public function Offset($value,$interval)
+	public function Offset($value,$interval='')
 	{
 		$di = DateInterval::createFromDateString("$value $interval");
 		$res = clone $this;
