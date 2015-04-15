@@ -238,4 +238,11 @@ class TBody extends Control
 
         return parent::WdfRender();
     }
+	
+	function SetAlignment($alignment)
+	{
+		foreach( $this->_content as $tr )
+			$tr->SetAlignment($alignment);
+		return $this;
+	}
 }

@@ -135,6 +135,9 @@ class CellFormat
 
 		if( $format == 'duration' )
 		{
+			if( intval($content)."" != $content )
+				return $full_content;
+			
 			$completedur = $dur = intval($content);
 			$s = sprintf("%02u",$dur % 60);
 			$dur = floor($dur / 60);
@@ -161,26 +164,33 @@ class CellFormat
 			switch( $format )
 			{
 				case 'date':
+					if( strtotime($content) === false ) return $full_content;
 					$content = str_replace($content,$culture->FormatDate($content),$full_content);
 					break;
 				case 'time':
+					if( strtotime($content) === false ) return $full_content;
 					$content = str_replace($content,$culture->FormatTime($content),$full_content);
 					break;
 				case 'datetime':
+					if( strtotime($content) === false ) return $full_content;
 					$content = str_replace($content,$culture->FormatDateTime($content),$full_content);
 					break;
 				case 'currency':
+					if( !is_numeric($content) ) return $full_content;
 					$content = str_replace($content,$culture->FormatCurrency($content),$full_content);
 					break;
 				case 'int':
 				case 'integer':
+					if( !is_numeric($content) ) return $full_content;
 					$content = str_replace($content,$culture->FormatInt($content),$full_content);
 					break;
 				case 'percent':
+					if( !is_numeric($content) ) return $full_content;
 					$content = str_replace($content,$culture->FormatInt($content)."%",$full_content);
 					break;
 				case 'float':
 				case 'double':
+					if( !is_numeric($content) ) return $full_content;
 					$content = str_replace($content,$culture->FormatNumber($content,intval($options[0])),$full_content);
 					break;
 			}

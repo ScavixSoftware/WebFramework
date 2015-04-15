@@ -140,4 +140,27 @@ class Tr extends Control
 
 		return parent::WdfRender();
 	}
+	
+	function SetAlignment($alignment)
+	{
+		foreach( $alignment as $i=>$a )
+		{
+			switch( strtolower($a) )
+			{
+				case 'l':
+				case 'left':
+					$this->GetCell($i)->align = 'left';
+					break;
+				case 'r':
+				case 'right':
+					$this->GetCell($i)->align = 'right';
+					break;
+				case 'c':
+				case 'center':
+					$this->GetCell($i)->align = 'center';
+					break;
+			}
+		}
+		return $this;
+	}
 }

@@ -83,4 +83,27 @@ class ColGroup extends Control
 		
 		return $this->_content[$index];
 	}
+	
+	function SetAlignment($alignment)
+	{
+		foreach( $alignment as $i=>$a )
+		{
+			switch( strtolower($a) )
+			{
+				case 'l':
+				case 'left':
+					$this->SetCol($i,false,'left');
+					break;
+				case 'r':
+				case 'right':
+					$this->SetCol($i,false,'right');
+					break;
+				case 'c':
+				case 'center':
+					$this->SetCol($i,false,'center');
+					break;
+			}
+		}
+		return $this;
+	}
 }

@@ -283,7 +283,9 @@ class Table extends Control
 		
         foreach( $this->_content as &$c )
         {
-			if( !is_object($c) || (get_class_simple($c) != "TBody") )
+			if( !is_object($c) )
+				continue;
+			if( !($c instanceof TBody) )
 				continue;
             foreach( $c->_content as $r )
 			{
@@ -375,36 +377,12 @@ class Table extends Control
 	 */
 	function SetAlignment()
 	{
-		$cg = $this->ColGroup();
-		$head = $this->Header();
-		$foot = $this->Footer();
-		foreach( func_get_args() as $i=>$a )
-		{
-			switch( strtolower($a) )
-			{
-				case 'l':
-				case 'left':
-					$cg->SetCol($i,false,'left');
-					$head->GetCell($i)->align = 'left';
-					if(!is_null($foot->GetCell($i)))
-						$foot->GetCell($i)->align = 'left';
-					break;
-				case 'r':
-				case 'right':
-					$cg->SetCol($i,false,'right');
-					$head->GetCell($i)->align = 'right';
-					if(!is_null($foot->GetCell($i)))
-						$foot->GetCell($i)->align = 'right';
-					break;
-				case 'c':
-				case 'center':
-					$cg->SetCol($i,false,'center');
-					$head->GetCell($i)->align = 'center';
-					if(!is_null($foot->GetCell($i)))
-						$foot->GetCell($i)->align = 'center';
-					break;
-			}
-		}
+		$args = func_get_args();
+		$cg = $this->ColGroup()->SetAlignment($args);
+		$head = $this->Header()->SetAlignment($args);
+		$foot = $this->Footer()->SetAlignment($args);
+		foreach( $this->_content as $tbody )
+			$tbody->SetAlignment($args);
 		return $this;
 	}
 	
