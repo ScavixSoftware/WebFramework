@@ -192,7 +192,7 @@ class TranslationAdmin extends TranslationAdminBase
 		$sql = "select 
 			o.id as 'id', o.content as 'def', 
 			(select i.content from wdf_translations i where i.id=o.id and i.lang=?) as 'trans' 
-		from wdf_translations o where o.lang='en' {having} order by id asc limit $offset,10";
+		from wdf_translations o where o.lang='en' {having} order by id asc limit $offset,50";
 		if( $untranslated )
 			return $this->ds->ExecuteSql(str_replace("{having}","having isnull(trans) or trans=''",$sql),$lang);
 		if( !$search )
@@ -239,27 +239,34 @@ class TranslationAdmin extends TranslationAdminBase
 		}
 		
 		$tab = Table::Make()->addClass('translations')
-			->SetHeader('Term','Default','Content','')
+			->SetHeader('Term','Default','Content','', '')
 			->setData('lang',$lang)
 			->appendTo($this);
 
 		$rs = $this->_searchQuery($offset,$lang,$search,$untranslated);
 		foreach( $rs as $term )
 		{
+			$def = nl2br(htmlspecialchars($term['def']));
 			$ta = new TextArea($untranslated?'':$term['trans']);
 			$ta->class = $term['id'];
+			$ta->rows = count(explode('<br />', $def)) + 1;
 			$btn = new Button('Save');
 			$btn->addClass('save')->setData('term',$term['id']);
 			
-			$tab->AddNewRow($term['id'],htmlspecialchars($term['def']),$ta,$btn);
+			$tab->AddNewRow($term['id'],$def,$ta,$btn, '');
 			
-			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
+			$c = $tab->GetCurrentRow()->GetCell(4);
+			$c->css('white-space', 'nowrap');
+			$c->content(Control::Make("span"))
 				->addClass('term_action rename')->setData('term', $term['id'])->content('rename');
-			$tab->GetCurrentRow()->GetCell(0)->content("&nbsp;");
-			$tab->GetCurrentRow()->GetCell(0)->content(Control::Make("span"))
+			$c->content("&nbsp;");
+			$c->content(Control::Make("span"))
 				->addClass('term_action remove')->setData('term', $term['id'])->content('remove');
 		}
-		
+
+		if($tab->GetCurrentRow())
+			$tab->GetCurrentRow()->GetCell(1)->style = 'width: 40%';
+
 		$pi = $rs->GetPagingInfo();
 		for($page=1;$page<=$pi['total_pages'];$page++)
 		{

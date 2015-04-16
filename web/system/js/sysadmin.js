@@ -57,7 +57,7 @@ wdf.ready.add(function()
         wdf.controller.post('SaveString',{lang:lang,term:term,text:text},function()
 		{
 			btn.val('Saved').addClass('ok');
-			setTimeout(function(){ btn.removeAttr('disabled').val('Save').removeClass('ok err'); },2000);
+			setTimeout(function(){ btn.removeAttr('disabled').val('Save').removeClass('ok err').focus(); },1000);
 		});
     });
 	
