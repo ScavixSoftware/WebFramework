@@ -104,20 +104,31 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 			{
 				array_walk_recursive($this->_data,function(&$item, &$key){ if( $item instanceof DateTime) $item = "[jscode]new Date(".($item->getTimestamp()*1000).")"; });
 				$d = system_to_json($this->_data);
-				$js = "var d=google.visualization.arrayToDataTable($d);"
-					. "var c=new google.visualization.{$this->gvType}($('#$id').get(0));"
-					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });"
-					. "c.draw(d,$opts);"
-					. "$('#$id').data('googlechart', c);";
+				if(in_array($this->gvType, array('Bar', 'Column')))
+				{
+					$js = "var d=google.visualization.arrayToDataTable($d);\r\n"
+						. "var c=new google.charts.Bar($('#$id').get(0));\r\n"
+						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\r\n"
+						. "c.draw(d,google.charts.{$this->gvType}.convertOptions($opts));\r\n"
+						. "$('#$id').data('googlechart', c);";
+				}
+				else
+				{
+					$js = "var d=google.visualization.arrayToDataTable($d);\r\n"
+						. "var c=new google.visualization.{$this->gvType}($('#$id').get(0));\r\n"
+						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\r\n"
+						. "c.draw(d,$opts);\r\n"
+						. "$('#$id').data('googlechart', c);";
+				}
 			}
 			else
 			{
 				$q = buildQuery($this->id,'Query');
-				$js = "var $id = new google.visualization.Query('$q');"
-					. "$id.setQuery('{$this->gvQuery}');"
-					. "$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));"
-					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });"
-					. "c.draw(r.getDataTable(),$opts);"
+				$js = "var $id = new google.visualization.Query('$q');\r\n"
+					. "$id.setQuery('{$this->gvQuery}');\r\n"
+					. "$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));\r\n"
+					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\r\n"
+					. "c.draw(r.getDataTable(),$opts);\r\n"
 					. "$('#$id').data('googlechart', c);}});";
 			}
 			$this->_addLoadCallback('visualization', $js, true);
@@ -375,15 +386,15 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	 * @param string $type Type of values
 	 * @return GoogleVisualization `$this`
 	 */
-	function addColumn($name,$label=false,$type=false)
+	function addColumn($name,$label=false,$type=false,$style=false)
 	{
-		$this->_columnDef[$label] = array($name,$type);
 		if( isset(self::$Colors[$name]) )
 		{
 			$cols = force_array($this->opt('colors'));
-			$cols[] = self::$Colors[$name];
-			$this->opt('colors',$cols);
+			$cols[] = $style = self::$Colors[$name];
+			$this->opt('colors',$cols);			
 		}
+		$this->_columnDef[$label] = array($name,$type,$style);
 		return $this;
 	}
 	
@@ -425,11 +436,12 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	 * @param Closure $callback Callback function
 	 * @return GoogleVisualization `$this`
 	 */
-	function addColumnRole($role,$callback)
+	function addColumnRole($role,$callback = false)
 	{
 		$key = "{$role}_".count($this->_roleCallbacks);
 		$this->_columnDef[$key] = $role;
-		$this->_roleCallbacks[$key] = array($role,$callback);
+		if($callback !== false)
+			$this->_roleCallbacks[$key] = array($role,$callback);
 		return $this;
 	}
 	
