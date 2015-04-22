@@ -37,6 +37,7 @@ use ScavixWDF\Model\DataSource;
  */
 abstract class GoogleVisualization extends GoogleControl implements ICallable
 {
+	public static $UseMaterialDesign = false;
 	public static $DefaultDatasource = false;
 	public static $Colors = false;
 	
@@ -104,31 +105,31 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 			{
 				array_walk_recursive($this->_data,function(&$item, &$key){ if( $item instanceof DateTime) $item = "[jscode]new Date(".($item->getTimestamp()*1000).")"; });
 				$d = system_to_json($this->_data);
-				if(in_array($this->gvType, array('Bar', 'Column')))
+				if( self::$UseMaterialDesign && in_array($this->gvType, array('Bar', 'Column')))
 				{
-					$js = "var d=google.visualization.arrayToDataTable($d);\r\n"
-						. "var c=new google.charts.Bar($('#$id').get(0));\r\n"
-						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\r\n"
-						. "c.draw(d,google.charts.{$this->gvType}.convertOptions($opts));\r\n"
+					$js = "var d=google.visualization.arrayToDataTable($d);\n"
+						. "var c=new google.charts.Bar($('#$id').get(0));\n"
+						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\n"
+						. "c.draw(d,google.charts.{$this->gvType}.convertOptions($opts));\n"
 						. "$('#$id').data('googlechart', c);";
 				}
 				else
 				{
-					$js = "var d=google.visualization.arrayToDataTable($d);\r\n"
-						. "var c=new google.visualization.{$this->gvType}($('#$id').get(0));\r\n"
-						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\r\n"
-						. "c.draw(d,$opts);\r\n"
+					$js = "var d=google.visualization.arrayToDataTable($d);\n"
+						. "var c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
+						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\n"
+						. "c.draw(d,$opts);\n"
 						. "$('#$id').data('googlechart', c);";
 				}
 			}
 			else
 			{
 				$q = buildQuery($this->id,'Query');
-				$js = "var $id = new google.visualization.Query('$q');\r\n"
-					. "$id.setQuery('{$this->gvQuery}');\r\n"
-					. "$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));\r\n"
-					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\r\n"
-					. "c.draw(r.getDataTable(),$opts);\r\n"
+				$js = "var $id = new google.visualization.Query('$q');\n"
+					. "$id.setQuery('{$this->gvQuery}');\n"
+					. "$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
+					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\n"
+					. "c.draw(r.getDataTable(),$opts);\n"
 					. "$('#$id').data('googlechart', c);}});";
 			}
 			$this->_addLoadCallback('visualization', $js, true);
@@ -155,7 +156,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 				self::$_apis['visualization'][1]['packages'][] = $package;
 		}
 		else
-			parent::_loadApi('visualization','1.1',array('packages'=>array($package)));
+			parent::_loadApi('visualization','1',array('packages'=>array($package)));
 	}
 	
 	protected function _createMC($ds)

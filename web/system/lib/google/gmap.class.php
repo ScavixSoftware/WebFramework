@@ -194,7 +194,7 @@ class gMap extends GoogleControl
             $xml = simplexml_load_string($xmlsrc);
         }
         catch(Exception $e){
-            log_error($geourl."\r\n".$xmlsrc);
+            log_error($geourl."\n".$xmlsrc);
             return false;
         }
 
