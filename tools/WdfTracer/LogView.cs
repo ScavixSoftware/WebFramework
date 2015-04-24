@@ -514,7 +514,7 @@ namespace WdfTracer
                     test.Created = DateTime.Parse(m.Groups["date"].Value);
 
                 test.Severity = gn.Contains("sev")?m.Groups["sev"].Value:"";
-                test.Categories = gn.Contains("sev")?new List<string>(m.Groups["cat"].Value.Split(categorySplitter)):new List<string>();
+                test.Categories = gn.Contains("cat") ? new List<string>(m.Groups["cat"].Value.Split(categorySplitter)) : new List<string>();
                 test.Message = gn.Contains("msg")?m.Groups["msg"].Value:"";
                 return test;
             }
