@@ -39,6 +39,6 @@ class PasswordInput extends Input
     function __initialize($name=false)
 	{
 		parent::__initialize();
-		$this->setType("password")->setName($name);
+		$this->setType("password")->attr('autocomplete', 'off')->setName($name);
 	}
 }
