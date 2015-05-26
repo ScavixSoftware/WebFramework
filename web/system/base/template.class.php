@@ -265,15 +265,15 @@ class Template extends Renderable
 	{
 		$tempvars = system_render_object_tree($this->get_vars());
 
-		foreach( $GLOBALS as $key=>&$val )
-			$$key = $val;
+		foreach( $GLOBALS as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
+			$$un_common_k_e_y_value = $un_common_v_a_l_value;
 
 		$buf = array();
-		foreach( $tempvars as $key=>&$val )
+		foreach( $tempvars as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
 		{
-			if( isset($$key) )
-				$buf[$key] = $$key;
-			$$key = $val;
+			if( isset($$un_common_k_e_y_value) )
+				$buf[$un_common_k_e_y_value] = $$un_common_k_e_y_value;
+			$$un_common_k_e_y_value = $un_common_v_a_l_value;
 		}
 
 		if( ($this instanceof HtmlPage) && stripos($this->file,"htmlpage.tpl.php") !== false )
@@ -301,10 +301,10 @@ class Template extends Renderable
 		$contents = ob_get_contents();
 		ob_end_clean();
 
-		foreach( $tempvars as $key=>&$val )
-			unset($$key);
-		foreach( $buf as $key=>&$val )
-			$$key = $val;
+		foreach( $tempvars as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
+			unset($$un_common_k_e_y_value);
+		foreach( $buf as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
+			$$un_common_k_e_y_value = $un_common_v_a_l_value;
 		
 		if( system_is_ajax_call() && count($this->_script)>0 )
 			$contents .= "<script> ".implode("\n",$this->_script)."</script>";
