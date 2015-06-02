@@ -127,7 +127,7 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 	else
 	{
 		$env = getEnvironment();
-	    if( isNotLive() && !starts_with($subject, "[$env]"))
+	    if( isDev() && !starts_with($subject, "[$env]"))
 			$subject = "[$env] $subject";
 	}
 	
