@@ -1517,9 +1517,41 @@ function system_render_object_tree($array_of_objects)
 		elseif( $val instanceof DateTime )
 			$res[$key] = $val->format("Y-m-d H:i:s");
 		else
-			$res[$key] = $val;
+			$res[$key] = system_encode_for_output($val,true);
 	}
 	return $res;
+}
+
+/**
+ * Encodes a string for output to the browser.
+ * 
+ * This function basically uses htmlentities to savely encode output thus avoiding XSS attacks.
+ * If recursively walks given arrays/objects and is able to encode <Model> objects properties only.
+ * It also avoid double encoding $values.
+ * 
+ * Note that <Model> objects that are assigned to <Control>s or <Template>s are automatically encoded by the WDF.
+ * 
+ * @param mixed $value Value or array/object of values to be encoded
+ * @param array $encode_models_only If true only properties of <Model> objects are encoded
+ * @return mixed The encoded value(s)
+ */
+function system_encode_for_output($value,$encode_models_only=false)
+{
+	if( !$encode_models_only && is_string($value) )
+		return htmlentities($value,ENT_COMPAT | ENT_HTML401,"UTF-8",false);
+	if( $value instanceof ScavixWDF\Model\Model )
+	{
+		foreach( $value->GetColumnNames() as $col )
+			$value->$col = system_encode_for_output($value->$col,false);
+		return $value;
+	}
+	if( is_array($value) )
+	{
+		foreach( $value as $k=>$v )
+			$value[$k] = system_encode_for_output($v);
+		return $value;
+	}
+	return $value;
 }
 
 /**
