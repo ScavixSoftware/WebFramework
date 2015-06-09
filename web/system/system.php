@@ -1542,7 +1542,10 @@ function system_encode_for_output($value,$encode_models_only=false)
 	if( $value instanceof ScavixWDF\Model\Model )
 	{
 		foreach( $value->GetColumnNames() as $col )
-			$value->$col = system_encode_for_output($value->$col,false);
+		{
+			if( isset($value->$col) )
+				$value->$col = system_encode_for_output($value->$col,false);
+		}
 		return $value;
 	}
 	if( is_array($value) )
