@@ -54,7 +54,7 @@ class CellFormat
 
 	function __construct($format=false,$blank_if_false=false,$conditional_css=array())
 	{
-		if( $format )
+		if( $format !== false )
 		{
 			if( is_string($format) )
 			{
@@ -204,6 +204,9 @@ class CellFormat
 	private function GetConditonalCss()
 	{
 		$content = $this->content;
+		if( !is_numeric($content) )
+			return "";
+		
 		foreach( $this->conditional_css as $cond=>$css )
 		{
 			switch( strtolower($cond) )
@@ -211,19 +214,44 @@ class CellFormat
 				case 'neg':
 				case 'negative':
 					if( floatval($content) < 0 )
-					{
 						return $css;
-					}
 					break;
 				case 'pos':
 				case 'positive':
 					if( floatval($content) > 0 )
-					{
 						return $css;
-					}
 					break;
 				case 'copy':
 					return $css->GetConditonalCss();
+				default:
+					if( !preg_match('/(.+)\((\d+)\)/', $cond, $m) )
+						break;
+					
+					$v = intval($m[2]);
+					switch( $m[1] )
+					{
+						case 'gt': 
+							if( floatval($content) > $v )
+								return $css;
+							break;
+						case 'gte': 
+							if( floatval($content) >= $v )
+								return $css;
+							break;
+						case 'lt': 
+							if( floatval($content) < $v )
+								return $css;
+							break;
+						case 'lte': 
+							if( floatval($content) <= $v )
+								return $css;
+							break;
+						case 'eq': 
+							if( floatval($content) == $v )
+								return $css;
+							break;
+					}
+					
 					break;
 			}
 		}
