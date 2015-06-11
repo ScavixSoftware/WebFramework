@@ -309,10 +309,8 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	{
 		if( $datasource )
 			$this->setDataSource($datasource);
-		$this->_data = array();
-		foreach( $this->_ds->ExecuteSql($sql,$args) as $row )
-			$this->_data[] = array_values($row);
-		return $this;
+		
+		return $this->setResultSet($this->_ds->ExecuteSql($sql,$args));
 	}
 	
 	/**
@@ -490,6 +488,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 						break;
 					case 'float': 
 					case 'double': 
+					case 'number': 
 						$v = floatval($v);
 						if( $ci )
 							$v = array('v'=>$v,'f'=>$ci->FormatNumber($v));

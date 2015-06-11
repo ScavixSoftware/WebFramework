@@ -36,6 +36,7 @@ class GoogleControl extends Control
 {
 	protected static $_apis = array();
 	private static $_delayedHookAdded = false;
+	private $disposed = false;
 	
 	/**
 	 * @param string $tag Allows to specify another tag for the wrapper control, default for google controls is &lt;span&gt;
@@ -48,6 +49,12 @@ class GoogleControl extends Control
 			$page->addJs('//www.google.com/jsapi');
 	}
 	
+	function __dispose()
+	{
+		delete_object($this->id);
+		$this->disposed = true;
+	}
+	
 	/**
 	 * @override
 	 */
@@ -58,7 +65,7 @@ class GoogleControl extends Control
 		if( count($args) > 0 )
 		{
 			$controller = $args[0];
-			if( $controller instanceof HtmlPage )
+			if( $controller instanceof \ScavixWDF\Base\Renderable )
 			{
 				if( !self::$_delayedHookAdded )
 				{
@@ -84,7 +91,10 @@ class GoogleControl extends Control
 			$loader[] = "google.load('$api','$version',".system_to_json($options).");";
 		}
 		$controller = $args[0];
-		$controller->addDocReady($loader,false); // <- see the 'false'? we add these codes inline, not into the ready handler as this crashes
+		if( system_is_ajax_call() )
+			$controller->script($loader);
+		elseif( $controller instanceof HtmlPage )
+			$controller->addDocReady($loader,false); // <- see the 'false'? we add these codes inline, not into the ready handler as this crashes
 	}
 	
 	protected function _loadApi($api,$version,$options)
@@ -94,6 +104,9 @@ class GoogleControl extends Control
 	
 	protected function _addLoadCallback($api,$script,$prepend=false)
 	{
+		if( $this->disposed )
+			return;
+		
 		if( !isset(self::$_apis[$api][1]['callback']) )
 			self::$_apis[$api][1]['callback'] = array();
 		
@@ -101,8 +114,12 @@ class GoogleControl extends Control
 			$script = implode("\n",$script);
 
 		if( $prepend )
-			array_unshift(self::$_apis[$api][1]['callback'], $script);
+		{
+			$temp = array_reverse(self::$_apis[$api][1]['callback']);
+			$temp[$this->id] = $script;
+			self::$_apis[$api][1]['callback'] = array_reverse($temp);
+		}
 		else
-			self::$_apis[$api][1]['callback'][] = $script;
+			self::$_apis[$api][1]['callback'][$this->id] = $script;
 	}
 }
