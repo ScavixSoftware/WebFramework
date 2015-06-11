@@ -168,6 +168,25 @@ abstract class Renderable
 	}
 	
 	/**
+	 * Adds JavaScript-Code to the <Renderable> object.
+	 * 
+	 * @param string|array $scriptCode JS code to be added
+	 * @return Renderable `$this`
+	 */
+	function script($scriptCode)
+	{
+		if( is_array($scriptCode) )
+			$scriptCode = implode(";",$scriptCode);
+		
+		$id = ($this instanceof Control)?$this->id:$this->_storage_id;
+		$scriptCode = str_replace("{self}", $id, $scriptCode);
+		$k = "k".md5($scriptCode);
+		if(!isset($this->_script[$k]))
+			$this->_script[$k] = $scriptCode;
+		return $this;
+	}
+	
+	/**
 	 * Captures `$this` to the given `$variable`.
 	 * 
 	 * This may me used to capture an instance from a method chain like this:

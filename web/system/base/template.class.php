@@ -234,21 +234,6 @@ class Template extends Renderable
 	}
 	
 	/**
-	 * Adds JavaScript-Code to the template.
-	 * 
-	 * @param string $scriptCode JS code to be added
-	 * @return Template `$this`
-	 */
-	function script($scriptCode)
-	{
-		$scriptCode = str_replace("{self}", $this->_storage_id, $scriptCode);
-		$k = "k".md5($scriptCode);
-		if(!isset($this->_script[$k]))
-			$this->_script[$k] = $scriptCode;
-		return $this;
-	}
-
-	/**
 	 * @override
 	 */
 	function WdfRenderAsRoot()

@@ -321,24 +321,6 @@ class Control extends Renderable
 	}
 
 	/**
-	 * Adds JavaScript-Code to the control.
-	 * 
-	 * Code will be echoed out with the control.
-	 * You may specify dependencies in the form of JS files that must be loaded to
-	 * make the control work.
-	 * @param string|array $scriptCode The JavaScript code
-	 * @return Control `$this`
-	 */
-	function script($scriptCode)
-	{
-		$scriptCode = str_replace("{self}", $this->id, $scriptCode);
-		$k = "k".md5($scriptCode);
-		if(!isset($this->_script[$k]))
-			$this->_script[$k] = $scriptCode;
-		return $this;
-	}
-
-	/**
 	 * Adds a CSS property to the control.
 	 * 
 	 * If value is an integer (or numeric string like '12') 'px' will be added.
