@@ -386,7 +386,7 @@ class Control extends Renderable
 		if( count($args) > 0 && count($this->_script) > 0 )
 		{
 			if( !$this->_parent )
-				return log_debug("Skipping ready-script addition for control without parent",$this);
+				return;// log_debug("Skipping ready-script addition for control without parent",$this);
 			$controller = $args[0];
 			if( $controller instanceof HtmlPage )
 				$controller->addDocReady(implode("\n",$this->_script));
