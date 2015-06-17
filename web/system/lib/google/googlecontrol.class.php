@@ -88,6 +88,8 @@ class GoogleControl extends Control
 			list($version,$options) = $definition;
 			if( isset($options['callback']) )
 				$options['callback'] = "function(){ ".implode("\n",$options['callback'])." }";
+			else
+				$options['callback'] = "function(){}";
 			$loader[] = "google.load('$api','$version',".system_to_json($options).");";
 		}
 		$controller = $args[0];
