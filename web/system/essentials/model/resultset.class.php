@@ -417,6 +417,27 @@ class ResultSet implements Iterator, ArrayAccess
 	}
 	
 	/**
+	 * Calls a callback function for each result dataset.
+	 * 
+	 * Callback function will receive each row as array and must return the (eventually changed) array.
+	 * Note that this method will not clone the result, but return the object itself!
+	 * @param mixed $callback Anonymous callback function
+	 * @return Model Returns `$this`
+	 */
+	function Process($callback)
+	{
+		if( !$this->_data_fetched )
+			$this->fetchAll();
+		
+		$cnt = count($this->_rowbuffer);
+		for($i=0; $i<$cnt; $i++)
+			$this->_rowbuffer[$i] = $callback($this->_rowbuffer[$i]);
+		
+		$this->_current = $this->_rowbuffer[$this->_index];
+		return $this;
+	}
+	
+	/**
 	 * Returns the number of affected rows.
 	 * 
 	 * @return int Number of affected rows
