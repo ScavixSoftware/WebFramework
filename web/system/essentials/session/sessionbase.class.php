@@ -138,29 +138,32 @@ abstract class SessionBase
 
 		if( (session_name() != $CONFIG['session']['session_name']) || (session_id() == "") )
 		{
-			session_name($CONFIG['session']['session_name']);
+			$name = $CONFIG['session']['session_name'];
+			session_name($name);
+			if( system_is_ajax_call() && !isset($_COOKIE[$name]) )
+				die();
 
-			if( isset($_REQUEST[$CONFIG['session']['session_name']]) )
+			if( isset($_REQUEST[$name]) )
 			{
 				$regen_needed = false;
 				/**
 				 * @todo The following code is superfluous if variables_order=EGPCS and session.use_only_cookies = Off
 				 */
 				// in case that there is a session id passed in the cookie and in the post, prefer the one in post:
-				if(isset($_POST[$CONFIG['session']['session_name']]) && $_REQUEST[$CONFIG['session']['session_name']] != $_POST[$CONFIG['session']['session_name']])
+				if(isset($_POST[$name]) && $_REQUEST[$name] != $_POST[$name])
 				{
-					$_REQUEST[$CONFIG['session']['session_name']] = $_COOKIE[$CONFIG['session']['session_name']] = $_POST[$CONFIG['session']['session_name']];
+					$_REQUEST[$name] = $_COOKIE[$name] = $_POST[$name];
 					$regen_needed = true;
 				}
 				
 				// in case that there is a session id passed in the cookie and in the get, prefer the one in get,
 				// but do not set the COOKIE to make multi-session handling possible
-				if(isset($_GET[$CONFIG['session']['session_name']]) && $_REQUEST[$CONFIG['session']['session_name']] != $_GET[$CONFIG['session']['session_name']])
+				if(isset($_GET[$name]) && $_REQUEST[$name] != $_GET[$name])
 				{
-					$_REQUEST[$CONFIG['session']['session_name']] = $_GET[$CONFIG['session']['session_name']];
+					$_REQUEST[$name] = $_GET[$name];
 					$regen_needed = true;
 				}
-				$sid = preg_replace("/[^0-9a-zA-Z]/", "", $_REQUEST[$CONFIG['session']['session_name']]);
+				$sid = preg_replace("/[^0-9a-zA-Z]/", "", $_REQUEST[$name]);
 				if($sid != "")
 				{
 					session_id($sid);
