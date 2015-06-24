@@ -313,8 +313,8 @@ class SqLite implements IDatabaseDriver
 		return array
 		(
 			'rows_per_page'=> $length,
-			'current_page' => floor($offset / $length) + 1,
-			'total_pages'  => ceil($total / $length),
+			'current_page' => $length==0?0:floor($offset / $length) + 1,
+			'total_pages'  => $length==0?0:ceil($total / $length),
 			'total_rows'   => $total,
 			'offset'       => $offset,
 		);
