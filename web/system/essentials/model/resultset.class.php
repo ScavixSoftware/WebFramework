@@ -430,10 +430,12 @@ class ResultSet implements Iterator, ArrayAccess
 			$this->fetchAll();
 		
 		$cnt = count($this->_rowbuffer);
-		for($i=0; $i<$cnt; $i++)
-			$this->_rowbuffer[$i] = $callback($this->_rowbuffer[$i]);
-		
-		$this->_current = $this->_rowbuffer[$this->_index];
+		if( $cnt > 0 )
+		{
+			for($i=0; $i<$cnt; $i++)
+				$this->_rowbuffer[$i] = $callback($this->_rowbuffer[$i]);
+			$this->_current = $this->_rowbuffer[$this->_index];
+		}
 		return $this;
 	}
 	
