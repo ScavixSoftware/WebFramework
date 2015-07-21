@@ -189,10 +189,11 @@ class TranslationAdmin extends TranslationAdminBase
 	
 	private function _searchQuery($offset,$lang,$search=false,$untranslated=false)
 	{
+		$def = $GLOBALS['CONFIG']['localization']['default_language'];
 		$sql = "select 
 			o.id as 'id', o.content as 'def', 
 			(select i.content from wdf_translations i where i.id=o.id and i.lang=?) as 'trans' 
-		from wdf_translations o where o.lang='en' {having} order by id asc limit $offset,50";
+		from wdf_translations o where o.lang='$def' {having} order by id asc limit $offset,50";
 		if( $untranslated )
 			return $this->ds->ExecuteSql(str_replace("{having}","having isnull(trans) or trans=''",$sql),$lang);
 		if( !$search )
