@@ -26,6 +26,17 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+function setDownloadProxy($ip,$port,$type=CURLPROXY_SOCKS5)
+{
+	$GLOBALS['download']['proxy'] = "$ip:$port";
+	$GLOBALS['download']['proxy_type'] = $type;
+}
+function releaseDownloadProxy()
+{
+	unset($GLOBALS['download']['proxy']);
+	unset($GLOBALS['download']['proxy_type']);
+}
+
 /**
  * @shortcut <downloadData>($url,$postdata,$request_header,$cacheTTLsec,$request_timeout,$response_header,$cookie_file)
  */
@@ -79,6 +90,13 @@ function downloadData($url, $postdata = false, $request_header = array(), $cache
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+	
+	if( isset($GLOBALS['download']['proxy']) )
+	{
+		log_debug("Using download proxy {$GLOBALS['download']['proxy']}");
+		curl_setopt($ch, CURLOPT_PROXY, $GLOBALS['download']['proxy']);
+		curl_setopt($ch, CURLOPT_PROXYTYPE, $GLOBALS['download']['proxy_type']);
+	}
 	
 	if( $cookie_file )
 	{
