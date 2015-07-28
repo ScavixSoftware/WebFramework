@@ -93,7 +93,7 @@ function downloadData($url, $postdata = false, $request_header = array(), $cache
 	
 	if( isset($GLOBALS['download']['proxy']) )
 	{
-		log_debug("Using download proxy {$GLOBALS['download']['proxy']}");
+		//log_debug("Using download proxy {$GLOBALS['download']['proxy']}");
 		curl_setopt($ch, CURLOPT_PROXY, $GLOBALS['download']['proxy']);
 		curl_setopt($ch, CURLOPT_PROXYTYPE, $GLOBALS['download']['proxy_type']);
 	}
