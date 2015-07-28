@@ -32,9 +32,6 @@ use ScavixWDF\Base\Control;
  * See http://www.filamentgroup.com/lab/jquery_ui_selectmenu_an_aria_accessible_plugin_for_styling_a_html_select/
  * this component is only very few tested
  * known issue: weird effects in uiDialog
- * 
- * @attribute[Resource('jquery-ui/ui.selectmenu.js')]
- * @attribute[Resource('jquery-ui/ui.selectmenu.css')]
  */
 class uiSelectMenu extends uiControl
 {
