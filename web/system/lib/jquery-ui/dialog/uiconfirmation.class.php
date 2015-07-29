@@ -56,7 +56,20 @@ class uiConfirmation extends uiDialog
 			'autoOpen'=>true,
 			'modal'=>true,
 			'width'=>450,
-			'height'=>300
+			'height'=>300,
+			'show' => array('effect' => 'fade', 'duration' => 500),
+			'hide' => array('effect' => 'fade', 'duration' => 500),
+			'open' => '[jscode]function(){ $(\'.ui-widget-overlay\').hide().fadeIn(); }',
+			'beforeClose' => '[jscode]function(){ $(\'.ui-widget-overlay\').remove();
+$(\'<div />\', {
+    \'class\':\'ui-widget-overlay\'
+}).css({
+    height: $(document).height(),
+    width: $(document).width(),
+    zIndex: 1001
+}).appendTo(\'body\').fadeOut(function(){
+    $(this).remove();
+}); }',
 		);
 		
 		$title = "TITLE_$text_base";
