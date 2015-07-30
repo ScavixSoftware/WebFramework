@@ -37,6 +37,7 @@ use ScavixWDF\ICallable;
 use ScavixWDF\Model\DataSource;
 use ScavixWDF\Reflection\WdfReflector;
 use ScavixWDF\WdfException;
+use ScavixWDF\WdfResource;
 
 // Config handling
 system_config_default( !defined("NO_DEFAULT_CONFIG") );
@@ -334,7 +335,7 @@ function system_instanciate_controller($controller_id)
 	
 	if( system_is_ajax_call() )
 	{
-		if( !($res instanceof Renderable) )
+		if( !($res instanceof Renderable) && !($res instanceof WdfResource) )
 		{
 			log_fatal("ACCESS DENIED: $controller_id is no Renderable");
 			die("__SESSION_TIMEOUT__");
