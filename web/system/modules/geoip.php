@@ -212,7 +212,7 @@ function get_timezone_by_ip($ip = false)
 	if($ip === false)
 		$ip = $GLOBALS['current_ip_addr'];
 
-	if( starts_with($ip, "1.1 ") || starts_with($ip, "192.168.1.") )
+	if( starts_with($ip, "1.1 ") || starts_with($ip, "192.168.") )
 		return false;
     
 	$key = "get_timezone_by_ip.".getAppVersion('nc')."-".$ip;
