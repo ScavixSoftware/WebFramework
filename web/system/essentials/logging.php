@@ -154,7 +154,7 @@ function global_fatal_handler()
 	$error = error_get_last();
 	if(($error === NULL) || ($error['type'] !== E_ERROR))
 		return;
-	$ex = new WdfException($error["message"]);
+	$ex = new WdfException($error["message"]."\n".logging_render_var($error));
 	try
 	{
 		// system_die will handle logging itself. perhaps restructure that to
