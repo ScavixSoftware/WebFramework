@@ -69,7 +69,7 @@ function get_geo_location_by_ip($ip_address=null)
 		$ip_address = $GLOBALS['current_ip_addr'];
 
 	// local ips throw an error, so ignore them:
-	if(starts_with($ip_address, "192.168.1."))
+	if(starts_with($ip_address, "192.168."))
 		return false;
 	if( function_exists('geoip_open') )
 	{
@@ -115,7 +115,7 @@ function get_coordinates_by_ip($ip = false)
 	// ip could be something like "1.1 ironportweb01.gouda.lok:80 (IronPort-WSA/7.1.1-038)" from proxies
 	if($ip === false)
 		$ip = $GLOBALS['current_ip_addr'];
-	if(starts_with($ip, "1.1 ") || starts_with($ip, "192.168.1."))
+	if(starts_with($ip, "1.1 ") || starts_with($ip, "192.168."))
 		return false;
 	
 	if( function_exists('geoip_open') )
@@ -164,7 +164,7 @@ function get_countrycode_by_ip($ipaddr = false)
 	
 	if($country_code == "")
 	{
-		if(isDev() && starts_with($ipaddr, '192.168.1.'))
+		if(isDev() && starts_with($ipaddr, '192.168.'))
 			$country_code = 'DE';
 		else
 		{
