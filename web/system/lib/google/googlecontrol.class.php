@@ -46,7 +46,10 @@ class GoogleControl extends Control
 		parent::__initialize($tag);
 		$page = current_controller(false);
 		if( $page instanceof HtmlPage )
-			$page->addJs('//www.google.com/jsapi');
+		{
+			$page->addJs('//www.gstatic.com/charts/loader.js');
+			//$page->addJs('//www.google.com/jsapi');
+		}
 	}
 	
 	function __dispose()
@@ -90,7 +93,8 @@ class GoogleControl extends Control
 				$options['callback'] = "function(){ ".implode("\n",$options['callback'])." }";
 			else
 				$options['callback'] = "function(){}";
-			$loader[] = "google.load('$api','$version',".system_to_json($options).");";
+			
+			$loader[] = "google.charts.load('43',".system_to_json($options).");";
 		}
 		$controller = $args[0];
 		if( system_is_ajax_call() )

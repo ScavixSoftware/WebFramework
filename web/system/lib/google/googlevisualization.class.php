@@ -99,35 +99,35 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	{
 		if( count($this->_data)>1 )
 		{
-			$id = $this->id;
+			$id = $this->id; $d = "d$id"; $c = "c$id";
 			$opts = json_encode($this->gvOptions);
 			if( count($this->_data)>0 )
 			{
 				array_walk_recursive($this->_data,function(&$item, &$key){ if( $item instanceof DateTime) $item = "[jscode]new Date(".($item->getTimestamp()*1000).")"; });
-				$d = system_to_json($this->_data);
+				$data = system_to_json($this->_data);
 				if( self::$UseMaterialDesign && in_array($this->gvType, array('Bar', 'Column')))
 				{
-					$js = "var d=google.visualization.arrayToDataTable($d);\n"
-						. "var c=new google.charts.Bar($('#$id').get(0));\n"
-						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\n"
-						. "c.draw(d,google.charts.{$this->gvType}.convertOptions($opts));\n"
-						. "$('#$id').data('googlechart', c);";
+					$js = "var $d=google.visualization.arrayToDataTable($data);\n"
+						. "var $c=new google.charts.Bar($('#$id').get(0));\n"
+						. "google.visualization.events.addListener($c, 'ready', function(){ wdf.debug('#$id ready'); $('#$id').data('ready',true); });\n"
+						. "$c.draw($d,google.charts.{$this->gvType}.convertOptions($opts));\n"
+						. "$('#$id').data('googlechart', $c);";
 				}
 				else
 				{
-					$js = "var d=google.visualization.arrayToDataTable($d);\n"
-						. "var c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
-						. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\n"
-						. "c.draw(d,$opts);\n"
-						. "$('#$id').data('googlechart', c);";
+					$js = "var $d=google.visualization.arrayToDataTable($data);\n"
+						. "var $c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
+						. "google.visualization.events.addListener($c, 'ready', function(){ wdf.debug('#$id ready'); $('#$id').data('ready',true); });\n"
+						. "$c.draw($d,$opts);\n"
+						. "$('#$id').data('googlechart', $c);";
 				}
 			}
 			else
 			{
 				$q = buildQuery($this->id,'Query');
-				$js = "var $id = new google.visualization.Query('$q');\n"
-					. "$id.setQuery('{$this->gvQuery}');\n"
-					. "$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
+				$js = "var q$id = new google.visualization.Query('$q');\n"
+					. "q$id.setQuery('{$this->gvQuery}');\n"
+					. "q$id.send(function(r){ if(r.isError()){ $('#$id').html(r.getDetailedMessage()); }else{ var c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
 					. "google.visualization.events.addListener(c, 'ready', function(){ $('#$id').data('ready',true); });\n"
 					. "c.draw(r.getDataTable(),$opts);\n"
 					. "$('#$id').data('googlechart', c);}});";
