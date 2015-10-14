@@ -102,7 +102,7 @@ class Query
 			if( is_integer($v) )
 				$this->_statement->bindValue($i+1,$v,PDO::PARAM_INT);
 			elseif( $v instanceof DateTime )
-				$this->_statement->bindValue($i+1,$v->format("c"));
+				$this->_statement->bindValue($i+1,$v->format("Y-m-d H:i:s"));
 			else
 				$this->_statement->bindValue($i+1,$v);
 		}
