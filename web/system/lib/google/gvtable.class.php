@@ -24,6 +24,8 @@
  */
 namespace ScavixWDF\Google;
 
+use ScavixWDF\Base\Control;
+
 /**
  * A data table
  * 
@@ -39,19 +41,23 @@ class gvTable extends GoogleVisualization
 		parent::__initialize('Table',$options,$query,$ds);
 		$this->_loadPackage('table');
 	}
-	
+		
 	/**
+	 * Sets an option.
+	 * 
+	 * Overrides parent to capture 'title' option as tables does not handle that.
+	 * We will instead create a &ltdiv class='caption'/&gt; element with the title once the table has been rendered.
 	 * @override
 	 */
-	function PreRender($args = array())
+	function opt($name,$value=null)
 	{
-		$t = $this->opt('title');
-		if( $t )
+		if( $name == 'title' && $value )
 		{
-			// use jQuery to add a caption element to the table as google does not support this natively
-			$js = "$('#{$this->id}').find('table').prepend('<caption>$t</caption>');";
-			$this->_addLoadCallback('visualization', $js);
+			$script = "$('#{self}').prepend( $('<div/>').addClass('caption').html(".json_encode($value).") );";
+			$script = "if( $('#{self}').data('ready') ){ $script }else setTimeout(readyCb{self},100);";
+			$script = "var readyCb{self} = function(){ $script }; readyCb{self}();";
+			$this->script($script);
 		}
-		return parent::PreRender($args);
+		return parent::opt($name, $value);
 	}
 }
