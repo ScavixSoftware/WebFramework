@@ -51,7 +51,7 @@ class gMap extends GoogleControl
 	 */
 	function __initialize($options=array())
 	{
-		parent::__initialize('div');
+		parent::__initialize('div',false);
 		$this->gmOptions = array_merge($this->gmOptions,$options);
 		$this->gmOptions['sensor'] = ($this->gmOptions['sensor'])?'true':'false';
 		$this->_loadApi('maps','3',array('other_params'=>http_build_query($this->gmOptions)));
