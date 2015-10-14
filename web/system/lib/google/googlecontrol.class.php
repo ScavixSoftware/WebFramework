@@ -121,7 +121,7 @@ class GoogleControl extends Control
 			{
 				$loader[] = "window.googleLoadCallback = ".$options['callback'];
 				$options['callback'] = 'function(){ window.googleLoadCallback(); }';
-				$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('41',".system_to_json($options)."); }";
+				$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('42',".system_to_json($options)."); }";
 			}
 			else
 				$loader[] = "google.load('$api','$version',".system_to_json($options).");";
