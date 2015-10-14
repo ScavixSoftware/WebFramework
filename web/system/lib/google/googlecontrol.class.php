@@ -94,7 +94,9 @@ class GoogleControl extends Control
 			else
 				$options['callback'] = "function(){}";
 			
-			$loader[] = "google.charts.load('43',".system_to_json($options).");";
+			$loader[] = "window.googleLoadCallback = ".$options['callback'];
+			$options['callback'] = 'function(){ window.googleLoadCallback(); }';
+			$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('43',".system_to_json($options)."); }";
 		}
 		$controller = $args[0];
 		if( system_is_ajax_call() )
