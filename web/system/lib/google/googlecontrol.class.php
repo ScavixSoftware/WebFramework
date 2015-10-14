@@ -26,6 +26,8 @@ namespace ScavixWDF\Google;
 
 use ScavixWDF\Base\Control;
 use ScavixWDF\Base\HtmlPage;
+use ScavixWDF\Base\Renderable;
+use ScavixWDF\Localization\CultureInfo;
 
 /**
  * Base class for all google controls.
@@ -38,6 +40,7 @@ class GoogleControl extends Control
 	private static $_delayedHookAdded = false;
 	private $disposed = false;
 	private $frozen = true;
+	var $_culture = false;
 	
 	/**
 	 * @param string $tag Allows to specify another tag for the wrapper control, default for google controls is &lt;span&gt;
@@ -63,6 +66,19 @@ class GoogleControl extends Control
 	}
 	
 	/**
+	 * Assigns a culture to this control.
+	 * 
+	 * This will be used for value formatting.
+	 * @param CultureInfo $ci The culture object
+	 * @return GoogleControl `$this`
+	 */
+	function setCulture(CultureInfo $ci)
+	{
+		$this->_culture = $ci;
+		return $this;
+	}
+	
+	/**
 	 * @override
 	 */
 	function PreRender($args = array())
@@ -72,7 +88,7 @@ class GoogleControl extends Control
 		if( count($args) > 0 )
 		{
 			$controller = $args[0];
-			if( $controller instanceof \ScavixWDF\Base\Renderable )
+			if( $controller instanceof Renderable )
 			{
 				if( !self::$_delayedHookAdded )
 				{
@@ -98,11 +114,14 @@ class GoogleControl extends Control
 			else
 				$options['callback'] = "function(){}";
 			
+			if( $this->_culture )
+				$options['language'] = $this->_culture->ResolveToLanguage()->Code;
+			
 			if( $this->frozen )
 			{
 				$loader[] = "window.googleLoadCallback = ".$options['callback'];
 				$options['callback'] = 'function(){ window.googleLoadCallback(); }';
-				$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('43',".system_to_json($options)."); }";
+				$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('41',".system_to_json($options)."); }";
 			}
 			else
 				$loader[] = "google.load('$api','$version',".system_to_json($options).");";

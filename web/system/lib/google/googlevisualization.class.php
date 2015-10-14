@@ -41,7 +41,6 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	public static $DefaultDatasource = false;
 	public static $Colors = false;
 	
-	var $_culture = false;
 	var $_columnDef = false;
 	var $_data = array();
 	var $_rowCallbacks = array();
@@ -386,19 +385,6 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	}
 	
 	/**
-	 * Assigns a culture to this visualization.
-	 * 
-	 * This will be used for value formatting.
-	 * @param CultureInfo $ci The culture object
-	 * @return GoogleVisualization `$this`
-	 */
-	function setCulture(CultureInfo $ci)
-	{
-		$this->_culture = $ci;
-		return $this;
-	}
-	
-	/**
 	 * Adds a callback method that will be called for each added data row.
 	 * 
 	 * @param Closure $callback Method to be called
@@ -500,6 +486,9 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 						$v = new DateTime($v);
 						if( $ci )
 							$v = array('v'=>$v,'f'=>$ci->FormatDateTime($v));
+						break;
+					case 'timeofday': 
+						$v = explode(':',$v);
 						break;
 				}
 				$d[] = $v;
