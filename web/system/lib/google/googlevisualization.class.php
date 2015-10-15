@@ -107,7 +107,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 			{
 				$js = "var $d=google.visualization.arrayToDataTable($data);\n"
 					. "var $c=new google.charts.Bar($('#$id').get(0));\n"
-					. "google.visualization.events.addListener($c, 'ready', function(){ wdf.debug('#$id ready'); $('#$id').data('ready',true); });\n"
+					. "google.visualization.events.addListener($c, 'ready', function(){ $('#$id').data('ready',true); });\n"
 					. "$c.draw($d,google.charts.{$this->gvType}.convertOptions($opts));\n"
 					. "$('#$id').data('googlechart', $c);";
 			}
@@ -115,7 +115,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 			{
 				$js = "var $d=google.visualization.arrayToDataTable($data);\n"
 					. "var $c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
-					. "google.visualization.events.addListener($c, 'ready', function(){ wdf.debug('#$id ready'); $('#$id').data('ready',true); });\n"
+					. "google.visualization.events.addListener($c, 'ready', function(){ $('#$id').data('ready',true); });\n"
 					. "$c.draw($d,$opts);\n"
 					. "$('#$id').data('googlechart', $c);";
 			}
