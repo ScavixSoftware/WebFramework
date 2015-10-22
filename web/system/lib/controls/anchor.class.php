@@ -59,12 +59,12 @@ class Anchor extends Control
 	}
 	
 	/**
-	 * @override Ensures that there's a valid href attribute, if not adds "javascript:{}" to it.
+	 * @override Ensures that there's a valid href attribute, if not adds "#" to it.
 	 */
 	public function WdfRender()
 	{
         if($this->href == "")
-			$this->href = "javascript:{}";
+			$this->href = "#";
 
         return parent::WdfRender();
 	}	
