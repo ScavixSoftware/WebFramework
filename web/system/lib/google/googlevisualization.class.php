@@ -464,8 +464,9 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 					case 'double': 
 					case 'number': 
 						$v = floatval($v);
-						if( $ci )
-							$v = array('v'=>$v,'f'=>$ci->FormatNumber($v));
+						// if we format the output will be HTML (used in tooltip) but the standard tooltip cannot handle that
+//						if( $ci )
+//							$v = array('v'=>$v,'f'=>$ci->FormatNumber($v)); 
 						break;
 					case 'currency': 
 						$v = floatval($v);
