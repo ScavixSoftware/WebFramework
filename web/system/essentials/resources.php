@@ -132,3 +132,11 @@ function resFile($filename, $as_local_path = false)
 		return $conf;
 	return "";
 }
+
+function register_less_variable($name,$value)
+{
+	global $CONFIG;
+	$vars = cfg_getd('resources_less_variables',array());
+	$vars[$name] = $value;
+	cfg_set('resources_less_variables',$vars);
+}
