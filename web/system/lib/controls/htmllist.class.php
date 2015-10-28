@@ -62,7 +62,7 @@ class HtmlList extends Control
 	 * @param string $id Optional id for the created item
 	 * @return HtmlListItem Created item or null if `is_empty($content)`
 	 */
-	function &AddItem($content,$id = "")
+	function AddItem($content,$id = "")
 	{
 		if(empty($content))
 			return null;
@@ -71,7 +71,7 @@ class HtmlList extends Control
 		$this->items[] = $item;
 		$this->content($item);
 		
-		return $item;
+		return $this;
 	}
 	
 	
