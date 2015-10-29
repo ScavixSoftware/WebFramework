@@ -511,7 +511,7 @@ function globalcache_list_keys()
             break;
             
 		default:
-			WdfException::Raise("globalcache_list_keys not implemented for handler {$CONFIG['globalcache']['CACHE']}");
+			WdfException::Log("globalcache_list_keys not implemented for handler {$CONFIG['globalcache']['CACHE']}");
 			break;
 	}
 	return array();
