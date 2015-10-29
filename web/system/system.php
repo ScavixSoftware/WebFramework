@@ -27,6 +27,7 @@
  */
 
 define('FRAMEWORK_LOADED','uSI7hcKMQgPaPKAQDXg5');
+date_default_timezone_set("Europe/Berlin");
 require_once(__DIR__.'/system_objects.php');
 require_once(__DIR__.'/system_functions.php');
 
