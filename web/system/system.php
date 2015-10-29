@@ -1014,6 +1014,13 @@ function buildQuery($controller,$event="",$data="", $url_root=false)
 	
     if(substr($controller, 0, 4) == "http")
         return $controller;
+	
+	// allow buildQuery('controller/method')
+	if( is_string($controller) && $event=="" && $data=="" && !$url_root )
+	{
+		if( preg_match('|^([a-z0-9]+)/([a-z0-9]+)$|i',$controller) )
+			list($controller,$event) = explode("/",$controller);
+	}
 
 	if($controller != "")
 		$route = "$controller/";
