@@ -323,7 +323,8 @@ function setAppVersion($major,$minor,$build,$codename="",$nc_salt=false)
 	$GLOBALS['APP_VERSION']['string'] = "$major.$minor.$build";
 	if( $codename )
 		$GLOBALS['APP_VERSION']['string'] .= " ($codename)";
-	$GLOBALS['APP_VERSION']['nc'] = 'nc'.preg_replace('/[^0-9]/', '', md5($GLOBALS['APP_VERSION']['string'].$nc_salt));
+	//$GLOBALS['APP_VERSION']['nc'] = 'nc'.preg_replace('/[^0-9]/', '', md5($GLOBALS['APP_VERSION']['string'].$nc_salt));
+	$GLOBALS['APP_VERSION']['nc'] = 'nc'.preg_replace('/[^0-9]/', '', substr(base_convert(md5($GLOBALS['APP_VERSION']['string'].$nc_salt), 16, 32), 0, 12));
 }
 
 /**

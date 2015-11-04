@@ -38,9 +38,10 @@ echo '<?xml version="1.0" encoding="UTF-8" ?>'."\n$doctype\n";?>
 	<link rel="shortcut icon" href="<?=$favicon?>" />
 <?php } ?>
 	<?php foreach($meta as $m) echo $m; ?>
+	<?php if(isset($inlineheaderpre)) echo $inlineheaderpre; ?>
 	<?php foreach($css as $c) echo $c; ?>
 	<?php foreach($js as $j) echo $j; ?>
-	<?php if(isset($inlineCSS)) echo $inlineCSS; ?>
+	<?php if(isset($inlineheader)) echo $inlineheader; ?>
 <script type='text/javascript'>
 $(function(){ 
 <?php if( $render_noscript_block ): ?>

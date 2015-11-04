@@ -45,6 +45,8 @@ class HtmlPage extends Template implements ICallable
 	var $js = array();
 	var $css = array();
 	var $docready = array();
+	var $inlineheaderpre = false;
+	var $inlineheader = false;
 	var $plaindocready = array();
 	var $wdf_settings = array('focus_first_input'=>true);
 
@@ -73,6 +75,8 @@ class HtmlPage extends Template implements ICallable
 		$this->set("content",array());
 		$this->set("docready",$this->docready);
 		$this->set("plaindocready",$this->plaindocready);
+		$this->set("inlineheaderpre",$this->inlineheaderpre);
+		$this->set("inlineheader",$this->inlineheader);
 		
 		if( $body_class )
 			$this->set("bodyClass","$body_class");
@@ -140,6 +144,8 @@ class HtmlPage extends Template implements ICallable
 		$this->set("js",$this->js);
 		$this->set("meta",$this->meta);
 		$this->set("content",$this->_content);
+		$this->set("inlineheaderpre",$this->inlineheaderpre);
+		$this->set("inlineheader",$this->inlineheader);
 		
 		return parent::WdfRender();
 	}
@@ -209,6 +215,30 @@ class HtmlPage extends Template implements ICallable
 			return;
 		$css = "\t<link rel='stylesheet' type='text/css' href='$src'/>\n";
 		$this->css[$src] = $css;
+		return $this;
+	}
+
+	/**
+	 * Adds raw code to the header
+	 * 
+	 * @param string $code The raw code
+	 * @param bool $pre Should it be added before the standard css and js files in the header?
+	 * @return HtmlPage `$this`
+	 */
+	function addHeaderRaw($code, $pre = false)
+	{
+		if($pre)
+		{
+			if( !$this->inlineheaderpre )
+				$this->inlineheaderpre = '';
+			$this->inlineheaderpre .= $code;
+		}
+		else
+		{
+			if( !$this->inlineheader )
+				$this->inlineheader = '';
+			$this->inlineheader .= $code;
+		}
 		return $this;
 	}
 

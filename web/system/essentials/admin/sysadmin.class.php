@@ -70,7 +70,12 @@ class SysAdmin extends HtmlPage
                 || $_SESSION['admin_handler_username'] != $CONFIG['system']['admin']['username']
                 || $_SESSION['admin_handler_password'] != $CONFIG['system']['admin']['password'] 
             ) )
-            redirect('SysAdmin','Login');
+		{
+			log_debug(current_event(true));
+			log_debug($_SESSION['admin_handler_username']);
+			log_debug($_SESSION['admin_handler_password']);
+            redirect('sysadmin','login');
+		}
         
         parent::__initialize("SysAdmin - $title", 'sysadmin');
         $this->_translate = false;
@@ -86,12 +91,12 @@ class SysAdmin extends HtmlPage
 					continue;
 				$nav->content( new Anchor(buildQuery($def[0],$def[1]),$label) );
 			}
-            $nav->content( new Anchor(buildQuery('SysAdmin','Cache'),'Cache') );
-            $nav->content( new Anchor(buildQuery('SysAdmin','PhpInfo'),'PHP info') );
-            $nav->content( new Anchor(buildQuery('TranslationAdmin','NewStrings'),'Translations') );
-            $nav->content( new Anchor(buildQuery('SysAdmin','Testing'),'Testing') );
+            $nav->content( new Anchor(buildQuery('sysadmin','cache'),'Cache') );
+            $nav->content( new Anchor(buildQuery('sysadmin','phpinfo'),'PHP info') );
+            $nav->content( new Anchor(buildQuery('translationadmin','newstrings'),'Translations') );
+            $nav->content( new Anchor(buildQuery('sysadmin','testing'),'Testing') );
             $nav->content( new Anchor(buildQuery('',''),'Back to app') );
-            $nav->content( new Anchor(buildQuery('SysAdmin','Logout'),'Logout', 'logout') );
+            $nav->content( new Anchor(buildQuery('sysadmin','logout'),'Logout', 'logout') );
 			
 			$this->_subnav = parent::content(new Control('div'));
         }
@@ -105,7 +110,7 @@ class SysAdmin extends HtmlPage
         $footer->content($copylink);
         
         if( (current_event() == strtolower($CONFIG['system']['default_event'])) && !system_method_exists($this, current_event()) )
-            redirect('SysAdmin', 'Index');
+            redirect('sysadmin', 'index');
     }
 
 	/**
@@ -151,7 +156,7 @@ class SysAdmin extends HtmlPage
         }
         
         if( $username != $CONFIG['system']['admin']['username'] || $password != $CONFIG['system']['admin']['password'] )
-            redirect(get_class_simple($this),'Login');
+            redirect(get_class_simple($this),'login');
         
         $_SESSION['admin_handler_username'] = $username;
         $_SESSION['admin_handler_password'] = $password;
@@ -165,7 +170,7 @@ class SysAdmin extends HtmlPage
     {
         unset($_SESSION['admin_handler_username']);
         unset($_SESSION['admin_handler_password']);
-        redirect(get_class_simple($this),'Login');
+        redirect(get_class_simple($this),'login');
     }
 	
 	/**
@@ -184,18 +189,18 @@ class SysAdmin extends HtmlPage
 		$form->AddSubmit('Search content')->name = 'kind';
 		
 		$form->content( '&nbsp;&nbsp;&nbsp;' );
-		$form->content( new Anchor(buildQuery('SysAdmin','CacheClear'),'Clear the complete cache') );
+		$form->content( new Anchor(buildQuery('sysadmin','cacheclear'),'Clear the complete cache') );
 		
 		if( system_is_module_loaded('globalcache') )
 		{
 			$form->content( '&nbsp;&nbsp;' );
-			$form->content( new Anchor(buildQuery('SysAdmin','Cache','show_info=1'),'Global cache info') );
+			$form->content( new Anchor(buildQuery('sysadmin','cache','show_info=1'),'Global cache info') );
 		}
 		
 		$form->content( '<div><b>Predefined searches:</b><br/>' );
 		foreach( $this->PrefedinedCacheSearches as $s )
 		{
-			$form->content( new Anchor(buildQuery('SysAdmin','Cache',"search=$s"),"$s") );
+			$form->content( new Anchor(buildQuery('sysadmin','cache',"search=$s"),"$s") );
 			$form->content( '&nbsp;' );
 		}
 		$form->content( '</div>' );
@@ -209,7 +214,7 @@ class SysAdmin extends HtmlPage
 			foreach( $_SESSION['admin_handler_last_cache_searches'] as $s )
 			{
 				list($k,$s) = explode(":",$s);
-				$form->content( new Anchor(buildQuery('SysAdmin','Cache',"search=$s".($k!='key'?'&kind=Search content':'')),"$k:$s") );
+				$form->content( new Anchor(buildQuery('sysadmin','cache',"search=$s".($k!='key'?'&kind=Search content':'')),"$k:$s") );
 				$form->content( '&nbsp;' );
 			}
 			$form->content( '</div>' );
@@ -228,10 +233,10 @@ class SysAdmin extends HtmlPage
 			
 			$this->content("<br/>");
 			$tabform = $this->content( new Form() );
-			$tabform->action = buildQuery('SysAdmin','CacheDelMany');
+			$tabform->action = buildQuery('sysadmin','cachedelmany');
 			$tab = $tabform->content(new Table())->addClass('bordered');
 			$tab->SetHeader('','key','action');
-			$q = buildQuery('SysAdmin','CacheDel');
+			$q = buildQuery('sysadmin','cachedel');
 			foreach( cache_list_keys() as $key )
 			{
 				$found = ($kind=='Search content')
@@ -276,7 +281,7 @@ class SysAdmin extends HtmlPage
 	{
 		foreach( $keys as $k )
 			cache_del($k);
-		redirect('SysAdmin','Cache');
+		redirect('sysadmin','cache');
 	}
 	
 	/**
@@ -285,7 +290,7 @@ class SysAdmin extends HtmlPage
 	function CacheClear()
 	{
 		cache_clear();
-		redirect('SysAdmin','Cache');
+		redirect('sysadmin','cache');
 	}
 	
 	/**
@@ -333,12 +338,12 @@ class SysAdmin extends HtmlPage
 		$tb = $ext_nav->content(new TextInput());
 		$tb->value = $search;
 		
-		$q = buildQuery('SysAdmin','PhpInfo');
+		$q = buildQuery('sysadmin','phpinfo');
 		$sel->onchange = "wdf.redirect({extension:$(this).val()})";
 		$tb->onkeydown = "if( event.which==13 ) wdf.redirect({search:$(this).val()})";
 
 		$ext_nav->content('&nbsp;&nbsp;&nbsp;Or ');
-		$q = buildQuery('SysAdmin','PhpInfo','dump_server=1');
+		$q = buildQuery('sysadmin','phpinfo','dump_server=1');
 		$ext_nav->content( new Anchor($q,'dump the $_SERVER variable') );
 		
 		$get_version = function($ext)
