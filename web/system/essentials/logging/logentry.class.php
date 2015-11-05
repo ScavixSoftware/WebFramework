@@ -143,7 +143,18 @@ class LogEntry
 		$res->sev = utf8_encode($this->severity);
 		$res->msg = utf8_encode($this->message);
 		$res->trace = $this->trace;
-		$res = @json_encode($res);
-		return $res;
+		$out = json_encode($res);
+		if( !$out )
+		{
+			$res->trace = array();
+			foreach( $this->trace as $i=>$t )
+			{
+				if( !json_encode($t) )
+					$t['args'] = array('**UNRENDERABLE**');
+				$res->trace[$i] = $t;
+			}	
+			$out = json_encode($res);
+		}
+		return $out;
 	}
 }
