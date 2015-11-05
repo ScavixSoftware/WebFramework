@@ -351,12 +351,12 @@ class Query
  */
 class ConditionTree
 {
-	private $_firstToken = "WHERE";
-	private $_operator = "AND";
-	private $_conditions = array();
-	private $_maxConditions = -1;
-	private $_current = false;
-	private $_parent = false;
+	var $_firstToken = "WHERE";
+	var $_operator = "AND";
+	var $_conditions = array();
+	var $_maxConditions = -1;
+	var $_current = false;
+	var $_parent = false;
 
 	function __construct($conditionCount = -1,$operator = "AND", $firstToken = "WHERE")
 	{
@@ -436,13 +436,13 @@ class ConditionTree
  */
 class Condition
 {
-	private $_operator;
-	private $_op1;
-	private $_op2;
-	private $_pre;
-	private $_suf;
+	var $_operator;
+	var $_op1;
+	var $_op2;
+	var $_pre;
+	var $_suf;
 
-	function __construct($operator,$op1,$op2 = "?",$prefix="",$suffix="")
+	function __construct($operator="AND",$op1="",$op2 = "?",$prefix="",$suffix="")
 	{
 		$this->_operator = " $operator ";
 		$this->_op1 = $op1;
