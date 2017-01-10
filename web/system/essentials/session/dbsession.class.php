@@ -39,8 +39,9 @@ class DbSession extends SessionBase
 {
 	var $ds;
 
-	function __constrruct()
+	function __construct()
 	{
+        global $CONFIG;
 		parent::__construct();
 		$this->ds = model_datasource($CONFIG['session']['datasource']);
 	}
@@ -51,6 +52,7 @@ class DbSession extends SessionBase
 	function Sanitize()
 	{
 		global $CONFIG;
+        $lt = $CONFIG['session']['lifetime'];
 		$this->ds->ExecuteSql(
 			"DELETE FROM ".$CONFIG['session']['table']."
 			WHERE last_access<NOW()-INTERVAL $lt MINUTE"
@@ -58,7 +60,7 @@ class DbSession extends SessionBase
 
 		$rs = $this->ds->ExecuteSql(
 			"SELECT storage_id FROM ".$CONFIG['session']['table']."
-			WHERE id=?0 AND auto_load>0",session_id()
+			WHERE id=? AND auto_load>0", array($CONFIG['session']['prefix'].session_id())
 		);
 		foreach( $rs as $row )
 			restore_object($row['storage_id']);
@@ -72,7 +74,7 @@ class DbSession extends SessionBase
 		global $CONFIG;
         $this->ds->ExecuteSql(
             "DELETE FROM ".$CONFIG['session']['table']."
-            WHERE id=?0",array(session_id())
+            WHERE id=?", array($CONFIG['session']['prefix'].session_id())
         );
 		unset($_SESSION[$CONFIG['session']['prefix']."session_lastaccess"]);
 		session_destroy();
@@ -89,7 +91,7 @@ class DbSession extends SessionBase
 
 		$this->ds->ExecuteSql(
 			"UPDATE ".$CONFIG['session']['table']."
-			SET last_access=NOW() WHERE id=?0 AND (request_id=?1 OR auto_load=1)",array(session_id(),$rid)
+			SET last_access=NOW() WHERE id=? AND (request_id=? OR auto_load=1)", array($CONFIG['session']['prefix'].session_id(), $rid)
 		);
 
 		$GLOBALS['session_request_id'] = $rid;
@@ -113,13 +115,13 @@ class DbSession extends SessionBase
 		$serializer = new Serializer();
 		$content = $serializer->Serialize($obj);
 
-		$vals = "id=?0 , request_id=?1 , storage_id=?2 , last_access=NOW(), content=?3";
-		$updates = "last_access=NOW(), content=?4, request_id=?5";
+		$vals = "id=?, request_id=?, storage_id=?, last_access=NOW(), content=?";
+		$updates = "last_access=NOW(), content=?, request_id=?";
 
 		$this->ds->ExecuteSql(
 			"REPLACE INTO ".$CONFIG['session']['table']."
 			SET $vals",
-			array(session_id(),request_id(),$id,$content)
+			array($CONFIG['session']['prefix'].session_id(),request_id(),$id,$content)
 		);
 
 		$GLOBALS['object_storage'][strtolower($id)] = $obj;
@@ -136,7 +138,7 @@ class DbSession extends SessionBase
 
 		$this->ds->ExecuteSql(
 			"DELETE FROM ".$CONFIG['session']['table']."
-			WHERE id=?0 AND storage_id=?1",array(session_id(),$id)
+			WHERE id=? AND storage_id=?",array($CONFIG['session']['prefix'].session_id(),$id)
 		);
 		unset($GLOBALS['object_storage'][strtolower($id)]);
 	}
@@ -155,7 +157,7 @@ class DbSession extends SessionBase
 
 		$rs = $this->ds->ExecuteSql(
 			"SELECT COUNT(*) as cnt FROM ".$CONFIG['session']['table']."
-			WHERE id=?0 AND storage_id=?1 LIMIT 1",array(session_id(),$id)
+			WHERE id=? AND storage_id=? LIMIT 1",array($CONFIG['session']['prefix'].session_id(),$id)
 		);
 		return $rs['cnt'] > 0;
 	}
@@ -172,7 +174,7 @@ class DbSession extends SessionBase
 
 		$rs = $this->ds->ExecuteSql(
 			"SELECT content FROM ".$CONFIG['session']['table']."
-			WHERE id=?0 AND storage_id=?1 LIMIT 1",array(session_id(),$id)
+			WHERE id=? AND storage_id=? LIMIT 1",array($CONFIG['session']['prefix'].session_id(),$id)
 		);
 		if( $rs->Count() == 0 )
 		{

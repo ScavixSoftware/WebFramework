@@ -55,6 +55,7 @@ class DatabaseTable extends Table implements ICallable
 	var $CacheExecute = false;
 
 	var $Columns = false;
+	var $Join = false;
 	var $Where = false;
 	var $GroupBy = false;
 	var $Having = false;
@@ -69,6 +70,8 @@ class DatabaseTable extends Table implements ICallable
 	public $contentNoData = "TXT_NO_DATA_FOUND";
 
 	var $ParsingBehaviour = self::PB_HTMLSPECIALCHARS;
+    
+    var $SlimSerialization = false;
 
 	/**
 	 * @param DataSource $datasource DataSource to use
@@ -87,15 +90,38 @@ class DatabaseTable extends Table implements ICallable
 		
 		store_object($this);
 	}
-	
+    
+    function __sleep()
+    {
+        $res = get_object_vars($this);
+        if( $this->SlimSerialization )
+        {
+            unset($res['_content']);
+            unset($res['current_row_group']);
+            unset($res['current_row']);
+        }
+        return array_keys($res);
+    }
+    
 	private function ExecuteSql($sql,$prms=array())
 	{
+        if( $this->logIfSlow )
+            $logtimer = start_timer("[".\ScavixWDF\Model\ResultSet::MergeSql($this->DataSource,$sql,$prms)."]");
+        
 		if( $this->ExecuteSqlHandler )
 			call_user_func($this->ExecuteSqlHandler,$this,$sql,$prms);
 		else
 		{
 			if( $this->ItemsPerPage )
+            {
 				$this->ResultSet = $this->DataSource->PageExecute($sql,$this->ItemsPerPage,$this->CurrentPage,$prms);
+                if(($this->ResultSet->Count() == 0) && ($this->CurrentPage > 1))
+                {
+                    // no items on current page, so reset to first page
+                    $this->ResetPager();
+                    $this->ResultSet = $this->DataSource->PageExecute($sql,$this->ItemsPerPage,$this->CurrentPage,$prms);
+                }
+            }
 			else
 			{
 				if( $this->CacheExecute )
@@ -106,6 +132,8 @@ class DatabaseTable extends Table implements ICallable
 		}
 		if( $this->DataSource->ErrorMsg() )
 			log_error(get_class($this).": ".$this->DataSource->ErrorMsg());
+        elseif( isset($logtimer) )
+            finish_timer($logtimer,$this->logIfSlow);
 	}
 
 	/**
@@ -114,7 +142,7 @@ class DatabaseTable extends Table implements ICallable
 	function Clear()
 	{
 		$this->ResultSet = false;
-		parent::Clear();
+		return parent::Clear();
 	}
 
 	/**
@@ -127,6 +155,9 @@ class DatabaseTable extends Table implements ICallable
 			if( !$this->Columns )
 				$this->Columns = $this->GetColumns();
 
+			if( !$this->Join )
+				$this->Join = $this->GetJoin();
+            
 			if( !$this->Where )
 				$this->Where = $this->GetWhere();
 
@@ -150,25 +181,30 @@ class DatabaseTable extends Table implements ICallable
 			}
 
 			$this->Columns = is_array($this->Columns)?implode(",",$this->Columns):$this->Columns;
+			$this->Join = $this->Join?$this->Join:"";
 			$this->Where = $this->Where?$this->Where:"";
 			$this->GroupBy = $this->GroupBy?$this->GroupBy:"";
 			$this->OrderBy = $this->OrderBy?$this->OrderBy:"";
 
-			if( $this->Where && !preg_match('/^\s+WHERE\s+/',$this->Where) ) $this->Where = " WHERE ".$this->Where;
+            if( $this->Where && !preg_match('/^\s+WHERE\s+/',$this->Where) ) $this->Where = " WHERE ".$this->Where;
+			if( $this->Join && !preg_match('/^(LEFT|INNER|RIGHT|\s+)+JOIN\s+/',$this->Join) ) $this->Join = " LEFT JOIN ".$this->Join;
 			if( $this->GroupBy && !preg_match('/^\s+GROUP\sBY\s+/',$this->GroupBy) ) $this->GroupBy = " GROUP BY ".$this->GroupBy;
 			if( $this->Having && !preg_match('/^\s+HAVING\s+/',$this->Having) ) $this->Having = " HAVING ".$this->Having;
 			if( $this->OrderBy && !preg_match('/^\s+ORDER\sBY\s+/',$this->OrderBy) ) $this->OrderBy = " ORDER BY ".$this->OrderBy;
 			if( $this->Limit && !preg_match('/^\s+LIMIT\s+/',$this->Limit) ) $this->Limit = " LIMIT ".$this->Limit;
 
-			$sql = "SELECT @fields@ FROM @table@@where@@groupby@@having@@orderby@@limit@";
+            if( $this->ItemsPerPage && !$this->HidePager )
+                $sql = "SELECT SQL_CALC_FOUND_ROWS @fields@ FROM @table@@join@@where@@groupby@@having@@orderby@@limit@";
+            else
+                $sql = "SELECT @fields@ FROM @table@@join@@where@@groupby@@having@@orderby@@limit@";
 			$sql = str_replace("@fields@",$this->Columns,$sql);
 			$sql = str_replace("@table@","`".$this->DataTable."`",$sql);
+			$sql = str_replace("@join@",$this->Join,$sql);
 			$sql = str_replace("@where@",$this->Where,$sql);
 			$sql = str_replace("@groupby@",$this->GroupBy,$sql);
 			$sql = str_replace("@having@",$this->Having,$sql);
 			$sql = str_replace("@orderby@",$this->OrderBy,$sql);
 			$sql = str_replace("@limit@",$this->Limit,$sql);
-
 			$this->Sql = $sql;
 		}
 
@@ -221,6 +257,7 @@ class DatabaseTable extends Table implements ICallable
 	}
 
 	protected function GetColumns(){return array("*");}
+	protected function GetJoin(){return "";}
 	protected function GetWhere(){return "";}
 	protected function GetGroupBy(){return "";}
 	protected function GetHaving(){return "";}
@@ -293,6 +330,12 @@ class DatabaseTable extends Table implements ICallable
 	 */
 	function PreRender($args = array())
 	{
+        // stop rebuilding the table of row-action was clicked: 
+        // - performance 
+        // - row-ids would change and trigger error on subsequent clicked actions
+        if( current_event() == 'onactionclicked' && current_controller(false) instanceof Table )
+            return parent::PreRender($args);
+        
 		$this->GetData();
 		
         if( !$this->ResultSet || $this->ResultSet->Count()==0 )
@@ -312,6 +355,7 @@ class DatabaseTable extends Table implements ICallable
 		}
         else
         {
+            $this->_rowModels = array();
             foreach( $this->ResultSet as $raw_row )
             {
 				$row = $this->_preProcessData($raw_row);
@@ -350,16 +394,16 @@ class DatabaseTable extends Table implements ICallable
 	 * @internal Currently untested, so marked <b>internal</b>
 	 * @attribute[RequestParam('format','string')]
 	 */
-	function Export($format)
+	function Export($format, $rowcallback = null)
 	{
 		switch( $format )
 		{
 			case self::EXPORT_FORMAT_XLS:
 			case self::EXPORT_FORMAT_XLSX:
-				$this->_exportExcel($format);
+				$this->_exportExcel($format,$rowcallback);
 				break;
 			case self::EXPORT_FORMAT_CSV:
-				$this->_exportCsv();
+				$this->_exportCsv($rowcallback);
 				break;
 		}
 	}
@@ -385,7 +429,7 @@ class DatabaseTable extends Table implements ICallable
 		return $res;
 	}
 	
-	private function _export_get_data(CultureInfo $ci=null)
+	private function _export_get_data(CultureInfo $ci=null, $rowcallback = null)
 	{
 		$copy = clone $this;
 		$copy->ItemsPerPage = false; 
@@ -395,29 +439,39 @@ class DatabaseTable extends Table implements ICallable
 		
 		$res = array();
 		$copy->ResultSet->FetchMode = PDO::FETCH_ASSOC;
+        $cols = [];
+        foreach( $this->Columns as $c )
+            $cols[] = trim($c,"`");
 		foreach( $copy->ResultSet as $row )
 		{
 			$row = $copy->_preProcessData($row);
-			
-			if( !isset($format_buffer) )
+            if( $rowcallback != null )
+                $row = $rowcallback($row);
+            $r = [];
+            foreach( $cols as $k )
+                if(isset($row[$k]))
+                    $r[$k] = $row[$k];
+                else
+                    $r[$k] = null;
+
+            if( !isset($format_buffer) )
 			{
 				$i=0; $format_buffer = array();
-				foreach( $row as $k=>$v )
+				foreach( $r as $k=>$v )
 				{
-					if( isset($this->ColFormats[$i]) )
-						$format_buffer[$k] = $this->ColFormats[$i];
-					$i++;
+                    if( isset($this->ColFormats[$i]) )
+                        $format_buffer[$k] = $this->ColFormats[$i];
+                    $i++;
 				}
 			}
 			foreach( $format_buffer as $k=>$cellformat )
-				$row[$k] = $cellformat->FormatContent($row[$k],$copy->Culture);
-			
-			$res[] = $row;
+				$r[$k] = $cellformat->FormatContent($r[$k],$copy->Culture);
+			$res[] = $r;
 		}
 		return $res;
 	}
 	
-	protected function _exportExcel($format=self::EXPORT_FORMAT_XLSX)
+	protected function _exportExcel($format=self::EXPORT_FORMAT_XLSX, $rowcallback = null)
 	{		
 		system_load_module(__DIR__.'/../../../modules/mod_phpexcel.php');
 		$xls = new PHPExcel();
@@ -425,11 +479,11 @@ class DatabaseTable extends Table implements ICallable
 		$row = 1;
 		$max_cell = 0;
 		
-		$ci = ExcelCulture::FromCode('en-US');
+		$ci = ExcelCulture::FromCode(isset($this->Culture) ? $this->Culture->Code : 'en-US');
 		$head_rows = $this->_export_get_header();
 		$first_data_row = count($head_rows)+1;
 
-		foreach( array_merge($head_rows,$this->_export_get_data($ci)) as $data_row )
+		foreach( array_merge($head_rows,$this->_export_get_data($ci,$rowcallback)) as $data_row )
 		{
 			$i = 0;
 			foreach( $data_row as $val )
@@ -472,13 +526,13 @@ class DatabaseTable extends Table implements ICallable
 		die('');
 	}
 	
-	protected function _exportCsv()
+	protected function _exportCsv($rowcallback = null)
 	{
 		$esc = '"';
 		$sep = ',';
 		$newline = "\n";
 		$csv = array();
-		foreach( array_merge($this->_export_get_header(),$this->_export_get_data()) as $row )
+		foreach( array_merge($this->_export_get_header(),$this->_export_get_data(null,$rowcallback)) as $row )
 		{
 			$csv_line = array();
 			foreach( $row as $val )
@@ -516,7 +570,14 @@ class DatabaseTable extends Table implements ICallable
 	
 	protected function RenderPager()
 	{
-		$this->TotalItems = $this->ResultSet->GetpagingInfo('total_rows');
+		$this->TotalItems = $this->ResultSet?$this->ResultSet->GetpagingInfo('total_rows'):0;
 		return parent::RenderPager();
 	}
+    
+    var $logIfSlow = false;
+    function LogIfSlow($min_ms)
+    {
+        $this->logIfSlow = $min_ms;
+        return $this;
+    }
 }

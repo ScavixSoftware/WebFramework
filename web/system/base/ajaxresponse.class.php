@@ -151,7 +151,7 @@ class AjaxResponse
 	public static function Redirect($controller,$event='',$data='')
 	{
 		$q = buildQuery($controller,$event,$data);
-		return AjaxResponse::Js("wdf.redirect('$q');");
+		return AjaxResponse::Js("wdf.redirect('$q');",true);
 	}
 	
 	/**

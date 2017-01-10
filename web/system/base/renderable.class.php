@@ -39,6 +39,8 @@ abstract class Renderable
 	var $_content = array();
 	var $_script = array();
 
+    function PreRender($args=array()){}
+    
 	/**
 	 * Renders this Renderable as controller.
 	 * 
@@ -55,6 +57,19 @@ abstract class Renderable
 	 */
 	abstract function WdfRender();
 	
+    function WdfRenderInline()
+    {
+        if( isset($GLOBALS['current_rendering_template']) )
+            $this->_parent = $GLOBALS['current_rendering_template'];
+        $this->PreRender(array(current_controller(false)));
+        
+        if( isset($GLOBALS['current_rendering_template']) )
+        {
+            $GLOBALS['current_rendering_template']->script($this->_script);
+        }
+        return $this->WdfRender();
+    }
+    
 	function __getContentVars(){ return array('_content'); }
 	
 	function __collectResources()
@@ -66,7 +81,6 @@ abstract class Renderable
 		
 		if( $min_js_file && $min_css_file )
 			return array($min_css_file,$min_js_file);
-
 		$res = $this->__collectResourcesInternal($this);
 		if( !$min_js_file && !$min_css_file )
 			return $res;
@@ -96,7 +110,7 @@ abstract class Renderable
 		return $js;
 	}
 	
-	private function __collectResourcesInternal($template)
+	private function __collectResourcesInternal($template,&$static_stack = array())
 	{
 		$res = array();
 		
@@ -105,8 +119,12 @@ abstract class Renderable
 			$classname = get_class($template);
 			
 			// first collect statics from the class definitions
-			$static = ResourceAttribute::ResolveAll( ResourceAttribute::Collect($classname) );
-			$res = array_merge($res,$static);
+            if( !isset($static_stack[$classname]) )
+            {
+                $static = ResourceAttribute::ResolveAll( ResourceAttribute::Collect($classname) );
+                $res = array_merge($res,$static);
+                $static_stack[$classname] = true;
+            }
 			
 			if( $template instanceof Renderable )
 			{
@@ -116,8 +134,8 @@ abstract class Renderable
 					$sub = array();
 					foreach( $template->$varname as $var )
 					{
-						if( is_object($var)|| is_array($var) )
-							$sub = array_merge($sub,$this->__collectResourcesInternal($var));
+						if( is_object($var) || is_array($var) )
+							$sub = array_merge($sub,$this->__collectResourcesInternal($var,$static_stack));
 					}
 					$res = array_merge($res,$sub);
 				}
@@ -126,15 +144,19 @@ abstract class Renderable
 				if( $template instanceof Template )
 				{
 					$fnl = strtolower(array_shift(explode(".",basename($template->file))));
-					if( get_class_simple($template,true) != $fnl )
-					{
-						if( resourceExists("$fnl.css") )
-							$res[] = resFile("$fnl.css");
-						elseif( resourceExists("$fnl.less") )
-							$res[] = resFile("$fnl.less");
-						if( resourceExists("$fnl.js") )
-							$res[] = resFile("$fnl.js");
-					}
+                    if( !isset($static_stack[$fnl]) )
+                    {
+                        if( get_class_simple($template,true) != $fnl )
+                        {
+                            if( resourceExists("$fnl.css") )
+                                $res[] = resFile("$fnl.css");
+                            elseif( resourceExists("$fnl.less") )
+                                $res[] = resFile("$fnl.less");
+                            if( resourceExists("$fnl.js") )
+                                $res[] = resFile("$fnl.js");
+                        }
+                    }
+                    $static_stack[$fnl] = true;
 				}
 				
 				// finally include the 'self' stuff (<classname>.js,...)
@@ -143,12 +165,16 @@ abstract class Renderable
 				$parents = array(); $cnl = strtolower($classname);
 				do
 				{
-					if( resourceExists("$cnl.css") )
-						$parents[] = resFile("$cnl.css");
-					elseif( resourceExists("$cnl.less") )
-						$parents[] = resFile("$cnl.less");
-					if( resourceExists("$cnl.js") )
-						$parents[] = resFile("$cnl.js");
+                    if( !isset($static_stack[$cnl]) )
+                    {
+                        if( resourceExists("$cnl.css") )
+                            $parents[] = resFile("$cnl.css");
+                        elseif( resourceExists("$cnl.less") )
+                            $parents[] = resFile("$cnl.less");
+                        if( resourceExists("$cnl.js") )
+                            $parents[] = resFile("$cnl.js");
+                        $static_stack[$cnl] = true;
+                    }
 					$classname = array_pop(explode('\\',get_parent_class(fq_class_name($classname))));
 					$cnl = strtolower($classname);
 				}
@@ -161,7 +187,7 @@ abstract class Renderable
 			foreach( $template as $var )
 			{
 				if( is_object($var)|| is_array($var) )
-					$res = array_merge($res,$this->__collectResourcesInternal($var));
+					$res = array_merge($res,$this->__collectResourcesInternal($var,$static_stack));
 			}
 		}
 		return array_unique($res);
@@ -339,6 +365,17 @@ abstract class Renderable
 		$i = $this->par()->indexOf($this);
 		return $this->par()->get($i+1);
 	}
+    
+    function closest($classname)
+    {
+        if( !$this->_parent )
+            return false;
+        if( is_subclass_of($this->_parent,fq_class_name($classname)) )
+            return $this->_parent;
+        if( get_class_simple($this->_parent,true) == strtolower($classname) )
+            return $this->_parent;
+        return $this->_parent->closest($classname);
+    }
 	
 	/**
 	 * Appends content to this Renderable.

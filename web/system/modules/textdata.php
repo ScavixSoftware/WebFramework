@@ -44,19 +44,28 @@ function textdata_init()
  * @param string $terminator CSV line terminator
  * @return array An array with one entry per line, each beeing an array of fields
  */
-function csv_to_array($csv, $delimiter = ',', $enclosure = '"', $escape = '\\', $terminator = "\n")
+function csv_to_array($csv, $delimiter = false, $enclosure = '"', $escape = '\\')
 {
+    $csv = str_replace("\r\n","\n",$csv);
+    
+    if( !$delimiter )
+        $delimiter = csv_detect_delimiter($csv);
+    
     $result = array();
-    $rows = explode($terminator,trim($csv));
+    $rows = explode("\n",trim($csv));
     $names = str_getcsv(array_shift($rows),$delimiter,$enclosure,$escape);
     $nc = count($names);
+    
+    $line = "";
     foreach( $rows as $row )
 	{
-        if( trim($row) )
+        $line .= $row;
+        if( trim($line) )
 		{
-            $values = str_getcsv($row,$delimiter,$enclosure,$escape);
-            if( !$values )
-				$values = array_fill(0,$nc,null);
+            $values = str_getcsv($line,$delimiter,$enclosure,$escape);
+            if( !$values || count($values) != count($names) )
+                continue;
+            $line = "";
             $result[] = array_combine($names,$values);
         }
 	}
@@ -74,9 +83,10 @@ function csv_to_array($csv, $delimiter = ',', $enclosure = '"', $escape = '\\', 
  * @param string $terminator CSV line terminator
  * @return array An array with one entry per field
  */
-function csv_header($csv, $delimiter = ',', $enclosure = '"', $escape = '\\', $terminator = "\n")
+function csv_header($csv, $delimiter = ',', $enclosure = '"', $escape = '\\')
 {
-	$rows = explode($terminator,trim($csv));
+    $csv = str_replace("\r\n","\n",$csv);
+	$rows = explode("\n",trim($csv));
     return str_getcsv(array_shift($rows),$delimiter,$enclosure,$escape);
 }
 
@@ -88,13 +98,23 @@ function csv_header($csv, $delimiter = ',', $enclosure = '"', $escape = '\\', $t
  * @param string $terminator CSV line terminator
  * @return string The delimiter that seems to match best
  */
-function csv_detect_delimiter($csv,$terminator = "\n")
+function csv_detect_delimiter($csv)
 {
-	$rows = explode($terminator,trim($csv));
+    $csv = str_replace("\r\n","\n",$csv);
+	$rows = explode("\n",trim($csv));
 	$r = $rows[0];
 	$counts = array();
 	foreach( array(';',',','|',"\t") as $delim )
 		$counts[count(explode($delim,$r))] = $delim;
 	krsort($counts);
     return array_shift($counts);	
+}
+
+/**
+ * @see http://stackoverflow.com/a/15423899
+ */
+function remove_utf8_bom($text)
+{
+    $bom = pack('H*','EFBBBF');
+    return preg_replace("/^$bom/", '', $text);
 }

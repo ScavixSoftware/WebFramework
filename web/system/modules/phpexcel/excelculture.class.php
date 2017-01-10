@@ -25,19 +25,22 @@ class ExcelCulture extends CultureInfo
 	function FormatDate($date, $format_id = false)
 	{
 		$date = $this->_ensureTimeStamp($date);
+        $timeStart = new DateTime();
 		return PHPExcel_Shared_Date::FormattedPHPToExcel(date("Y",$date),date("m",$date),date("d",$date));
 	}
 	
 	function FormatTime($date, $format_id = false)
 	{
 		$date = $this->_ensureTimeStamp($date);
-		return fmod(PHPExcel_Shared_Date::PHPToExcel($date),1);
+        $timeStart = new DateTime();
+		return fmod(PHPExcel_Shared_Date::PHPToExcel($timeStart->setTimestamp($date)),1);
 	}
 	
 	function FormatDateTime($date, $format_id = false)
 	{
 		$date = $this->_ensureTimeStamp($date);
-		return PHPExcel_Shared_Date::PHPToExcel($date);
+        $timeStart = new DateTime();
+		return PHPExcel_Shared_Date::PHPToExcel($timeStart->setTimestamp($date));
 	}
 	
 	function FormatInt($number)

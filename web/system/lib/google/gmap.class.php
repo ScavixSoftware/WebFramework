@@ -39,7 +39,7 @@ class gMap extends GoogleControl
 	const HYBRID = 'google.maps.MapTypeId.HYBRID';
 	const TERRAIN = 'google.maps.MapTypeId.TERRAIN';
 	
-	var $gmOptions = array('sensor'=>false,'language'=>'en','region'=>'DE');
+	var $gmOptions = array('language'=>'en','region'=>'DE');
 	private $_basicOptions = array('center'=>'new google.maps.LatLng(-34.397, 150.644)','zoom'=>13,'mapTypeId'=>self::ROADMAP,'scrollwheel'=>false);
 	private $_markers = array();
 	private $_addresses = array();
@@ -53,7 +53,6 @@ class gMap extends GoogleControl
 	{
 		parent::__initialize('div',false);
 		$this->gmOptions = array_merge($this->gmOptions,$options);
-		$this->gmOptions['sensor'] = ($this->gmOptions['sensor'])?'true':'false';
 		$this->_loadApi('maps','3',array('other_params'=>http_build_query($this->gmOptions)));
 	}
 	
@@ -188,7 +187,7 @@ class gMap extends GoogleControl
     static public function FindGeoLocation($search)
     {
         $ret = new stdClass();
-        $geourl = "http://maps.google.com/maps/api/geocode/xml?address=".urlencode($search)."&sensor=false";
+        $geourl = "http://maps.google.com/maps/api/geocode/xml?address=".urlencode($search);
         $xmlsrc = utf8_encode(file_get_contents($geourl));
         try {
             $xml = simplexml_load_string($xmlsrc);

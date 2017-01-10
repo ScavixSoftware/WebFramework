@@ -264,7 +264,8 @@ class DataSource
 		
 		$stmt = $this->Prepare($sql);
 		if( !$stmt->execute($parameter) )
-			WdfDbException::Raise("SQL Error: ".$stmt->ErrorOutput(),"\nArguments:",$parameter,"\nMerged:",ResultSet::MergeSql($this,$sql,$parameter));
+            WdfDbException::RaiseStatement($stmt,true);
+
 		$this->_last_affected_rows_count = $stmt->Count();
 		return $stmt;
 	}
@@ -280,7 +281,7 @@ class DataSource
 	 */
 	function CacheExecuteSql($sql,$prms=array(),$lifetime=300)
 	{
-		if( !system_is_module_loaded('globalcache') )
+		if( !system_is_module_loaded('globalcache') || $lifetime === 0 )
 			return $this->ExecuteSql($sql, $prms);
 		
 		$key = 'DB_Cache_Sql_'.md5( $sql.serialize($prms).$lifetime );
@@ -305,7 +306,7 @@ class DataSource
 	 */
 	function CacheDLookUp($field_name, $table_name = "", $where_condition = "", $parameter = array(),$lifetime=300)
 	{
-		if( !system_is_module_loaded('globalcache') )
+		if( !system_is_module_loaded('globalcache') || $lifetime === 0 )
 			return $this->DLookUp($field_name, $table_name, $where_condition, $parameter);
 		
 		$key = 'DB_Cache_Look_'.md5( $field_name.$table_name.$where_condition.serialize($parameter).$lifetime );
@@ -415,7 +416,7 @@ class DataSource
 	 */
 	function CacheExecuteScalar($sql,$prms=array(),$lifetime=300)
 	{
-		if( !system_is_module_loaded('globalcache') )
+		if( !system_is_module_loaded('globalcache') || $lifetime === 0 )
 			return $this->ExecuteScalar($sql, $prms);
 		
 		$key = 'SB_Cache_Scalar_'.md5( $sql.serialize($prms).$lifetime );
@@ -559,5 +560,16 @@ class DataSource
 	function LastInsertId($table=null)
 	{
 		return $this->_pdo->lastInsertId($table);
+	}
+    
+    public function LogLastSatement($label='Last Statement')
+	{
+		$this->LogLastStatement("[Wrong call to LogLastSatement, please use LogLastStatement] $label");
+	}
+    
+    public function LogLastStatement($label='Last Statement')
+	{
+		if( $this->LastStatement )
+            $this->LastStatement->LogDebug($label);
 	}
 }

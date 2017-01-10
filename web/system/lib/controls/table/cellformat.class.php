@@ -109,6 +109,15 @@ class CellFormat
 			$cell->style = $cs.$ccss;
 		}
 	}
+    
+    private function getNumeric($val)
+    {
+        if( is_numeric($val) )
+            return 0+$val;
+        if( count(explode(",","$val")) == 2 )
+            return $this->getNumeric(str_replace(",", ".", $val));
+        return false;
+    }
 	
 	/**
 	 * Formats a given string.
@@ -125,7 +134,7 @@ class CellFormat
 		if( !$this->format )
 			return $full_content;
 		
-		if( is_array($this->format) )
+        if( is_array($this->format) )
 		{
 			list($format,$options) = $this->format;
 			$format = strtolower($format);
@@ -178,23 +187,33 @@ class CellFormat
 					$content = str_replace($content,$culture->FormatDateTime($content),$full_content);
 					break;
 				case 'currency':
-					if( !is_numeric($content) ) return $full_content;
-					$content = str_replace($content,$culture->FormatCurrency($content),$full_content);
+                    $v = $this->getNumeric($content);
+                    if( $v === false ) return $full_content;
+                    $v = $culture->FormatCurrency($v);                    
+                    if(isset($options[0]) && ($options[0] === false))
+                        $v = str_replace($culture->CurrencyFormat->DecimalSeparator.'00', '', $v);
+                    $content = str_replace($content,$v,$full_content);
 					break;
 				case 'int':
 				case 'integer':
-					if( !is_numeric($content) ) return $full_content;
-					$content = str_replace($content,$culture->FormatInt($content),$full_content);
+					$v = $this->getNumeric($content);
+                    if( $v === false ) return $full_content;
+					$content = str_replace($content,$culture->FormatInt($v),$full_content);
 					break;
 				case 'percent':
-					if( !is_numeric($content) ) return $full_content;
-					$content = str_replace($content,$culture->FormatInt($content)."%",$full_content);
+					$v = $this->getNumeric($content);
+                    if( $v === false ) return $full_content;
+					$content = str_replace($content,$culture->FormatInt($v)."%",$full_content);
 					break;
 				case 'float':
 				case 'double':
-					if( !is_numeric($content) ) return $full_content;
-					$content = str_replace($content,$culture->FormatNumber($content,intval($options[0])),$full_content);
+					$v = $this->getNumeric($content);
+                    if( $v === false ) return $full_content;
+					$content = str_replace($content,$culture->FormatNumber($v,intval($options[0])),$full_content);
 					break;
+                case 'custom':
+                    $content = str_replace($content,sprintf($options[0],$content),$full_content);
+                    break;
 			}
 		}
 		else

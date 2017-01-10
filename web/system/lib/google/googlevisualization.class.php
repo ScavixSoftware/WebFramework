@@ -83,12 +83,21 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		
 		$this->_ds = $ds?$ds:(self::$DefaultDatasource?self::$DefaultDatasource:model_datasource('internal'));
 		
+        $this->gvOptions = ['tooltip' => ['isHtml' => true]];
+        
 		$this->gvType = $type?$type:substr(get_class_simple($this),2);
-		$this->gvOptions = $options?$options:array();
+		$this->gvOptions = $options?array_merge($this->gvOptions,$options):$this->gvOptions;
 		$this->gvQuery = $query;
 		
 		$this->content("<div class='loading'>&nbsp;</div>");
 		store_object($this);
+	}
+	
+	private function _applyRowCallbacks($row)
+	{
+		foreach( $this->_rowCallbacks as $rcb )
+			$row = $rcb($row);
+		return $row;
 	}
 	
 	/**
@@ -96,12 +105,37 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	 */
 	function PreRender($args = array())
 	{
+		$this->_data = array_values_rec($this->_data,2);
+		
 		if( count($this->_data)>1 || $this->_columnDef )
 		{
 			$id = $this->id; $d = "d$id"; $c = "c$id";
 			$opts = json_encode($this->gvOptions);
+            $coldefs = false;
+            if($this->_columnDef)
+                $coldefs = array_values($this->_columnDef);
 
-			array_walk_recursive($this->_data,function(&$item, &$key){ if( $item instanceof DateTime) $item = "[jscode]new Date(".($item->getTimestamp()*1000).")"; });
+			array_walk_recursive($this->_data, function(&$item, &$key) use ($coldefs) { 
+                //log_debug($key, $item);
+                if( $item instanceof DateTime) 
+                    $item = "[jscode]new Date(".($item->getTimestamp()*1000).")";
+                elseif($coldefs)
+                {
+                    if((count($coldefs) >= $key) && isset($coldefs[$key]) && isset($coldefs[$key][1]))
+                    {
+//                        log_debug($key, $item, $coldefs[$key][1]);
+                        switch($coldefs[$key][1])
+                        {
+                            case 'date':
+                                $stime = strtotime($item.' 00:00:00');
+                                if(date('Y-m-d', $stime) == $item)
+                                    $item = ['v' => "[jscode]new Date(".($stime * 1000).")", 'f' => ($this->_culture ? $this->_culture->FormatDate($item) : $item)];
+                                break;
+                        }
+                    }
+                }
+            });
+            
 			$data = system_to_json($this->_data);
 			if( self::$UseMaterialDesign && in_array($this->gvType, array('Bar', 'Column')))
 			{
@@ -109,7 +143,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 					. "var $c=new google.charts.Bar($('#$id').get(0));\n"
 					. "google.visualization.events.addListener($c, 'ready', function(){ $('#$id').data('ready',true); });\n"
 					. "$c.draw($d,google.charts.{$this->gvType}.convertOptions($opts));\n"
-					. "$('#$id').data('googlechart', $c);";
+					. "$('#$id').data('googlechart', $c).data('chartdata',$d);";
 			}
 			else
 			{
@@ -117,7 +151,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 					. "var $c=new google.visualization.{$this->gvType}($('#$id').get(0));\n"
 					. "google.visualization.events.addListener($c, 'ready', function(){ $('#$id').data('ready',true); });\n"
 					. "$c.draw($d,$opts);\n"
-					. "$('#$id').data('googlechart', $c);";
+					. "$('#$id').data('googlechart', $c).data('chartdata',$d);";
 			}
 			$this->_addLoadCallback('visualization', $js, true);
 		}
@@ -312,7 +346,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		$args = func_get_args();
 		if( count($args)==1 && is_array($args[0]) )
 			$args = array_shift($args);
-		$this->_data = array($args);
+		$this->_data = array($this->_applyRowCallbacks($args));
 		return $this;
 	}
 	
@@ -329,7 +363,7 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		$args = func_get_args();
 		if( count($args)==1 && is_array($args[0]) )
 			$args = array_shift($args);
-		$this->_data[] = $args;
+		$this->_data[] = $this->_applyRowCallbacks($args);
 		return $this;
 	}
 	
@@ -344,6 +378,10 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 	function setDataRows($rows)
 	{
 		$this->_entities = array(); $this->gvQuery = false;
+		
+		foreach( $rows as $i=>$r )
+			$rows[$i] = $this->_applyRowCallbacks($r);
+		
 		if( count($this->_data)>0 )
 			$this->_data = array_merge(array($this->_data[0]),$rows);
 		else
@@ -418,6 +456,58 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 		return $this;
 	}
 	
+	private function getTypedValue($v,$type)
+	{
+		$ci = $this->_culture;
+		switch( $type )
+		{
+			case 'int': 
+			case 'integer': 
+				$v = intval($v); 
+				break;
+			case 'float': 
+			case 'double': 
+			case 'number': 
+				$v = floatval($v);
+                if( $ci )
+                    $v = array('v'=>$v,'f'=>$ci->FormatNumber($v,false,true)); 
+				break;
+			case 'currency': 
+				$v = floatval($v);
+				if( $ci )
+					$v = array('v'=>$v,'f'=>$ci->FormatCurrency($v,true));
+				break;
+			case 'date':
+                if(strtotime($v))
+                {
+                    $v = new DateTime($v);
+                    if( $ci )
+                        $v = array('v'=>$v,'f'=>$ci->FormatDate($v));
+                }
+				break;
+			case 'time': 
+				$v = new DateTime($v);
+				if( $ci )
+					$v = array('v'=>$v,'f'=>$ci->FormatTime($v));
+				break;
+			case 'datetime': 
+				$v = new DateTime($v);
+				if( $ci )
+					$v = array('v'=>$v,'f'=>$ci->FormatDateTime($v));
+				break;
+			case 'timeofday': 
+				$v = explode(':',$v);
+				break;
+			case 'duration': 
+                $v = floatval($v);
+                $h = floor($v);
+                $m = ($v - $h) * 60;
+                $v = array('v'=>$v,'f'=>sprintf("%d:%02d",$h,$m));
+				break;
+		}
+		return $v;
+	}
+	
 	/**
 	 * Adds a <ResultSet> as data for this visualization.
 	 * 
@@ -438,65 +528,78 @@ abstract class GoogleVisualization extends GoogleControl implements ICallable
 				$head[] = $key;
 		}
 		$this->_data = array($head);
-		$ci = $this->_culture;
 		foreach( $rs as $row )
 		{
 			$d = array();
 			foreach( $this->_columnDef as $key=>$def )
 			{
+				list($name,$type) = $def;
 				if( isset($this->_roleCallbacks[$key]) )
 				{
 					list($role,$callback) = $this->_roleCallbacks[$key];
-					$d[] = $callback($role,$d,$row);
+					$d[$key] = $callback($role,$d,$row);
 					continue;
 				}
-				list($name,$type) = $def;
 				if( !isset($row[$name]) )
 					$row[$name] = "";
-				$v = $row[$name];
-				switch( $type )
-				{
-					case 'int': 
-					case 'integer': 
-						$v = intval($v); 
-						break;
-					case 'float': 
-					case 'double': 
-					case 'number': 
-						$v = floatval($v);
-						// if we format the output will be HTML (used in tooltip) but the standard tooltip cannot handle that
-//						if( $ci )
-//							$v = array('v'=>$v,'f'=>$ci->FormatNumber($v)); 
-						break;
-					case 'currency': 
-						$v = floatval($v);
-						if( $ci )
-							$v = array('v'=>$v,'f'=>$ci->FormatCurrency($v));
-						break;
-					case 'date': 
-						$v = new DateTime($v);
-						if( $ci )
-							$v = array('v'=>$v,'f'=>$ci->FormatDate($v));
-						break;
-					case 'time': 
-						$v = new DateTime($v);
-						if( $ci )
-							$v = array('v'=>$v,'f'=>$ci->FormatTime($v));
-						break;
-					case 'datetime': 
-						$v = new DateTime($v);
-						if( $ci )
-							$v = array('v'=>$v,'f'=>$ci->FormatDateTime($v));
-						break;
-					case 'timeofday': 
-						$v = explode(':',$v);
-						break;
-				}
-				$d[] = $v;
+				$d[$name] = $this->getTypedValue($row[$name],$type);
 			}
-			foreach( $this->_rowCallbacks as $rcb )
-				$d = $rcb($d);
-			$this->_data[] = $d;
+			$this->_data[] = $this->_applyRowCallbacks($d);
+		}
+		return $this;
+	}
+	
+	function setMultiSeriesResultSet($rs,$xAxisCol,$newColSpecifier,$newColValue,$newcolformat = 'number')
+	{
+		$results = $rs->results();
+		
+		$xAxisColDef = $xAxisCol;
+		if( !isset($this->_columnDef[$xAxisCol]) )
+		{
+			$found = false;
+            if( is_array($this->_columnDef) )
+            {
+                foreach( $this->_columnDef as $key=>$def )
+                {
+                    list($name,$type) = $def;
+                    if( $name == $xAxisCol )
+                    {
+                        $xAxisColDef = $key;
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+			if( !$found )
+				$this->addColumn($xAxisCol,$xAxisCol,'string');
+		}
+		foreach( $results as $row )
+		{
+			$key = $row[$newColSpecifier];
+			if( isset($this->_columnDef[$key]) )
+				continue;
+			$this->addColumn($key,$key,$newcolformat);
+		}
+		
+		$head = array();
+		foreach( $this->_columnDef as $key=>$def )
+		{
+			if( isset($this->_roleCallbacks[$key]) )
+				$head[] = array('role'=>$def);
+			else
+				$head[] = $key;
+		}
+		$this->_data = array($head);
+
+		foreach( $results as $row )
+		{
+			$xVal = $row[$xAxisCol];
+			if( !isset($this->_data[$xVal]) )
+			{
+				$this->_data[$xVal] = array_combine(array_keys($this->_columnDef), array_fill(0,count($this->_columnDef),0));
+				$this->_data[$xVal][$xAxisColDef] = $xVal;
+			}
+			$this->_data[$xVal][$row[$newColSpecifier]] = $this->getTypedValue($row[$newColValue],$newcolformat);
 		}
 		return $this;
 	}

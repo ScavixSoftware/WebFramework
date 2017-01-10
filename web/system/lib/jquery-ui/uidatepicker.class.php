@@ -32,6 +32,7 @@ default_string('BTN_DP_NEXT', 'Next');
 default_string('BTN_DP_PREV', 'Prev');
 default_string('TXT_DP_CLOSE', 'Close');
 default_string('TXT_DP_CURRENT', 'Today');
+default_string('TXT_DP_NOW', 'Now');
 
 /**
  * Wraps a jQueryUI DatePicker
@@ -54,9 +55,10 @@ class uiDatePicker extends uiControl
 			'prevText' => 'BTN_DP_PREV',
 			'buttonText' => '...',
 			'closeText' => 'TXT_DP_CLOSE',
-			'currentText' => 'TXT_DP_CURRENT',
+			'currentText' => (get_class_simple($this)=="uiDateTimePicker" ? 'TXT_DP_NOW' : 'TXT_DP_CURRENT'),
 		);
-		$this->type = 'text';
+        if( !$inline )
+            $this->type = 'text';
 		if( $value )
 		{
 			if( !$inline )
@@ -117,6 +119,8 @@ class uiDatePicker extends uiControl
 		$format = str_replace("y3", "yy", $format);
 		$format = str_replace("y4", "yy", $format);
 		
+        $this->Options['firstDay'] = $cultureInfo->DateTimeFormat->FirstDayOfWeek;
+        
 		$this->Options['dayNames'] = $cultureInfo->DateTimeFormat->DayNames;
 		$this->Options['dayNamesMin'] = $cultureInfo->DateTimeFormat->ShortDayNames;
 		$this->Options['dayNamesShort'] = $cultureInfo->DateTimeFormat->ShortDayNames;
@@ -127,4 +131,13 @@ class uiDatePicker extends uiControl
 		
 		return $this;
 	}
+    
+    public static function PromoteDefaults(\ScavixWDF\Base\HtmlPage $page, $cultureInfo)
+    {
+        $cls = get_called_class();
+        $temp = new $cls();
+        $temp->SetCulture($cultureInfo);
+        $def = json_encode($temp->Options);
+        $page->addDocReady("$.datepicker.setDefaults($def);");
+    }
 }

@@ -142,7 +142,10 @@ class LogEntry
 			$res->cat[] = utf8_encode($v);
 		$res->sev = utf8_encode($this->severity);
 		$res->msg = utf8_encode($this->message);
-		$res->trace = $this->trace;
+        if( logging_mem_ok() )
+            $res->trace = $this->trace;
+        else
+            $res->trace = "*OUTOFMEM*";
 		$out = json_encode($res);
 		if( !$out )
 		{

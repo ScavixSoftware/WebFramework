@@ -98,7 +98,7 @@ function resourceExists($filename, $return_url = false, $as_local_path = false, 
 	$reg = "/(^$ext$|^$ext\||\|$ext$)/i";
 	foreach( $CONFIG['resources'] as $conf )
 	{	
-		if(strpos("|".$conf['ext']."|", "|".$ext."|") === false)
+		if( strpos("|".$conf['ext']."|", "|".$ext."|") === false )
 			continue;
 		
 		if( !file_exists($conf['path'].'/'.$filename) )
@@ -135,8 +135,25 @@ function resFile($filename, $as_local_path = false)
 
 function register_less_variable($name,$value)
 {
-	global $CONFIG;
-	$vars = cfg_getd('resources_less_variables',array());
-	$vars[$name] = $value;
-	cfg_set('resources_less_variables',$vars);
+    if( !isset($_SESSION['resources_less_variables']) )
+        $_SESSION['resources_less_variables'] = array();
+	$_SESSION['resources_less_variables'][$name] = $value;
+}
+
+function add_less_import_dir($dir,$key=false)
+{
+    if( !isset($_SESSION['resources_less_dirs']) )
+        $_SESSION['resources_less_dirs'] = array();
+	if( $key )
+        $_SESSION['resources_less_dirs'][$key] = $dir;
+    else
+        $_SESSION['resources_less_dirs'][] = $dir;
+}
+
+function clear_less_cache()
+{
+    foreach( glob(sys_get_temp_dir()."/*.css") as $c )
+        @unlink($c);
+    foreach( glob(sys_get_temp_dir()."/*.cache") as $c )
+        @unlink($c);
 }

@@ -71,8 +71,29 @@ class Select extends Control
 	function SetCurrentValue($value)
 	{
 		$this->_current = $value;
+        if(count($this->_content) > 0)
+            $this->_setval($this->_content, $value);
 		return $this;
 	}
+    
+    /**
+     * Set the option(s) as selected after the options have been added
+     */
+    private function _setval($children, $val)
+    {
+        foreach($children as $opt)
+        {
+            if(is_object($opt))
+            {
+                if(isset($opt->Tag) && ($opt->Tag == 'optgroup'))
+                    $this->_setval($opt->_content, $val);
+                if((is_array($val) && in_array($opt->value, $val)) || ($opt->value == $val) && ($opt->Tag != 'optgroup'))
+                    $opt->attr('selected', 'selected');
+                elseif(isset($opt->_attributes['selected']))
+                    unset($opt->_attributes['selected']);
+            }
+        }
+    }
 
 	/**
 	 * Creates an option element.
@@ -102,7 +123,7 @@ class Select extends Control
 		$opt = Control::Make('option')->append($label!==""?$label:$value);
 		if( $selected )
 			$opt->attr("selected","selected");
-		if( $value!=='' )
+//		if( $value!=='' )
 			$opt->attr("value",$value);
 		
 		if( $opt_group )
@@ -153,5 +174,13 @@ class Select extends Control
 	{
 		return new Label($text,$this->id);
 	}
+    
+    static function Create($options,$name=false,$selected=false)
+    {
+        $res = new Select($name);
+        if( $selected ) $res->SetCurrentValue($selected);
+        foreach( $options as $k=>$v )
+            $res->AddOption($k,$v);
+        return $res;
+    }
 }
-

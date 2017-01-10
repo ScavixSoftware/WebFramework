@@ -59,6 +59,9 @@ class Form extends Control
 			case "text":
 				$inp = new TextInput($value, $name);
 				break;
+			case "textarea":
+				$inp = new TextArea($value, $name);
+				break;
 			case "password":
 				$inp = new PasswordInput($name);
 				break;
@@ -85,6 +88,11 @@ class Form extends Control
 	 * @shortcut <Form::AddInput>('text',$name,$value)
 	 */
 	function AddText($name, $value){ return $this->AddInput('text', $name, $value); }
+	
+	/**
+	 * @shortcut <Form::AddInput>('textarea',$name,$value)
+	 */
+	function AddTextArea($name, $value){ return $this->AddInput('textarea', $name, $value); }
 	
 	/**
 	 * @shortcut <Form::AddInput>('password',$name,$value)

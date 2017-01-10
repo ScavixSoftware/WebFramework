@@ -160,4 +160,38 @@ class ToDoException extends WdfException {}
  * All code in the model essential (essentials/model.php + essentials/model/*) use this instead of WdfException.
  * Just to have everyting nicely wrapped.
  */
-class WdfDbException extends WdfException {}
+class WdfDbException extends WdfException
+{
+    private $statement;
+    
+    public static function RaiseStatement($statement, $use_extended_info = false)
+	{
+        if( $use_extended_info )
+            $ex = new WdfDbException("SQL Error: ".$statement->ErrorOutput()."\nSQL:".$statement->GetMergedSql());
+        else
+            $ex = new WdfDbException(render_var($statement->ErrorOutput()));
+        $ex->statement = $statement;
+		throw $ex;
+	}
+    
+    function getSql()
+    {
+        if( $this->statement )
+            return $this->statement->GetSql();
+        return '(undefined)';
+    }
+    
+    function getArguments()
+    {
+        if( $this->statement )
+            return $this->statement->GetArgs();
+        return [];
+    }
+    
+    function getMergedSql()
+    {
+        if( $this->statement )
+            return $this->statement->GetMergedSql();
+        return '(undefined)';
+    }
+}

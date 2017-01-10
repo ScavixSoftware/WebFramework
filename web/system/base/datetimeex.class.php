@@ -56,10 +56,16 @@ class DateTimeEx extends DateTime
 	 * @param mixed $source <DateTimeEx>, <DateTime> or anything <DateTime> accepts in it's constructor
 	 * @return DateTimeEx The created instance
 	 */
-	public static function Make($source)
+	public static function Make($source=false, $format = false)
 	{
 		if( $source )
 		{
+            if( $format )
+            {
+                $source = \DateTime::createFromFormat($format,$source);
+                if( !$source )
+                    WdfException::Raise("Error creating DateTime object from format '$format' and source '$source'");
+            }
 			if( $source instanceof DateTimeEx )
 				return clone $source;
 			if( $source instanceof DateTime )
@@ -149,6 +155,11 @@ class DateTimeEx extends DateTime
 		$res->add($di);
 		return $res;
 	}
+    
+    public function midnight()
+    {
+        return new DateTimeEx(date("Y-m-d 00:00:00",$this->getTimestamp()));
+    }
 	
 	/**
 	 * Calculates the age in x

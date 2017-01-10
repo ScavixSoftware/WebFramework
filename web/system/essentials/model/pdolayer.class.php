@@ -53,6 +53,17 @@ class PdoLayer extends PDO
 	{
 		// remove the counter from ?0, ?,... so that they are simply ?,?,...
 		$statement = preg_replace('/\?\d+/','?',$statement);
+        
+        // replace ifavail{a,b,c} with a when statement.
+        // this is replacement for coalesce but not checking agains NULL but against NULL or empty strings
+        $statement = preg_replace_callback('/ifavail{([^}]+)}/iU',function($m)
+        {
+            $r = array();
+            foreach( explode(",",$m[1]) as $p )
+                $r[] = "WHEN IFNULL($p,'')!='' THEN $p";
+            return "CASE ".implode(" ",$r)." END";
+        },$statement);
+        
         if( $this->Driver )
             $statement = $this->Driver->PreprocessSql($statement);
 		if( is_null($driver_options) )

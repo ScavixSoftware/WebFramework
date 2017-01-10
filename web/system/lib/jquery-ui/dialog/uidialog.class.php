@@ -94,7 +94,7 @@ class uiDialog extends uiControl
 			$tmp = $this->_script;
 			$this->_script = array();
 			$this->script("try{ $('#{$this->id}').dialog(".system_to_json($this->Options)."); }catch(ex){ wdf.debug(ex); }");
-			$this->script("$('#{$this->id}').parent().find('.ui-dialog-buttonpane .ui-button').click(function(){ $(this).parent().find('.ui-button').button('disable'); });");
+			$this->script("$('#{$this->id}').parent().find('.ui-dialog-buttonpane .ui-button').click(function(){ $(this).parent().find('.ui-button').button().prop('disabled', true).addClass( 'ui-state-disabled' ); });");
 			$this->_script = array_merge($this->_script,$tmp);
 
 			foreach( $this->_script as $s )

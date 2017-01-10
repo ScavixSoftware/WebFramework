@@ -104,9 +104,13 @@ class ResultSet implements Iterator, ArrayAccess
 	 * and try to combine it for easy copy+paste from log to your sql tool (for retry).
 	 * @return void
 	 */
-	public function LogDebug()
+	public function LogDebug($label='')
 	{
-		log_debug("SQL: ".$this->_sql_used."\nARGS: ",$this->_arguments_used,"\nMerged: ", ResultSet::MergeSql($this->_ds,$this->_sql_used,$this->_arguments_used));
+        if( $label ) $label = "$label\n";
+        if( count($this->_arguments_used) )
+            log_debug("{$label}SQL   : ".$this->_sql_used."\nARGS  : ".json_encode($this->_arguments_used)."\nMERGED: ".ResultSet::MergeSql($this->_ds,$this->_sql_used,$this->_arguments_used));
+        else
+            log_debug("{$label}SQL: ".$this->_sql_used);
 	}
 	
 	/**
@@ -125,6 +129,15 @@ class ResultSet implements Iterator, ArrayAccess
 	public function GetArgs()
 	{
 		return $this->_arguments_used;
+	}
+    
+    /**
+	 * Gets the merged query used (inline arguments)
+	 * @return string SQL query
+	 */
+	public function GetMergedSql()
+	{
+		return ResultSet::MergeSql($this->_ds,$this->_sql_used,$this->_arguments_used);
 	}
 
 	/**
@@ -223,10 +236,19 @@ class ResultSet implements Iterator, ArrayAccess
 		if( $this->_ds )
 			$this->_ds->LastStatement = $this;
 		
-		if( is_null($input_parameters) )
-			return $this->_stmt->execute();
+        if( is_null($input_parameters) )
+			$result = $this->_stmt->execute();
 		else
-			return $this->_stmt->execute($input_parameters);
+			$result = $this->_stmt->execute($input_parameters);
+        
+        if( stripos($this->_sql_used, 'SQL_CALC_FOUND_ROWS') !== false )
+        {
+            $found_rows = $this->_pdo->query("SELECT FOUND_ROWS()",PDO::FETCH_COLUMN,0)->fetchColumn(0);
+            $key = 'DB_Cache_FoundRows_'.md5($this->_sql_used.serialize($this->_arguments_used));
+            cache_set($key,$found_rows,60,false,true);
+        }
+        
+		return $result;
 	}
 	
 	/**
@@ -329,9 +351,18 @@ class ResultSet implements Iterator, ArrayAccess
 	/**
 	 * @shortcut <ResultSet::fetchAll>.
 	 */
-	function results()
+	function results($className=false)
 	{
-		return $this->fetchAll();
+        if( !$this->_data_fetched )
+			$this->fetchAll();
+        
+        if( !$className )
+            return $this->_rowbuffer;
+        
+        $res = array();
+        foreach( $this->_rowbuffer as $row )
+            $res[] = Model::MakeFromData($row, $this->_ds, true, $className);
+        return $res;
 	}
 	
 	/**
@@ -379,8 +410,12 @@ class ResultSet implements Iterator, ArrayAccess
 	 */
 	function GetPagingInfo($key=false)
 	{
-		if( !$this->_paging_info )
+        if( !$this->_paging_info )
+        {
+            if( !$this->_ds || !$this->_ds->Driver )
+                return $key?0:array();
 			$this->_paging_info = $this->_ds->Driver->getPagingInfo($this->_stmt->queryString,$this->_arguments_used);
+        }
 		if( $key && isset($this->_paging_info[$key]) )
 			return $this->_paging_info[$key];
 		return $this->_paging_info;
@@ -398,7 +433,7 @@ class ResultSet implements Iterator, ArrayAccess
 	 * @param bool $distinct True to array_unique, false to keep duplicates
 	 * @return type
 	 */
-	function Enumerate($column_name, $distinct=true)
+	function Enumerate($column_name, $distinct=true, $key_column_name=false)
 	{
 		if( !$this->_data_fetched )
 			$this->fetchAll();
@@ -410,8 +445,12 @@ class ResultSet implements Iterator, ArrayAccess
 		}
 		foreach( $this->_rowbuffer as $row )
 		{
-			if( !$distinct || !in_array($row[$column_name], $res) )
-				$res[] = $row[$column_name];
+			if( $distinct && in_array($row[$column_name], $res) )
+                continue;
+			if( $key_column_name && is_string($key_column_name) )
+                $res[$row[$key_column_name]] = $row[$column_name];
+            else
+                $res[] = $row[$column_name];
 		}
 		return $res;
 	}

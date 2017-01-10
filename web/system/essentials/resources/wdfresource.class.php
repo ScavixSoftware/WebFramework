@@ -78,8 +78,13 @@ class WdfResource implements ICallable
 		$res = explode("?",$res);
 		$res = realpath(__DIR__."/../../js/".$res[0]);
 		header('Content-Type: text/javascript');
-		WdfResource::ValidatedCacheResponse($res);
-		readfile($res);
+		if( $res )
+		{
+			WdfResource::ValidatedCacheResponse($res);
+			readfile($res);
+		}
+		else
+			header("HTTP/1.0 404 Not Found");
 		die();
 	}
 	
@@ -99,8 +104,13 @@ class WdfResource implements ICallable
 			header('Content-Type: image/jpeg');
 		elseif(ends_iwith($res, '.gif'))
 			header('Content-Type: image/gif');
-		WdfResource::ValidatedCacheResponse($res);
-		readfile($res);
+		if( $res )
+		{
+			WdfResource::ValidatedCacheResponse($res);
+			readfile($res);
+		}
+		else
+			header("HTTP/1.0 404 Not Found");
 		die();
 	}
 	
@@ -110,8 +120,9 @@ class WdfResource implements ICallable
 	 */
 	function CompileLess($file)
 	{
-		$vars = cfg_getd('resources_less_variables',array());
-		$file_key = md5($file.serialize($vars));
+		$vars = isset($_SESSION['resources_less_variables'])?$_SESSION['resources_less_variables']:array();
+        $dirs = isset($_SESSION['resources_less_dirs'])?$_SESSION['resources_less_dirs']:false;
+		$file_key = md5($file.serialize($vars).serialize($dirs));
 		
 		$less = resFile(basename($file),true);
 		$css = sys_get_temp_dir().'/'.$file_key.'.css';
@@ -126,7 +137,10 @@ class WdfResource implements ICallable
 		
 		require_once(__DIR__.'/lessphp/lessc.inc.php');
 		$compiler = new \lessc();
-		$compiler->setVariables($vars);		
+		$compiler->setVariables($vars);
+        if( $dirs )
+            $compiler->setImportDir(array_merge([''],$dirs));
+        
 		$newCache = $compiler->cachedCompile($cache);
 		if( !is_array($cache) || $newCache["updated"] > $cache["updated"] )
 		{

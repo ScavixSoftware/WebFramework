@@ -41,14 +41,16 @@ class GoogleControl extends Control
 	private $disposed = false;
 	private $frozen = true;
 	var $_culture = false;
+    private $gchartsversion = false;
 	
 	/**
 	 * @param string $tag Allows to specify another tag for the wrapper control, default for google controls is &lt;span&gt;
 	 */
-	function __initialize($tag='span',$frozen = true)
+	function __initialize($tag='span', $frozen = true, $gchartsversion = 'current')
 	{
 		parent::__initialize($tag);
 		$this->frozen = $frozen;
+        $this->gchartsversion = $gchartsversion;
 		$page = current_controller(false);
 		if( $page instanceof HtmlPage )
 		{
@@ -121,7 +123,7 @@ class GoogleControl extends Control
 			{
 				$loader[] = "window.googleLoadCallback = ".$options['callback'];
 				$options['callback'] = 'function(){ window.googleLoadCallback(); }';
-				$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('42',".system_to_json($options)."); }";
+				$loader[] = "if( window.googleLoaded ) { window.googleLoadCallback(); } else { window.googleLoaded = true; google.charts.load('".$this->gchartsversion."',".system_to_json($options)."); }";
 			}
 			else
 				$loader[] = "google.load('$api','$version',".system_to_json($options).");";

@@ -40,7 +40,7 @@ namespace ScavixWDF\Model;
  */
 class CommonModel extends Model
 {
-	protected $_tableName = false;
+	var $_tableName = false;
 	
 	/**
 	 * Returns the table name
@@ -69,5 +69,15 @@ class CommonModel extends Model
 		if( !$ctor_args )
 			$ctor_args = array($this->_ds,$this->_tableName);
 		return parent::__ensureResults($ctor_args);
+	}
+	
+	public function Convert($className)
+	{
+		if( $this->IsRow() )
+			return Model::CastFrom($this,true,$className);
+		$res = array();
+		foreach( $this->results() as $obj )
+			$res[] = Model::CastFrom($obj,true,$className);
+		return $res;
 	}
 }

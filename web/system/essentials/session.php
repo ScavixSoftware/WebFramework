@@ -80,10 +80,13 @@ function session_run()
 			(!$CONFIG['session']['usephpsession'] && $CONFIG['session']['handler'] == "PhpSession") )
 			WdfException::Raise('Do not use $CONFIG[\'session\'][\'usephpsession\'] anymore! See session_init() for details.');
 	}
+    
 	$CONFIG['session']['handler'] = fq_class_name($CONFIG['session']['handler']);
 	$GLOBALS['fw_session_handler'] = new $CONFIG['session']['handler']();
+    
+    if( !isset($_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"]) )
+        $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"] = array();
 
-//	if( system_is_ajax_call() && isset($_SESSION['object_id_storage']) )
 	if( isset($_SESSION['object_id_storage']) )
 		$GLOBALS['object_ids'] = $_SESSION['object_id_storage'];
 }
@@ -156,6 +159,10 @@ function session_kill_all()
  */
 function session_keep_alive($request_key='PING')
 {
+    // increase object lifetime on PING
+    if( $request_key == 'PING' )
+        foreach( $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"] as $id=>$time )
+            $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$id] += 60;
 	return $GLOBALS['fw_session_handler']->KeepAlive($request_key);
 }
 
@@ -164,7 +171,17 @@ function session_keep_alive($request_key='PING')
  */
 function session_update()
 {
-	return $GLOBALS['fw_session_handler']->Update();
+    if( !system_is_ajax_call() )
+    {
+        // after(!) real page loads check for old objects and remove them
+        foreach( $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"] as $id=>$time )
+        {
+            if( isset($GLOBALS['object_storage'][$id]) || $time + 60 > time() )
+                continue;
+            delete_object($id);
+        }
+    }
+    return $GLOBALS['fw_session_handler']->Update();
 }
 
 /**
@@ -180,7 +197,10 @@ function request_id()
  */
 function store_object(&$obj,$id="")
 {
-	return $GLOBALS['fw_session_handler']->Store($obj,$id);
+	$res = $GLOBALS['fw_session_handler']->Store($obj,$id);
+    // update objects last access
+    $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$obj->_storage_id] = time();
+    return $res;
 }
 
 /**
@@ -188,6 +208,12 @@ function store_object(&$obj,$id="")
  */
 function delete_object($id)
 {
+    if( isset($_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$id]) )
+        unset($_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$id]);
+    if( isset($_SESSION['object_id_storage'][$id]) )
+        unset($_SESSION['object_id_storage'][$id]);
+    if( isset($GLOBALS['object_ids'][$id]) )
+        unset($GLOBALS['object_ids'][$id]);
 	return $GLOBALS['fw_session_handler']->Delete($id);
 }
 
@@ -206,7 +232,10 @@ function in_object_storage($id)
  */
 function &restore_object($id)
 {
-	return $GLOBALS['fw_session_handler']->Restore($id);
+	$res = $GLOBALS['fw_session_handler']->Restore($id);
+    if( $res )// update objects last access        
+        $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$res->_storage_id] = time();
+    return $res;
 }
 
 /**

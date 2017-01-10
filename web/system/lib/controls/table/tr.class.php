@@ -123,6 +123,25 @@ class Tr extends Control
 	{
 		return count($this->_content);
 	}
+    
+    function FormatCells($table=false)
+    {
+        if( $this->_parent instanceof THead )
+            return;
+        
+        $tab = $table?$table:$this->closest("Table");
+        $culture = $tab?$tab->Culture:false;
+        $rcnt = count($this->_content);
+        for($i=0; $i<$rcnt; $i++)
+        {
+            if( !isset($this->_content[$i]) )
+                continue;
+            if( $this->_content[$i]->CellFormat )
+                $this->_content[$i]->CellFormat->Format($this->_content[$i], $culture);
+            elseif( isset($tab->ColFormats[$i]) )
+                $tab->ColFormats[$i]->Format($this->_content[$i], $culture);
+        }
+    }
 
 	/**
 	 * @override
@@ -145,19 +164,22 @@ class Tr extends Control
 	{
 		foreach( $alignment as $i=>$a )
 		{
+            $cell = $this->GetCell($i);
+            if( !$cell )
+                continue;
 			switch( strtolower($a) )
 			{
 				case 'l':
 				case 'left':
-					$this->GetCell($i)->align = 'left';
+					$cell->align = 'left';
 					break;
 				case 'r':
 				case 'right':
-					$this->GetCell($i)->align = 'right';
+					$cell->align = 'right';
 					break;
 				case 'c':
 				case 'center':
-					$this->GetCell($i)->align = 'center';
+					$cell->align = 'center';
 					break;
 			}
 		}

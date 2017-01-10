@@ -382,7 +382,7 @@ class Control extends Renderable
 	{
 		if( $this->_skipRendering )
 			return;
-		
+        
 		if( count($args) > 0 && count($this->_script) > 0 )
 		{
 			if( !$this->_parent )
@@ -426,9 +426,7 @@ class Control extends Renderable
 				$attr[] = "$name=\"".str_replace("\"","&#34;",$value)."\"";
 		}
 		foreach( $this->_data_attributes as $name=>$value )
-		{
 			$attr[] = "data-$name='".str_replace("'","\\'",$value)."'";
-		}
 		
 		$content = system_render_object_tree($this->_content);
 
@@ -455,7 +453,10 @@ class Control extends Renderable
 			$res = "{$content}";
 			
 		if( system_is_ajax_call() && count($this->_script)>0 )
-			$res .= "<script> ".implode("\n",$this->_script)."</script>";
+        {
+            $this->_script[] = "$('#{$this->id}').on('remove',function(){ $('[data-wdf-remove-with=\"{$this->id}\"]').remove(); });";
+			$res .= "<script data-wdf-remove-with='{$this->id}'> ".implode("\n",$this->_script)."</script>";
+        }
 		return $res;
 	}
 
@@ -483,11 +484,8 @@ class Control extends Renderable
 	 */
 	function addClass($class)
 	{
-		$c = explode(" ",$this->class);
-		if( in_array($class,$c) )
-			return;
-		$c[] = $class;
-		$this->class = trim(implode(" ",$c));
+        $class = array_merge(explode(" ",$this->class),explode(" ",$class));
+		$this->class = trim(implode(" ",array_unique($class)));
 		return $this;
 	}
 
@@ -575,4 +573,9 @@ class Control extends Renderable
 		}
 		WdfException::Raise("Control::attr needs 0,1 or 2 parameters");
 	}
+    
+    function setTitle($title)
+    {
+        return $this->attr('title',$title);
+    }
 }

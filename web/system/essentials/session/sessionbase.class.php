@@ -140,9 +140,12 @@ abstract class SessionBase
 		{
 			$name = $CONFIG['session']['session_name'];
 			session_name($name);
-			if( system_is_ajax_call() && !isset($_COOKIE[$name]) )
-				die();
-
+//			if( system_is_ajax_call() && !isset($_COOKIE[$name]) )
+//            {
+//                log_debug("AJAX call without valid session");
+//				die();
+//            }
+            
 			if( isset($_REQUEST[$name]) )
 			{
 				$regen_needed = false;

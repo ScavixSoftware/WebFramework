@@ -37,7 +37,7 @@ class uiTimeInput extends uiControl
 	 * @param int $defvalue Initial value (seconds)
 	 * @param string $onchange onChange JS code
 	 */
-	function __initialize($defvalue=0, $onchange = "")
+	function __initialize($defvalue=0, $onchange = "", $name=false)
 	{
 		parent::__initialize("div");
 		$this->InitFunctionName = false;
@@ -98,9 +98,11 @@ class uiTimeInput extends uiControl
 		$value->content("<div style='float:left'>:</div>");
 		$value->content($secval);
 		
+        $name = $name?$name:$id;
+        
 		$this->content($container);
 		$this->content($value);
-		$this->content("<input type='hidden' id='{$id}_hidden' name='{$id}' value='$defvalue' onchange='$onchange'/>");
+		$this->content("<input type='hidden' id='{$id}_hidden' name='{$name}' value='$defvalue' onchange='$onchange'/>");
 		$this->content("<br style='clear:both; line-height:0'/>");
 	}
 }

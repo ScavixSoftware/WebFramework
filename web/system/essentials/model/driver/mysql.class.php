@@ -130,7 +130,7 @@ class MySql implements IDatabaseDriver
 		$stmt->setFetchMode(PDO::FETCH_NUM);
 		$stmt->bindValue(1,$tablename);
 		if( !$stmt->execute() )
-			WdfDbException::Raise($stmt->errorInfo());
+			WdfDbException::RaiseStatement($stmt);
 		$row = $stmt->fetch();
 		return count($row)>0;
 	}
@@ -151,6 +151,7 @@ class MySql implements IDatabaseDriver
 		$all = array();
 		$vals = array();
 		$pkcols = array();
+		$pks2 = array();
 
 		foreach( $pks as $col )
 		{
@@ -161,20 +162,23 @@ class MySql implements IDatabaseDriver
 				$vals[] = ":$col";
 				$args[":$col"] = $model->$col;
 			}
+			$pks2[$col] = $col;
 		}
 		$columns_to_update = $columns_to_update?$columns_to_update:$model->GetColumnNames(true);
 		foreach( $columns_to_update as $col )
 		{
-			if( in_array($col,$pks) || !$model->HasColumn($col) )
+			if( isset($pks2[$col]) || !$model->HasColumn($col) )
 				continue;
 			
 			// isset returns false too if $this->$col is set to NULL, so we need some more logic here
 			if( !isset($model->$col) )
 			{
 				if( !isset($ovars) )
+				{
 					$ovars = get_object_vars($model);
-				
-				if( !array_key_exists($col,$ovars) )
+					$ovars = array_combine(array_keys($ovars),array_fill(0,count($ovars),true));
+				}
+				if( !isset($ovars[$col]) )
 					continue;
 			}
 			
@@ -210,9 +214,9 @@ class MySql implements IDatabaseDriver
 		else
 		{
 			if( count($all) == 0 )
-				$sql = "INSERT INTO `".$model->GetTableName()."`";
+				$sql = (\ScavixWDF\Model\Model::$SaveDelayed?"INSERT DELAYED INTO `":"INSERT INTO `").$model->GetTableName()."`";
 			else
-				$sql  = "INSERT INTO `".$model->GetTableName()."`(".implode(",",$all).")VALUES(".implode(',',$vals).")";
+				$sql  = (\ScavixWDF\Model\Model::$SaveDelayed?"INSERT DELAYED INTO `":"INSERT INTO `").$model->GetTableName()."`(".implode(",",$all).")VALUES(".implode(',',$vals).")";
 		}
 		return new ResultSet($this->_ds, $this->_pdo->prepare($sql));
 	}
@@ -266,15 +270,23 @@ class MySql implements IDatabaseDriver
 		$offset = intval($offset);
 		$length = intval($length);
 		
-		$sql = preg_replace('/LIMIT\s+[\d\s,]+/i', '', $sql);
-		$sql = "SELECT count(*) FROM ($sql) AS x";
-		$stmt = $this->_pdo->prepare($sql);
-		if( is_null($input_arguments) )
-			$stmt->execute();
-		else
-			$stmt->execute(array_values($input_arguments));
-		$total = intval($stmt->fetchColumn());
-		
+        $key = 'DB_Cache_FoundRows_'.md5($sql.serialize($input_arguments));
+        $found_rows = cache_get($key,false,false,true);
+        if( $found_rows === false )
+        {
+            $sql = preg_replace('/LIMIT\s+[\d\s,]+/i', '', $sql);
+            if( stripos($sql, 'select * from') === 0 )
+                $sql = "SELECT 1 FROM".substr($sql,13);
+            $sql = "SELECT count(*) FROM ($sql) AS x";
+
+            $ok = $this->_ds->ExecuteScalar($sql,is_null($input_arguments)?array():$input_arguments);
+            $total = intval($ok);
+            if( $ok === false )
+                $this->_ds->LogLastStatement("Error querying paging info");
+        }
+        else
+            $total = intval($found_rows);
+        
 		return array
 		(
 			'rows_per_page'=> $length,

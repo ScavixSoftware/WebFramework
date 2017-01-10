@@ -227,7 +227,7 @@ function globalcache_set($key, $value, $ttl = false)
 				{
 					$ds->ExecuteSql("CREATE TABLE IF NOT EXISTS wdf_cache (
                         ckey VARCHAR(32)  NOT NULL,
-                        cvalue TEXT  NOT NULL,
+                        cvalue LONGTEXT  NOT NULL,
                         valid_until DATETIME  NULL,
 						full_key TEXT  NOT NULL,
                         PRIMARY KEY (ckey))");

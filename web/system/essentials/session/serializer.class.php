@@ -225,7 +225,6 @@ class Serializer
 						$field = $this->Unser_Inner();
 						if( $field == "" )
 							continue;
-
 						$this->Stack[$id]->$field = $this->Unser_Inner();
 					}
 

@@ -73,7 +73,9 @@ class RegionSelect extends Select
 			else
 				$this->SetCurrentValue($current_region_code);
 		}
-		
+		else
+			$this->AddOption(null, 'TXT_PLEASE_CHOOSE');
+			
 		if( count($regions)>0 )
 		{
 			$cc = current_controller(false);

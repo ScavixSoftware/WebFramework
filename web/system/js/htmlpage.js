@@ -66,9 +66,10 @@ $.ajaxSetup({cache:false});
 			// prepare settings object
 			settings.route = location.href.substr(settings.site_root.length);
 			settings.rewrite = !settings.route.match(/^\?wdf_route/);
-			settings.route = settings.rewrite
-				?settings.route.split("/")
-				:this.arg('wdf_route').split("/");
+			var route = (settings.rewrite ? settings.route : this.arg('wdf_route'));
+			if(route.indexOf("?") != -1)
+				route = route.substr(0, route.indexOf("?"));
+			settings.route = route.split("/");
 			settings.controller = settings.route[0] || '~';
 			settings.method = settings.route[1] || '';
 			settings.route = settings.rewrite
@@ -89,8 +90,13 @@ $.ajaxSetup({cache:false});
 				this[ method ] = function( controller, data, callback )
 				{
 					var url = wdf.settings.site_root;
-					if( typeof controller === "string"  )
-						url += controller;
+					if( typeof controller === "string" )
+                    {
+                        if( controller.match(/^https*:\/\//) )
+                            url = controller;
+                        else
+                            url += controller;
+                    }
 					else
 						url += $(controller).attr('id')
 					url = wdf.validateHref(url);
@@ -111,27 +117,30 @@ $.ajaxSetup({cache:false});
 			// Focus the first visible input on the page (or after the hash)
 			if( this.settings.focus_first_input )
 			{
-				if( location.hash && $('a[name="'+location.hash.replace(/#/,'')+'"]').length > 0 )
-				{
-					var anchor = $("a[name='"+location.hash.replace(/#/,'')+"']");
-					var input = anchor.parentsUntil('*:has(input:text)').parent().find('input:text:first');
-					if( input.length > 0 && anchor.position().top < input.position().top )
-						input.select();
-				}
-				else
-				{
-					$('form').find('input[type="text"],input[type="email"],input[type="password"],textarea,select').filter(':visible:first').select();
-				}
+                $(function() {
+                    if( location.hash && $('a[name="'+location.hash.replace(/#/,'')+'"]').length > 0 )
+                    {
+                        var anchor = $("a[name='"+location.hash.replace(/#/,'')+"']");
+                        var input = anchor.parentsUntil('*:has(input:text)').parent().find('input:text:first');
+                        if( input.length > 0 && anchor.position().top < input.position().top )
+                            input.focus().select();
+                    }
+                    else
+                    {
+                        $('form').find('input[type="text"]:not(.hasDatepicker),input[type="email"],input[type="password"],textarea,select').filter(':visible:first').focus().select();
+                    }
+                });
 			}
 			
-			//win.onerror = function(a){ server_debug(a); };
-			this.resetPing();
+            this.resetPing();
 			this.setCallbackDefault('exception', function(msg){ alert(msg); });
 			this.ready.fire();
 		},
 		
 		resetPing: function()
 		{
+            if( wdf.settings.no_ping )
+                return;
 			if( wdf.ping_timer ) clearTimeout(wdf.ping_timer);
 			wdf.ping_timer = setTimeout(function()
 			{
@@ -406,7 +415,18 @@ $.ajaxSetup({cache:false});
 		stopScrollListLoader: function()
 		{
 			$('.loadMoreContent_removable_trigger').fadeOut();
-		}		
+		},
+        
+        whenAvailable: function(name, callback)
+        {
+            window.setTimeout(function()
+            {
+                if (window[name])
+                    callback(window[name]);
+                else
+                    window.setTimeout(arguments.callee, 10);
+            }, 10);
+        }
 	};
 	
 	if( typeof win.Debug != "function" )

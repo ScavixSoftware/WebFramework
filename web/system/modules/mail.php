@@ -81,8 +81,8 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 		if(!$isvalidrecipient && isset($CONFIG['mail']['dev_recipient']) )
 		{
 			// if not found in whitelist, send to predefined recipient
+			log_debug("email recipient changed from ".var_export($recipient, true)." to ".var_export($CONFIG['mail']['dev_recipient'], true));
 			$recipient = $CONFIG['mail']['dev_recipient'];
-			log_debug("email recipient changed to: ".var_export($recipient, true));
 		}
 	}
 
@@ -147,14 +147,13 @@ function mail_prepare($recipient,$subject,$message,$plainmessage="",$attachments
 	
 	$mail->Body    = $message;
 	$mail->AltBody = strip_tags($plainmessage==""?$message:str_ireplace("<br/>","\n",$plainmessage));
-	$mail->AltBody = str_ireplace("\n--\n", "\n--\n", $mail->AltBody);
 
 	if( !is_array($attachments) )
 		$attachments = array($attachments);
 
-	foreach( $attachments as $a )
+	foreach( $attachments as $k => $a )
 		if( file_exists($a) )
-			$mail->AddAttachment($a);
+			$mail->AddAttachment($a, (is_numeric($k) ? '' : $k));
 		else
 			log_debug("email attachment not found: $a");
 	

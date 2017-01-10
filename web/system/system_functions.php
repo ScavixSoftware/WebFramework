@@ -28,6 +28,7 @@ if( !defined('FRAMEWORK_LOADED') || FRAMEWORK_LOADED != 'uSI7hcKMQgPaPKAQDXg5' )
 
 define("HOOK_POST_INIT",1);
 define("HOOK_POST_INITSESSION",2);
+define("HOOK_PRE_CONSTRUCT",9);
 define("HOOK_PRE_EXECUTE",3);
 define("HOOK_PRE_RENDER",8);
 define("HOOK_POST_EXECUTE",4);
@@ -246,7 +247,7 @@ function cfg_getd()
 	$args = func_get_args();
 	switch( func_num_args() )
 	{
-		case 2: return isset($CONFIG[$args[0]])?$CONFIG[$args[0]]:$args[1];
+        case 2: return isset($CONFIG[$args[0]])?$CONFIG[$args[0]]:$args[1];
 		case 3: return isset($CONFIG[$args[0]][$args[1]])?$CONFIG[$args[0]][$args[1]]:$args[2];
 		case 4: return isset($CONFIG[$args[0]][$args[1]][$args[2]])?$CONFIG[$args[0]][$args[1]][$args[2]]:$args[3];
 		case 5: return isset($CONFIG[$args[0]][$args[1]][$args[2]][$args[3]])?$CONFIG[$args[0]][$args[1]][$args[2]][$args[3]]:$args[4];
@@ -568,14 +569,20 @@ function array_val_is($array,$key,$needle)
  */
 function system_is_ajax_call()
 {
+    if( php_sapi_name() == "cli" )
+        $GLOBALS['result_of_system_is_ajax_call'] = false;
 	if( !isset($GLOBALS['result_of_system_is_ajax_call']) )
 	{
 		$GLOBALS['result_of_system_is_ajax_call'] = strtolower(array_val($_SERVER, 'HTTP_X_REQUESTED_WITH', '')) == 'xmlhttprequest';
 		if( !$GLOBALS['result_of_system_is_ajax_call'] )
-			$GLOBALS['result_of_system_is_ajax_call'] = 
-				isset($_REQUEST['request_id']) && 
-				isset($_SESSION['request_id']) && 
-				$_REQUEST['request_id'] == $_SESSION['request_id'];
+		{
+			if( !isset($_REQUEST['request_id']) || !isset($_SESSION['request_id']) )
+			{
+				unset($GLOBALS['result_of_system_is_ajax_call']);
+				return false;
+			}
+			$GLOBALS['result_of_system_is_ajax_call'] = $_REQUEST['request_id'] == $_SESSION['request_id'];
+		}
 	}
 	return $GLOBALS['result_of_system_is_ajax_call'];
 }
@@ -1110,4 +1117,115 @@ function ifavail()
 		if( avail($data,$n) )
 			return $data->$n;
 	return null;
+}
+
+/**
+ * Performs `array_values` on a multidimentional array.
+ */
+function array_values_rec($array,$max_depth=false,$cur_depth=1)
+{
+	if( $max_depth !== false && $cur_depth>$max_depth )
+		return $array;
+	$res = array();
+	foreach( $array as $v )
+	{
+		if( is_array($v) )
+			$v = array_values_rec($v,$max_depth,$cur_depth+1);
+		$res[] = $v;
+	}
+	return $res;
+}
+
+if( !function_exists('idn_to_utf8') )
+{
+    class IDN {
+        // adapt bias for punycode algorithm
+        private static function punyAdapt(
+            $delta,
+            $numpoints,
+            $firsttime
+        ) {
+            $delta = $firsttime ? $delta / 700 : $delta / 2;
+            $delta += $delta / $numpoints;
+            for ($k = 0; $delta > 455; $k += 36)
+                $delta = intval($delta / 35);
+            return $k + (36 * $delta) / ($delta + 38);
+        }
+
+        // translate character to punycode number
+        private static function decodeDigit($cp) {
+            $cp = strtolower($cp);
+            if ($cp >= 'a' && $cp <= 'z')
+                return ord($cp) - ord('a');
+            elseif ($cp >= '0' && $cp <= '9')
+                return ord($cp) - ord('0')+26;
+        }
+
+        // make utf8 string from unicode codepoint number
+        private static function utf8($cp) {
+            if ($cp < 128) return chr($cp);
+            if ($cp < 2048)
+                return chr(192+($cp >> 6)).chr(128+($cp & 63));
+            if ($cp < 65536) return
+                chr(224+($cp >> 12)).
+                chr(128+(($cp >> 6) & 63)).
+                chr(128+($cp & 63));
+            if ($cp < 2097152) return
+                chr(240+($cp >> 18)).
+                chr(128+(($cp >> 12) & 63)).
+                chr(128+(($cp >> 6) & 63)).
+                chr(128+($cp & 63));
+            // it should never get here
+        }
+
+        // main decoding function
+        private static function decodePart($input) {
+            if (substr($input,0,4) != "xn--") // prefix check...
+                return $input;
+            $input = substr($input,4); // discard prefix
+            $a = explode("-",$input);
+            if (count($a) > 1) {
+                $input = str_split(array_pop($a));
+                $output = str_split(implode("-",$a));
+            } else {
+                $output = array();
+                $input = str_split($input);
+            }
+            $n = 128; $i = 0; $bias = 72; // init punycode vars
+            while (!empty($input)) {
+                $oldi = $i;
+                $w = 1;
+                for ($k = 36;;$k += 36) {
+                    $digit = IDN::decodeDigit(array_shift($input));
+                    $i += $digit * $w;
+                    if ($k <= $bias) $t = 1;
+                    elseif ($k >= $bias + 26) $t = 26;
+                    else $t = $k - $bias;
+                    if ($digit < $t) break;
+                    $w *= intval(36 - $t);
+                }
+                $bias = IDN::punyAdapt(
+                    $i-$oldi,
+                    count($output)+1,
+                    $oldi == 0
+                );
+                $n += intval($i / (count($output) + 1));
+                $i %= count($output) + 1;
+                array_splice($output,$i,0,array(IDN::utf8($n)));
+                $i++;
+            }
+            return implode("",$output);
+        }
+
+        public static function decodeIDN($name) {
+            // split it, parse it and put it back together
+            return
+                implode(
+                    ".",
+                    array_map("IDN::decodePart",explode(".",$name))
+                );
+        }
+    }
+    
+    function idn_to_utf8($domain) { return IDN::decodeIDN($domain); }
 }

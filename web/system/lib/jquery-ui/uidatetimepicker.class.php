@@ -38,7 +38,7 @@ class uiDateTimePicker extends uiDatePicker
 	 * @param bool $inline If true will be displayed inline
 	 */
 	function __initialize($value = false, $inline = false)
-	{		
+	{
 		parent::__initialize($value,$inline);
 	}
 }

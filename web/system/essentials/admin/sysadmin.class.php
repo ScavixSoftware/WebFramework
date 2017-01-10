@@ -72,8 +72,6 @@ class SysAdmin extends HtmlPage
             ) )
 		{
 			log_debug(current_event(true));
-			log_debug($_SESSION['admin_handler_username']);
-			log_debug($_SESSION['admin_handler_password']);
             redirect('sysadmin','login');
 		}
         

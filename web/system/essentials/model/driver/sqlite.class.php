@@ -158,7 +158,7 @@ class SqLite implements IDatabaseDriver
 		$stmt->setFetchMode(PDO::FETCH_NUM);
 		$stmt->bindValue(1,$tablename);
 		if( !$stmt->execute() )
-			WdfDbException::Raise($stmt->errorInfo());
+			WdfDbException::RaiseStatement($stmt);
 		$row = $stmt->fetch();
 		return is_array($row) && count($row)>0;
 	}
@@ -176,7 +176,7 @@ class SqLite implements IDatabaseDriver
 		$sql = 'CREATE TABLE "'.$objSchema->Table.'" ('."\n".implode(",\n",$sql)."\n".')';
 		$stmt = $this->_pdo->prepare($sql);//,array(PDO::ATTR_CURSOR=>PDO::CURSOR_SCROLL));
 		if( !$stmt->execute() )
-			WdfDbException::Raise($stmt->errorInfo());
+			WdfDbException::RaiseStatement($stmt);
 	}
 
 	/**

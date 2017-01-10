@@ -59,6 +59,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	abstract function GetTableName();
 	
 	public static $DefaultDatasource = false;
+    public static $SaveDelayed = false;
 	
 	protected static $_schemaCache = array();
 	private static $_typeMap = array();
@@ -347,7 +348,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 				}
 				catch(Exception $ex)
 				{
-					WdfException::Log("date/time error with value '$value'",$ex);
+					WdfException::Log("date/time error with value (".gettype($value).")$value",$ex);
 				}
 				break;
 		}
@@ -550,12 +551,23 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * @param DataSource $datasource Optional datasource to assign to the created <Model>
 	 * @return subclass_of_Model The newly created typed <Model>
 	 */
-	public static function MakeFromData($data,$datasource=null)
+	public static function MakeFromData($data,$datasource=null,$allFields=false,$className=false)
 	{
-		$className = get_called_class();
+		$className = $className?$className:get_called_class();
 		$res = new $className($datasource);
 		$pks = $res->GetPrimaryColumns();
-		foreach( $res->GetColumnNames() as $cn )
+        
+        if( $allFields )
+		{
+			$columns = array_diff(
+				array_keys($data),
+				array_keys(get_object_vars($res))
+			);
+		}
+		else
+			$columns = $res->GetColumnNames();
+        
+		foreach( $columns as $cn )
 		{
 			if( isset($data[$cn]) )
 				$res->$cn = $data[$cn];
@@ -578,12 +590,23 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * @param Model $model Object of (sub-)type <Model>
 	 * @return subclass_of_Model The typed object
 	 */
-	public static function CastFrom($model)
+	public static function CastFrom($model,$allFields=false,$className=false)
 	{
-		$className = get_called_class();
+        $className = $className?$className:get_called_class();
 		$res = new $className($model->_ds);
 		$pks = $res->GetPrimaryColumns();
-		foreach( $res->GetColumnNames() as $cn )
+		
+		if( $allFields )
+		{
+			$columns = array_diff(
+				array_keys(get_object_vars($model)),
+				array_keys(get_object_vars($res))
+			);
+		}
+		else
+			$columns = $res->GetColumnNames();
+		
+		foreach( $columns as $cn )
 		{
 			if( isset($model->$cn) )
 				$res->$cn = $model->$cn;
@@ -641,7 +664,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 						$value);
 			}
 		}
-		elseif( is_integer($value) )
+		elseif( is_integer($value) || is_float($value) || is_double($value) )
 		{
 			$res = new DateTimeEx();
 			$res->setTimestamp($value);
@@ -694,10 +717,11 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 						$res[] = $col;
 				}
 			}
-			elseif( !isset($this->$col) && isset($this->_dbValues[$col]) )
-				$res[] = $col;
-			elseif( (!isset($this->$col) || is_null($this->$col)) && (!isset($this->_dbValues[$col]) || !is_null($this->_dbValues[$col])) )
-				$res[] = $col;
+			else
+			{
+				if( isset($this->_dbValues[$col]) )
+					$res[] = $col;
+			}
 		}
 		return $res;
 		//return array_keys($this->_changedColumns);
@@ -737,6 +761,9 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		$filter = func_get_args();
 		if( count($filter)>0 )
 		{
+            if( count($filter)==1 && is_array($filter[0]) )
+                $filter = $filter[0];
+                
 			foreach( $filter as $cn )
 				if( isset($this->$cn) )
 					$res[$cn] = $this->__typedValue($cn);
@@ -972,11 +999,11 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * @param mixed $value Value to check against
 	 * @return Model `clone $this`
 	 */
-	public function greaterThan($property,$value)
+	public function greaterThan($property,$value,$value_is_sql=false)
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->greaterThan($this->__ensureFieldname($property),$this->__toTypedValue($property,$value));
+		$res->_query->greaterThan($this->__ensureFieldname($property),$value_is_sql?$value:$this->__toTypedValue($property,$value),$value_is_sql);
 		return $res;
 	}
 	
@@ -1110,7 +1137,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->orderBy($this->__ensureFieldname($property),$direction);
+		$res->_query->orderBy((starts_with($property, 'FIELD(') ? $property : $this->__ensureFieldname($property)),$direction);
 		return $res;
 	}
 	
@@ -1220,6 +1247,15 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		return $this->olderThan($property, '0', 'second');
 	}
+	
+	/**
+	 * Filters by date values in the future
+	 * @shortcut <Model::newerThan>($property,0,'second')
+	 */
+	public function isFuture($property)
+	{
+		return $this->newerThan($property, '0', 'second');
+	}
 		
 	/**
 	 * This is just a 'no operation' method.
@@ -1300,7 +1336,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 			return true; // nothing to save
 				
 		if( !$stmt->execute($args) )
-			WdfDbException::Raise(render_var($stmt->ErrorOutput()));
+			WdfDbException::RaiseStatement($stmt);
 
 		$pkcols = $this->GetPrimaryColumns();
 		if( count($pkcols) == 1 )
@@ -1404,7 +1440,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	/**
 	 * @shortcut <Model::greaterThan>($property, $value)
 	 */
-	function gt($property,$value) { return $this->greaterThan($property,$value); }
+	function gt($property,$value,$value_is_sql=false) { return $this->greaterThan($property,$value,$value_is_sql); }
 	
 	/**
 	 * Calls a callback function for each result dataset.

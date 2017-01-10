@@ -249,6 +249,7 @@ class Template extends Renderable
 	function WdfRender()
 	{
 		$tempvars = system_render_object_tree($this->get_vars());
+        $scriptcnt = count($this->_script);
 
 		foreach( $GLOBALS as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
 			$$un_common_k_e_y_value = $un_common_v_a_l_value;
@@ -281,18 +282,27 @@ class Template extends Renderable
 		if( $__template_file === false )
 			WdfException::Raise("Template for class '".get_class($this)."' not found: ".$this->file);
 
+        $GLOBALS['current_rendering_template'] = $this;
 		ob_start();
 		require($__template_file);
 		$contents = ob_get_contents();
 		ob_end_clean();
+        unset($GLOBALS['current_rendering_template']);
 
 		foreach( $tempvars as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
 			unset($$un_common_k_e_y_value);
 		foreach( $buf as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
 			$$un_common_k_e_y_value = $un_common_v_a_l_value;
 		
-		if( system_is_ajax_call() && count($this->_script)>0 )
-			$contents .= "<script> ".implode("\n",$this->_script)."</script>";
+		if( system_is_ajax_call() )
+        {
+            if( count($this->_script)>0 )
+    			$contents .= "<script> ".implode("\n",$this->_script)."</script>";
+        }
+        elseif( $scriptcnt < count($this->_script) ) 
+        {
+            $contents .= "<script> ".implode("\n",array_slice($this->_script,$scriptcnt))."</script>";
+        }
         
 		return $contents;
 	}

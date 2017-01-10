@@ -1,11 +1,6 @@
 <?php
 
 /**
- * This is lessphp code from https://github.com/leafo/lessphp stripped down to only what we need.
- * For the MIT license see COPYING.MIT.
- */
-
-/**
  * lessphp v0.4.0
  * http://leafo.net/lessphp
  *

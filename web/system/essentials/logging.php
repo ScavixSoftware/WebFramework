@@ -89,6 +89,22 @@ function logging_init()
 	register_shutdown_function('global_fatal_handler');
 }
 
+function logging_mem_ok()
+{
+    $val = trim(ini_get('memory_limit'));
+    $last = strtolower($val[strlen($val)-1]);
+    switch($last) {
+        // The 'G' modifier is available since PHP 5.1.0
+        case 'g':
+            $val *= 1024;
+        case 'm':
+            $val *= 1024;
+        case 'k':
+            $val *= 1024;
+    }
+    return ($val-memory_get_usage()) > 1048576;
+}
+
 /**
  * @internal Global error handler. See <set_error_handler>
  */
@@ -105,6 +121,7 @@ function global_error_handler($errno, $errstr, $errfile, $errline)
 	if ( ($errno & error_reporting()) == 0 || $errno == E_STRICT )
         return;
 	
+    $sev = 'NOTICE';
 	foreach( $LOGGING_ERROR_NAMES as $n )
 		if( constant("E_$n") == $errno )
 		{
@@ -415,6 +432,9 @@ function log_report(LogReport $report, $severity="TRACE")
  */
 function logging_render_var($content,&$stack=array(),$indent="")
 {
+    if( !logging_mem_ok() )
+        return "*OUTOFMEM*";
+    
 	foreach( $stack as $s )
 	{
 		if( $s === $content )
@@ -470,7 +490,7 @@ function logging_render_var($content,&$stack=array(),$indent="")
 		return (count($stack)>0?"(bool)":"").($content?"true":"false");
 	else
 		return (count($stack)>0?"(".gettype($content).")":"").strval($content);
-	return implode("\n",$res);
+	return substr(implode("\n",$res),0,10240);
 }
 
 /**
@@ -479,4 +499,31 @@ function logging_render_var($content,&$stack=array(),$indent="")
 function render_var($content)
 {
 	return logging_render_var($content);
+}
+
+function start_timer($name)
+{
+    $id = uniqid();
+    $GLOBALS['logging_timers'][$id] = array($name,microtime(true));
+    return $id;
+}
+
+function hit_timer($id,$label='hit')
+{
+    if( !isset($GLOBALS['logging_timers'][$id]) )
+        return;
+    list($name,$start) = $GLOBALS['logging_timers'][$id];
+    log_debug("Timer $name $label: ".round((microtime(true)-$start)*1000)."ms");
+}
+
+function finish_timer($id,$min_ms = false)
+{
+    if( !isset($GLOBALS['logging_timers'][$id]) )
+        return;
+    list($name,$start) = $GLOBALS['logging_timers'][$id];
+    unset($GLOBALS['logging_timers'][$id]);
+    
+    $ms = round((microtime(true)-$start)*1000);
+    if( !$min_ms || $ms >= $min_ms )
+        log_debug("Timer $name finished: {$ms}ms");
 }

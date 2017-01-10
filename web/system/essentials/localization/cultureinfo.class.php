@@ -373,6 +373,18 @@ class CultureInfo
 	 */
 	function FormatTime($date, $format_id=false, $convert_to_timezone='default')
 	{
+        // If the time to be printed is in another DST range than we are 'now'
+        // we must remove that gap to not confuse users with times beeing for example  8:00 instead of 9:00
+        // when we look at them from our point of view.
+        if( false && $date instanceof DateTime)
+        {
+            $local = date("I"); $byobj = $date->format("I");
+            if( $local < $byobj )
+                $date->add(\DateInterval::createFromDateString("-1 hour"));
+            elseif( $local > $byobj )
+                $date->add(\DateInterval::createFromDateString("1 hour"));
+        }
+        
 		if( $convert_to_timezone==='default' ) $convert_to_timezone = $this->_alwaysConvertTimesToTimezone;
 		$date = $convert_to_timezone?$this->GetTimezoneDate($date):$this->_ensureTimeStamp($date);
 		if( $format_id === false ) $format_id = $this->DefaultTimeFormat;
