@@ -50,7 +50,7 @@ class WdfReflector extends ReflectionClass
 
 		parent::__construct($classname);
 	}
-
+    
 	/**
 	 * Create a WdfReflector instance
 	 * 
@@ -153,7 +153,7 @@ class WdfReflector extends ReflectionClass
 				$lines = explode("\n",$lines);
 				$doc = array();
 				$collecting = false;
-				for( $i=$ref->getStartLine()-1; $i>1; $i-- )
+				for( $i=$ref->getStartLine()-1; $i>1 && isset($lines[$i]); $i-- )
 				{
 					$line = $lines[$i];
 					if($line == "")

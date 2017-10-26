@@ -458,6 +458,14 @@ function ReplaceVariables($text, $arreplace = null)
 		$text = str_replace(array_keys($arreplace), array_values($arreplace), $text);
 	foreach( $GLOBALS['__translate_functions'] as &$func )
 		$text = call_user_func($func, $text);
+    
+    $text = preg_replace_callback('/{link\s*([^}]*)}(.*){\/link}/U',function($m)
+    {
+        list($o,$l,$n) = $m;
+        $l = buildQuery(trim($l)?:$n);
+        return "<a href='$l'>$n</a>";
+    },$text);
+    
 	return $text;
 }
 

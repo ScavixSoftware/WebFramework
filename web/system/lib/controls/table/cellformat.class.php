@@ -136,8 +136,8 @@ class CellFormat
 		
         if( is_array($this->format) )
 		{
-			list($format,$options) = $this->format;
-			$format = strtolower($format);
+            $format = strtolower($this->format[0]);
+            $options = array_slice($this->format,1);
 			if(!is_array($options))
 				$options = array($options);
 		}
@@ -146,10 +146,10 @@ class CellFormat
 
 		if( $format == 'duration' )
 		{
-			if( intval($content)."" != $content )
+			if( intval($content)."" != $content && doubleval($content)."" != $content )
 				return $full_content;
 			
-			$completedur = $dur = intval($content);
+            $completedur = $dur = intval($content);
 			$s = sprintf("%02u",$dur % 60);
 			$dur = floor($dur / 60);
 			$h = floor($dur / 60);
@@ -189,7 +189,7 @@ class CellFormat
 				case 'currency':
                     $v = $this->getNumeric($content);
                     if( $v === false ) return $full_content;
-                    $v = $culture->FormatCurrency($v);                    
+                    $v = $culture->FormatCurrency($v,false,isset($options[1])?$options[1]:false);
                     if(isset($options[0]) && ($options[0] === false))
                         $v = str_replace($culture->CurrencyFormat->DecimalSeparator.'00', '', $v);
                     $content = str_replace($content,$v,$full_content);
@@ -203,13 +203,19 @@ class CellFormat
 				case 'percent':
 					$v = $this->getNumeric($content);
                     if( $v === false ) return $full_content;
-					$content = str_replace($content,$culture->FormatInt($v)."%",$full_content);
+                    if(isset($options[0]))
+                        $content = str_replace($content,$culture->FormatNumber($v,intval($options[0])).'%',$full_content);
+                    else
+                        $content = str_replace($content,$culture->FormatNumber($v).'%',$full_content);
 					break;
 				case 'float':
 				case 'double':
 					$v = $this->getNumeric($content);
                     if( $v === false ) return $full_content;
-					$content = str_replace($content,$culture->FormatNumber($v,intval($options[0])),$full_content);
+                    if(isset($options[0]))
+                        $content = str_replace($content,$culture->FormatNumber($v,intval($options[0])),$full_content);
+                    else
+                        $content = str_replace($content,$culture->FormatNumber($v),$full_content);
 					break;
                 case 'custom':
                     $content = str_replace($content,sprintf($options[0],$content),$full_content);

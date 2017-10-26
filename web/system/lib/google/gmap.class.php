@@ -51,7 +51,11 @@ class gMap extends GoogleControl
 	 */
 	function __initialize($options=array())
 	{
+        global $CONFIG;
 		parent::__initialize('div',false);
+        if(isset($CONFIG['google']) && isset($CONFIG['google']['maps']) && isset($CONFIG['google']['maps']['apikey'])) 
+            $this->gmOptions['key'] = $CONFIG['google']['maps']['apikey'];
+
 		$this->gmOptions = array_merge($this->gmOptions,$options);
 		$this->_loadApi('maps','3',array('other_params'=>http_build_query($this->gmOptions)));
 	}

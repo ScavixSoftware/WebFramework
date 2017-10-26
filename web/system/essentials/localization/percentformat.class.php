@@ -52,6 +52,7 @@ class PercentFormat
 	 * Formats a number to a percent string.
 	 * 
 	 * @param float $number The value to be formatted
+     * @param int $decimals Number of decimals, defaults to this objects DecimalDigits property
 	 * @return string The formatted string
 	 */
 	function Format($number,$decimals=false)

@@ -324,8 +324,7 @@ function setAppVersion($major,$minor,$build,$codename="",$nc_salt=false)
 	$GLOBALS['APP_VERSION']['string'] = "$major.$minor.$build";
 	if( $codename )
 		$GLOBALS['APP_VERSION']['string'] .= " ($codename)";
-	//$GLOBALS['APP_VERSION']['nc'] = 'nc'.preg_replace('/[^0-9]/', '', md5($GLOBALS['APP_VERSION']['string'].$nc_salt));
-	$GLOBALS['APP_VERSION']['nc'] = 'nc'.preg_replace('/[^0-9]/', '', substr(base_convert(md5($GLOBALS['APP_VERSION']['string'].$nc_salt), 16, 32), 0, 12));
+	$GLOBALS['APP_VERSION']['nc'] = 'nc'.substr(preg_replace('/[^0-9]/', '', md5($GLOBALS['APP_VERSION']['string'].$nc_salt)), 0, 8);
 }
 
 /**
@@ -414,6 +413,9 @@ function starts_with($string,$start)
 	return strpos($string,$start) === 0;
 }
 
+/**
+ * @shortcut <starts_with>() but ignoring the case
+ */
 function starts_iwith($string,$start)
 {
 	if( func_num_args() > 2 )
@@ -968,7 +970,8 @@ function castObject($instance, $className)
  */
 function get_class_simple($object, $lower_case=false)
 {
-	$res = array_pop(explode('\\',get_class($object)));
+    $array = explode('\\',get_class($object));
+    $res = $array[count($array)-1];
 	return $lower_case?strtolower($res):$res;
 }
 
@@ -1120,7 +1123,7 @@ function ifavail()
 }
 
 /**
- * Performs `array_values` on a multidimentional array.
+ * @shortcut <array_values> on a multidimentional array
  */
 function array_values_rec($array,$max_depth=false,$cur_depth=1)
 {
@@ -1138,6 +1141,9 @@ function array_values_rec($array,$max_depth=false,$cur_depth=1)
 
 if( !function_exists('idn_to_utf8') )
 {
+    /**
+     * @internal Use own implementation if missing
+     */
     class IDN {
         // adapt bias for punycode algorithm
         private static function punyAdapt(
@@ -1227,5 +1233,8 @@ if( !function_exists('idn_to_utf8') )
         }
     }
     
+    /**
+     * @internal Use own implementation if missing
+     */
     function idn_to_utf8($domain) { return IDN::decodeIDN($domain); }
 }

@@ -39,6 +39,8 @@ use ScavixWDF\WdfException;
  */
 abstract class SessionBase
 {
+    var $store;
+    
 	/**
 	 * Implement to perform sanitations like checking if users IP has changed.
 	 * 
@@ -212,7 +214,9 @@ abstract class SessionBase
 	 */
 	function RegenerateId($destroy_old_session = false)
 	{
+        $old = session_id();
 		$ret = @session_regenerate_id($destroy_old_session);
+        $this->store->Migrate($old,session_id());
 		session_write_close();
 		return $ret;
 	}
@@ -231,18 +235,6 @@ abstract class SessionBase
 	{
 		global $CONFIG;
 		$_SESSION[$CONFIG['session']['prefix']."session_lastaccess"] = time();
-		foreach( $GLOBALS['object_storage'] as $id=>&$obj )
-		{
-			try
-			{
-				if( $obj instanceof Renderable )
-					store_object($obj,$id);
-			}
-			catch(Exception $ex)
-			{
-				WdfException::Log("updating session storage for object $id [".get_class($obj)."]",$ex);
-			}
-		}
 	}
 
 	/**

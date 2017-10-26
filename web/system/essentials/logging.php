@@ -168,6 +168,9 @@ function global_exception_handler($ex)
  */
 function global_fatal_handler()
 {
+    if( !system_is_ajax_call() )
+        session_update();
+    
 	$error = error_get_last();
 	if(($error === NULL) || ($error['type'] !== E_ERROR))
 		return;
@@ -457,12 +460,14 @@ function logging_render_var($content,&$stack=array(),$indent="")
 		if( $content instanceof WdfException )
 		{
 			$res[] = get_class($content).": ".$content->getMessageEx();
-			$res[] = "in ".$content->getFileEx().":".$content->getLineEx();
+            if(isDev())
+                $res[] = "in ".$content->getFileEx().":".$content->getLineEx();
 		}
 		elseif( $content instanceof Exception )
 		{
 			$res[] = get_class($content).": ".$content->getMessage();
-			$res[] = "in ".$content->getFile().":".$content->getLine();
+            if(isDev())
+                $res[] = "in ".$content->getFile().":".$content->getLine();
 		}
 		else
 		{
@@ -508,12 +513,14 @@ function start_timer($name)
     return $id;
 }
 
-function hit_timer($id,$label='hit')
+function hit_timer($id,$label='',$min_ms=false)
 {
     if( !isset($GLOBALS['logging_timers'][$id]) )
         return;
     list($name,$start) = $GLOBALS['logging_timers'][$id];
-    log_debug("Timer $name $label: ".round((microtime(true)-$start)*1000)."ms");
+    $ms = round((microtime(true)-$start)*1000);
+    if( !$min_ms || $ms >= $min_ms )
+        log_debug("Timer hit:\t{$ms}ms\t$name $label");
 }
 
 function finish_timer($id,$min_ms = false)
@@ -525,5 +532,5 @@ function finish_timer($id,$min_ms = false)
     
     $ms = round((microtime(true)-$start)*1000);
     if( !$min_ms || $ms >= $min_ms )
-        log_debug("Timer $name finished: {$ms}ms");
+        log_debug("Timer finish:\t{$ms}ms\t$name");
 }

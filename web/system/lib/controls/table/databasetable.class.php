@@ -96,9 +96,14 @@ class DatabaseTable extends Table implements ICallable
         $res = get_object_vars($this);
         if( $this->SlimSerialization )
         {
-            unset($res['_content']);
+            unset($res['header']);
+            unset($res['footer']);
+            unset($res['colgroup']);
             unset($res['current_row_group']);
             unset($res['current_row']);
+            unset($res['current_cell']);
+            
+            unset($res['_content']);
         }
         return array_keys($res);
     }
@@ -151,66 +156,76 @@ class DatabaseTable extends Table implements ICallable
 	final function GetData()
 	{
 		if( !$this->Sql )
-		{
-			if( !$this->Columns )
-				$this->Columns = $this->GetColumns();
-
-			if( !$this->Join )
-				$this->Join = $this->GetJoin();
-            
-			if( !$this->Where )
-				$this->Where = $this->GetWhere();
-
-			if( !$this->GroupBy )
-				$this->GroupBy = $this->GetGroupBy();
-
-			if( !$this->Having )
-				$this->Having = $this->GetHaving();
-
-			if( !$this->OrderBy )
-				$this->OrderBy = $this->GetOrderBy();
-
-			if( !$this->Limit )
-				$this->Limit = $this->GetLimit();
-
-			if( is_array($this->Columns) )
-			{
-				foreach( $this->Columns as $k=>$v )
-					if( !preg_match('/[^a-zA-Z0-9]/',$v) )
-						$this->Columns[$k] = "`$v`";
-			}
-
-			$this->Columns = is_array($this->Columns)?implode(",",$this->Columns):$this->Columns;
-			$this->Join = $this->Join?$this->Join:"";
-			$this->Where = $this->Where?$this->Where:"";
-			$this->GroupBy = $this->GroupBy?$this->GroupBy:"";
-			$this->OrderBy = $this->OrderBy?$this->OrderBy:"";
-
-            if( $this->Where && !preg_match('/^\s+WHERE\s+/',$this->Where) ) $this->Where = " WHERE ".$this->Where;
-			if( $this->Join && !preg_match('/^(LEFT|INNER|RIGHT|\s+)+JOIN\s+/',$this->Join) ) $this->Join = " LEFT JOIN ".$this->Join;
-			if( $this->GroupBy && !preg_match('/^\s+GROUP\sBY\s+/',$this->GroupBy) ) $this->GroupBy = " GROUP BY ".$this->GroupBy;
-			if( $this->Having && !preg_match('/^\s+HAVING\s+/',$this->Having) ) $this->Having = " HAVING ".$this->Having;
-			if( $this->OrderBy && !preg_match('/^\s+ORDER\sBY\s+/',$this->OrderBy) ) $this->OrderBy = " ORDER BY ".$this->OrderBy;
-			if( $this->Limit && !preg_match('/^\s+LIMIT\s+/',$this->Limit) ) $this->Limit = " LIMIT ".$this->Limit;
-
-            if( $this->ItemsPerPage && !$this->HidePager )
-                $sql = "SELECT SQL_CALC_FOUND_ROWS @fields@ FROM @table@@join@@where@@groupby@@having@@orderby@@limit@";
-            else
-                $sql = "SELECT @fields@ FROM @table@@join@@where@@groupby@@having@@orderby@@limit@";
-			$sql = str_replace("@fields@",$this->Columns,$sql);
-			$sql = str_replace("@table@","`".$this->DataTable."`",$sql);
-			$sql = str_replace("@join@",$this->Join,$sql);
-			$sql = str_replace("@where@",$this->Where,$sql);
-			$sql = str_replace("@groupby@",$this->GroupBy,$sql);
-			$sql = str_replace("@having@",$this->Having,$sql);
-			$sql = str_replace("@orderby@",$this->OrderBy,$sql);
-			$sql = str_replace("@limit@",$this->Limit,$sql);
-			$this->Sql = $sql;
-		}
+			$this->Sql = $this->GetSQL();
 
 		$this->Clear();
 		$this->ExecuteSql($this->Sql);
+        if($this->ResultSet->HadError() && $this->OrderBy)
+        {
+            $this->OrderBy = false;
+            $this->Sql = $this->GetSQL();
+            $this->ExecuteSql($this->Sql);
+        }
 	}
+    
+    final function GetSQL()
+    {
+        if( !$this->Columns )
+            $this->Columns = $this->GetColumns();
+
+        if( !$this->Join )
+            $this->Join = $this->GetJoin();
+
+        if( !$this->Where )
+            $this->Where = $this->GetWhere();
+
+        if( !$this->GroupBy )
+            $this->GroupBy = $this->GetGroupBy();
+
+        if( !$this->Having )
+            $this->Having = $this->GetHaving();
+
+        if( !$this->OrderBy )
+            $this->OrderBy = $this->GetOrderBy();
+
+        if( !$this->Limit )
+            $this->Limit = $this->GetLimit();
+
+        if( is_array($this->Columns) )
+        {
+            foreach( $this->Columns as $k=>$v )
+                if( !preg_match('/[^a-zA-Z0-9]/',$v) )
+                    $this->Columns[$k] = "`$v`";
+        }
+
+        $this->Columns = is_array($this->Columns)?implode(",",$this->Columns):$this->Columns;
+        $this->Join = $this->Join?$this->Join:"";
+        $this->Where = $this->Where?$this->Where:"";
+        $this->GroupBy = $this->GroupBy?$this->GroupBy:"";
+        $this->OrderBy = $this->OrderBy?$this->OrderBy:"";
+
+        if( $this->Where && !preg_match('/^\s+WHERE\s+/',$this->Where) ) $this->Where = " WHERE ".$this->Where;
+        if( $this->Join && !preg_match('/^(LEFT|INNER|RIGHT|\s+)+JOIN\s+/',$this->Join) ) $this->Join = " LEFT JOIN ".$this->Join;
+        if( $this->GroupBy && !preg_match('/^\s+GROUP\sBY\s+/',$this->GroupBy) ) $this->GroupBy = " GROUP BY ".$this->GroupBy;
+        if( $this->Having && !preg_match('/^\s+HAVING\s+/',$this->Having) ) $this->Having = " HAVING ".$this->Having;
+        if( $this->OrderBy && !preg_match('/^\s+ORDER\sBY\s+/',$this->OrderBy) ) $this->OrderBy = " ORDER BY ".$this->OrderBy;
+        if( $this->Limit && !preg_match('/^\s+LIMIT\s+/',$this->Limit) ) $this->Limit = " LIMIT ".$this->Limit;
+
+        if( $this->ItemsPerPage && !$this->HidePager )
+            $sql = "SELECT SQL_CALC_FOUND_ROWS @fields@ FROM @table@@join@@where@@groupby@@having@@orderby@@limit@";
+        else
+            $sql = "SELECT @fields@ FROM @table@@join@@where@@groupby@@having@@orderby@@limit@";
+        $sql = str_replace("@fields@",$this->Columns,$sql);
+        $sql = str_replace("@table@","`".$this->DataTable."`",$sql);
+        $sql = str_replace("@join@",$this->Join,$sql);
+        $sql = str_replace("@where@",$this->Where,$sql);
+        $sql = str_replace("@groupby@",$this->GroupBy,$sql);
+        $sql = str_replace("@having@",$this->Having,$sql);
+        $sql = str_replace("@orderby@",$this->OrderBy,$sql);
+        $sql = str_replace("@limit@",$this->Limit,$sql);
+        
+        return $sql;
+    }
 
 	/**
 	 * Allows to override the default execute method
@@ -300,27 +315,30 @@ class DatabaseTable extends Table implements ICallable
 
 		if( $this->ParsingBehaviour == self::PB_NOPROCESSING )
 		{
-			foreach( $row as $k=>$v )
-			{
-
-				$c = 0;
-				if( preg_match_all('/<([^\s\/>]+)>/', $v, $tags, PREG_SET_ORDER) )
-				{
-					foreach( $tags as $t )
-					{
-						if( !preg_match_all('/<\/'.$t[1].'>/', $v, $ctags, PREG_SET_ORDER) )
-							continue;
-						$c++;
-					}
-				}
-
-				$c1 = count(explode('"',$v));
-				$c2 = count(explode("'",$v));
-				$c3 = count(explode(">",$v));
-				$c4 = count(explode("<",$v));
-				if( count($tags)!=$c || ($c1 & 1)==0 || ($c2 & 1)==0 || ($c3 & 1)==0 || ($c4 & 1)==0 )
-					$row[$k] = htmlspecialchars($v);
-			}
+//			foreach( $row as $k=>$v )
+//			{
+//                $v = preg_replace('/<!--(.*)-->/Uis', '', $v); // strip comments
+//				$c = 0;
+//				if( preg_match_all('/<([^\s\/>]+)>/', $v, $tags, PREG_SET_ORDER) )
+//				{
+//					foreach( $tags as $t )
+//					{
+//						if( !preg_match_all('/<\/'.$t[1].'>/', $v, $ctags, PREG_SET_ORDER) )
+//							continue;
+//						$c++;
+//					}
+//				}
+//
+//				$c1 = count(explode('"',$v));
+//				$c2 = count(explode("'",$v));
+//				$c3 = count(explode(">",$v));
+//				$c4 = count(explode("<",$v));
+//				if( count($tags)!=$c || ($c1 & 1)==0 || ($c2 & 1)==0 || ($c3 & 1)==0 || ($c4 & 1)==0 )
+//                {
+//					$row[$k] = htmlspecialchars($v);
+//                    log_debug("spec because $c1 $c2 $c3 $c4",$v);
+//                }
+//			}
 		}
 		return $row;
 	}
@@ -341,7 +359,10 @@ class DatabaseTable extends Table implements ICallable
         if( !$this->ResultSet || $this->ResultSet->Count()==0 )
 		{
 			if( !$this->noDataAsRow )
-	           return $this->contentNoData;
+            {
+                $this->content($this->contentNoData);
+                return $this->contentNoData;
+            }
 			
 			if( !$this->header )
 				if( $this->OnAddHeader )
@@ -366,12 +387,14 @@ class DatabaseTable extends Table implements ICallable
                     else
                         $this->AddHeader(array_keys($row));
 
+                $cnt = $this->current_row_group?$this->current_row_group->length():0;
                 if( $this->OnAddRow )
                     $this->OnAddRow[0]->{$this->OnAddRow[1]}($this, $row);
                 else
                     $this->AddRow($row);
 				
-				$this->AddDataToRow($raw_row);
+                if( $cnt < ($this->current_row_group?$this->current_row_group->length():0) )
+                    $this->AddDataToRow($raw_row);
             }
 			if( $this->ItemsPerPage )
 				$this->HidePager = false;
@@ -440,6 +463,8 @@ class DatabaseTable extends Table implements ICallable
 		$res = array();
 		$copy->ResultSet->FetchMode = PDO::FETCH_ASSOC;
         $cols = [];
+        if(!$this->Columns && $this->Sql)
+            $this->Columns = array_keys($copy->ResultSet->fetchRow());
         foreach( $this->Columns as $c )
             $cols[] = trim($c,"`");
 		foreach( $copy->ResultSet as $row )
@@ -478,8 +503,7 @@ class DatabaseTable extends Table implements ICallable
 		$sheet = $xls->getActiveSheet();
 		$row = 1;
 		$max_cell = 0;
-		
-		$ci = ExcelCulture::FromCode(isset($this->Culture) ? $this->Culture->Code : 'en-US');
+		$ci = ExcelCulture::FromCode(isset($this->Culture) && $this->Culture ? $this->Culture->Code : 'en-US');
 		$head_rows = $this->_export_get_header();
 		$first_data_row = count($head_rows)+1;
 

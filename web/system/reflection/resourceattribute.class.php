@@ -39,6 +39,7 @@ class ResourceAttribute extends WdfAttribute
 	
 	function __construct($path)
 	{
+        parent::__construct();
 		$this->Path = $path;
 	}
 	

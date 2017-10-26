@@ -71,7 +71,6 @@ class SysAdmin extends HtmlPage
                 || $_SESSION['admin_handler_password'] != $CONFIG['system']['admin']['password'] 
             ) )
 		{
-			log_debug(current_event(true));
             redirect('sysadmin','login');
 		}
         

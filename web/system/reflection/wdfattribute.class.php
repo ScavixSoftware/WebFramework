@@ -49,6 +49,7 @@ class WdfAttribute
 	var $Object = null;
 	var $Method = null;
 	var $Field = null;
+    
 	function __construct() {}
 	
 	function __sleep()

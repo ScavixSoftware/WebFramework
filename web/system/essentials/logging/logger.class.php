@@ -210,7 +210,7 @@ class Logger
 		if( !file_exists($this->filename) )
 			touch($this->filename);
 		if( fileperms($this->filename) != 0755 )
-			chmod($this->filename, 0755);
+			@chmod($this->filename, 0755);
 		
 		$parts = array();
 		if( !is_null( $a1) ) $parts[] = $this->render( $a1);

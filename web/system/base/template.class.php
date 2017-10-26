@@ -294,15 +294,17 @@ class Template extends Renderable
 		foreach( $buf as $un_common_k_e_y_value=>&$un_common_v_a_l_value )
 			$$un_common_k_e_y_value = $un_common_v_a_l_value;
 		
+        $script = '';
 		if( system_is_ajax_call() )
         {
             if( count($this->_script)>0 )
-    			$contents .= "<script> ".implode("\n",$this->_script)."</script>";
+    			$script = implode("\n",$this->_script);
         }
         elseif( $scriptcnt < count($this->_script) ) 
-        {
-            $contents .= "<script> ".implode("\n",array_slice($this->_script,$scriptcnt))."</script>";
-        }
+            $script = implode("\n",array_slice($this->_script,$scriptcnt));
+        
+        if(trim($script) != '')
+            $contents .= "<script>".$script."</script>";
         
 		return $contents;
 	}

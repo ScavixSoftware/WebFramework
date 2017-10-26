@@ -37,7 +37,7 @@ class uiMessage extends uiControl
 	var $sub;
     var $messages = array();
 	
-	function __initialize($message,$type='highlight')
+	function __initialize($message,$type='highlight',$closeable=true)
 	{
 		parent::__initialize('div');
 		$this->class = "ui-widget ui-message";
@@ -48,7 +48,8 @@ class uiMessage extends uiControl
 		
 		$this->sub = $this->content( new Control('div') );
 		$this->sub->class = "ui-state-$type ui-corner-all";
-		$this->sub->content("<span class='ui-icon ui-icon-close' onclick=\"$(this).parent().parent().slideUp('fast', function(){ $(this).remove(); })\"></span>");
+        if($closeable)
+            $this->sub->content("<span class='ui-icon ui-icon-close' onclick=\"$(this).parent().parent().slideUp('fast', function(){ $(this).remove(); })\"></span>");
 		$this->sub->content("<p><span class='ui-icon ui-icon-$icon'></span>$message</p>");
 		
 		$this->InitFunctionName = false;
@@ -61,9 +62,9 @@ class uiMessage extends uiControl
 	 * @param string $message Hint text
 	 * @return uiMessage A new uiMessage 
 	 */
-	static function Hint($message)
+	static function Hint($message,$closeable=true)
 	{
-		return new uiMessage($message);
+		return new uiMessage($message,'highlight',$closeable);
 	}
 	
 	/**
@@ -72,9 +73,9 @@ class uiMessage extends uiControl
 	 * @param string $message Error text
 	 * @return uiMessage A new uiMessage 
 	 */
-	static function Error($message)
+	static function Error($message,$closeable=true)
 	{
-		return new uiMessage($message,'error');
+		return new uiMessage($message,'error',$closeable);
 	}
 	
 	function content($content, $replace = false)

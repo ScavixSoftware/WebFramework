@@ -39,6 +39,45 @@ use ScavixWDF\Reflection\WdfReflector;
 use ScavixWDF\WdfException;
 use SimpleXMLElement;
 
+
+class LazyLoader
+{
+    var $serializer;
+    var $data;
+    var $obj;
+    
+    function __construct($data,$serializer)
+    {
+        $this->data = $data;
+        $this->serializer = clone $serializer;
+    }
+    
+    private function getObj()
+    {
+        if( !$this->obj )
+            $this->obj = $this->serializer->UnserializeDeeper($this->data);
+        return $this->obj;
+    }
+    
+    function __get($name)
+    {
+        $o = $this->getObj();
+        return $o->$name;
+    }
+    
+    function __set($name, $value)
+    {
+        $o = $this->getObj();
+        $o->$name = $value;
+    }
+    
+    function __call($name, $arguments)
+    {
+        $o = $this->getObj();
+        return call_user_func_array($o->$name,$arguments);
+    }
+}
+
 /**
  * Serializer/Unserializer
  * 
@@ -53,6 +92,55 @@ class Serializer
 	var $sleepmap;
 	var $Lines;
 
+    private static function prepareSerialization($data,$stack=null)
+    {
+        if( !$stack )
+            $stack = new \SplObjectStorage();
+            
+        if( $data instanceof \Serializable )
+            return $data;
+        if( $data instanceof \PDOStatement )
+            return null;
+        elseif( $data instanceof Closure )
+            return null;
+        elseif( $data instanceof \Reflector )
+            return null;
+        elseif( $data instanceof \PDO )
+            return null;
+        elseif( is_array($data) )
+        {
+            foreach( $data as $k=>$v)
+                $data[$k] = self::prepareSerialization($v, $stack);
+        }
+        elseif( is_object($data) )
+        {
+            if( isset($stack[$data]) )
+                return $data;
+            $stack[$data] = true;
+            $ref = WdfReflector::GetInstance($data);
+            if( $ref->hasMethod('__sleep') )
+            {
+                foreach( $data->__sleep() as $k )
+                    $data->$k = self::prepareSerialization($data->$k, $stack);
+            }
+            else
+            {
+                $properties = $ref->getProperties(\ReflectionProperty::IS_PRIVATE | \ReflectionProperty::IS_PROTECTED | \ReflectionProperty::IS_PUBLIC);
+                foreach( $properties as $property )
+                {
+                    $property->setAccessible(true);
+                    $value = $property->getValue($data);
+                    $value = self::prepareSerialization($value, $stack);
+                    try
+                    {
+                        @$property->setValue($data, $value);
+                    } catch (Exception $ex) { /* ignore read-only exceptions */ }
+                }
+            }
+        }
+        return $data;
+    }
+    
 	/**
 	 * Serializes a value
 	 * 
@@ -62,6 +150,13 @@ class Serializer
 	 */
 	function Serialize(&$data)
 	{
+//        if( $data instanceof \Listing )
+//            log_debug(__METHOD__,"A", $data);
+//        $data = self::prepareSerialization($data);
+//        if( $data instanceof \Listing )
+//            log_debug(__METHOD__,"B", $data);
+//        return serialize($data);
+        
 		$this->Stack  = array();
 		$this->clsmap = array();
 		$this->sleepmap = array();
@@ -72,7 +167,10 @@ class Serializer
 	{
 		if( is_string($data) )
 		{
-			return "s:". str_replace("\n","\\n",$data) ."\n";
+            if( strpos($data,"\n") === false )
+                return "s:". $data ."\n";
+			return "S:". json_encode($data) ."\n";
+//			return "s:". str_replace("\n", "\\n", $data) ."\n";     // old DEPRECATED
 		}
 		elseif( is_int($data) )
 		{
@@ -82,10 +180,10 @@ class Serializer
 		{
 			$res = "a:".count($data)."\n";
 			$keys = array_keys($data);
-			foreach( $keys as &$key )
+			foreach( $keys as $key )
 			{
-				$res .= "k:".$this->Ser_Inner($key,$level+1);
-				$res .= "v:".$this->Ser_Inner($data[$key],$level+1);
+				$res .= $this->Ser_Inner($key,$level+1);
+				$res .= $this->Ser_Inner($data[$key],$level+1);
 			}
 			return $res;
 		}
@@ -146,8 +244,8 @@ class Serializer
 			
 			foreach( $vars as $field )
 			{
-				$res .= "f:".$this->Ser_Inner($field,$level+1);
-				$res .= "v:".$this->Ser_Inner($data->$field,$level+1);
+				$res .= $this->Ser_Inner($field,$level+1);
+				$res .= $this->Ser_Inner($data->$field,$level+1);
 			}
 
 			return $res;
@@ -166,33 +264,50 @@ class Serializer
 		if( !isset($GLOBALS['unserializing_level']) )
 			$GLOBALS['unserializing_level'] = 0;
 		$GLOBALS['unserializing_level']++;
+        
+		$this->Index = 0;
 		$this->Lines = explode("\n",trim($data));
 		$this->Stack = array();
 		$res = $this->Unser_Inner();
+        
 		$GLOBALS['unserializing_level']--;
 		return $res;
 	}
-
+    
 	private function Unser_Inner()
 	{
-		$orig_line = array_shift($this->Lines);
+        $start = microtime(true);
+		$orig_line = $this->Lines[$this->Index++];
 		if( $orig_line == "" )
 			return null;
 		$type = $orig_line{0};
 		$line = substr($orig_line, 2);
 
-		if( $type == 'k' || $type == 'f' || $type == 'v')
+        // backwards compatibility!
+        if( $type == 'k' || $type == 'f' || $type == 'v')
 		{
-			$type = $line{0};
-			$line = substr($line, 2);
+            if( isset($line{1}) && $line{1}==':' )
+            {
+                $type = $line{0};
+                $line = substr($line, 2);
+            }
 		}
-
+        
 		try
 		{
 			switch( $type )
 			{
+                case "$":
+//                    list($len,$line) = explode(":",$line,2);
+//                    while( strlen($line) < $len )
+//                        $line .= "\n".array_shift($this->Lines);
+                    $res = str_replace(["\\r","\\n"], ["\r","\n"], $line);
+                    return $res;
+				case 'S':
+					$res = json_decode($line);
+                    return $res;
 				case 's':
-					return str_replace("\\n","\n",$line);
+                    return $line;
 				case 'i':
 					return intval($line);
 				case 'a':
@@ -202,7 +317,7 @@ class Serializer
 						$key = $this->Unser_Inner();
 						$res[$key] = $this->Unser_Inner();
 					}
-					return $res;
+                    return $res;
 				case 'd':
 					if( !$line )
 						return null;
@@ -228,7 +343,7 @@ class Serializer
 						$this->Stack[$id]->$field = $this->Unser_Inner();
 					}
 
-					if( system_method_exists($this->Stack[$id],'__wakeup') )
+					if( !($this->Stack[$id] instanceof \ScavixWDF\CacheEntry) && system_method_exists($this->Stack[$id],'__wakeup') )
 						$this->Stack[$id]->__wakeup();
 
 					return $this->Stack[$id];

@@ -164,16 +164,34 @@ class WdfDbException extends WdfException
 {
     private $statement;
     
+    /**
+     * @internal Raises an Exception for a failed DB Statement.
+     */
     public static function RaiseStatement($statement, $use_extended_info = false)
 	{
-        if( $use_extended_info )
-            $ex = new WdfDbException("SQL Error: ".$statement->ErrorOutput()."\nSQL:".$statement->GetMergedSql());
+        $errid = uniqid();
+        if(isDev())
+        {
+            if( $use_extended_info )
+                $msg = "SQL Error: ".$statement->ErrorOutput()."\nSQL:".$statement->GetMergedSql()."\nError ID: ".$errid;
+            else
+                $msg = render_var($statement->ErrorOutput())."\nError ID: ".$errid;
+        }
         else
-            $ex = new WdfDbException(render_var($statement->ErrorOutput()));
+        {
+            $msg = 'SQL Error occured. Please contact the technical team and tell them this error ID: '.$errid;
+            log_error("SQL Error", $errid, $statement->ErrorOutput(), $statement->GetMergedSql());
+        }
+        $ex = new WdfDbException($msg);
         $ex->statement = $statement;
 		throw $ex;
 	}
     
+    /**
+     * Returns the SQL string used
+     * 
+     * @return string SQL
+     */
     function getSql()
     {
         if( $this->statement )
@@ -181,6 +199,11 @@ class WdfDbException extends WdfException
         return '(undefined)';
     }
     
+    /**
+     * Returns the arguments used
+     * 
+     * @return array The arguments
+     */
     function getArguments()
     {
         if( $this->statement )
@@ -188,10 +211,59 @@ class WdfDbException extends WdfException
         return [];
     }
     
+    /**
+     * Returns a string merged from the SQL statement and the arguments
+     * 
+     * @return string Merged SQL statement
+     */
     function getMergedSql()
     {
         if( $this->statement )
             return $this->statement->GetMergedSql();
         return '(undefined)';
+    }
+    
+    /**
+     * Returns a string merged from the SQL statement and the arguments
+     * 
+     * @return string Merged SQL statement
+     */
+    function getErrorInfo()
+    {
+        if( $this->statement )
+            return $this->statement->ErrorInfo();
+        return [];
+    }
+}
+
+class CacheEntry
+{
+	var $_storage_id;
+	var $data;
+    
+    static function Create($key, $data)
+    {
+        $res = new CacheEntry();
+        $res->_storage_id = $key;
+        $res->data = $data;
+        store_object($res,$res->_storage_id);
+    }
+    
+    static function Load($key)
+    {
+        $res = restore_object($key);
+        if( $res )
+            return $res->data;
+        return null;
+    }
+    
+    static function Exists($key)
+    {
+        return in_object_storage($key);
+    }
+    
+    static function Delete($key)
+    {
+        delete_object($key);
     }
 }

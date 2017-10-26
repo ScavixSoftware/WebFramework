@@ -568,7 +568,7 @@ class Table extends Control
     {
         $this->PersistName = $name;
         if( isset($_SESSION["table_persist_{$name}_page"]) )
-            $this->CurrentPage = $_SESSION["table_persist_{$name}_page"];
+            $this->CurrentPage = intval(max(1, $_SESSION["table_persist_{$name}_page"]));
         else
             $_SESSION["table_persist_{$name}_page"] = $this->CurrentPage;
         store_object($this);

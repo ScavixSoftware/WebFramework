@@ -71,6 +71,13 @@ class CommonModel extends Model
 		return parent::__ensureResults($ctor_args);
 	}
 	
+    /**
+     * Converts this instance to another Type.
+     * 
+     * Can be called for single objects or for complete resultsets.
+     * @param string $className Name of class to be used
+     * @return Model|array The converted object/result array
+     */
 	public function Convert($className)
 	{
 		if( $this->IsRow() )

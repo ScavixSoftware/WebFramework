@@ -115,4 +115,16 @@ class AjaxAction
 			return true;
 		return false;
 	}
+    
+    /**
+	 * Return JS code to close a previously generated confirmation dialog
+	 * 
+	 * See <AjaxAction::Confirm>
+	 * @param string $text_base Text base the user confirmed
+	 * @return string JS code to close the dialog if present
+	 */
+	public static function CloseConfirmation($text_base)
+	{
+		return "$('.uiconfirmation[data-confirmed=\"{$_SESSION['ajax_confirm'][$text_base]}\"]').dialog('close').remove();";
+	}
 }

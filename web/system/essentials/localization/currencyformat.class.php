@@ -66,21 +66,23 @@ class CurrencyFormat
 	 */
 	function Format($amount, $use_plain=false, $only_value=false)
 	{
-		$val = number_format(abs($amount),$this->DecimalDigits,$this->DecimalSeparator,$this->GroupSeparator);
-		if( strlen($this->GroupSeparator) > 0 && !$use_plain )
-		{
-			$ord = uniord($this->GroupSeparator);
-			$val = str_replace($this->GroupSeparator[0],"&#$ord;",$val);
-		}
-
 		if( $only_value )
+        {
+            $val = number_format($amount,$this->DecimalDigits,$this->DecimalSeparator,$this->GroupSeparator);
+            if( strlen($this->GroupSeparator) > 0 && !$use_plain )
+            {
+                $ord = uniord($this->GroupSeparator);
+                $val = str_replace($this->GroupSeparator[0],"&#$ord;",$val);
+            }
 			return $val;
+        }
 
 		$tmp = ($amount >= 0)?$this->PositiveFormat:$this->NegativeFormat;
 
 		if( $use_plain )
 			$tmp = str_replace($this->Symbol,$this->Code,$tmp);
-
+        
+        $val = number_format(abs($amount),$this->DecimalDigits,$this->DecimalSeparator,$this->GroupSeparator);
 		return unicode_cleanup_rtl(str_replace("%v", $val, $tmp));
 	}
 

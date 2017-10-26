@@ -107,7 +107,7 @@ class WdfResource implements ICallable
 		if( $res )
 		{
 			WdfResource::ValidatedCacheResponse($res);
-			readfile($res);
+            die( $this->resolveUrls($res) );
 		}
 		else
 			header("HTTP/1.0 404 Not Found");
@@ -148,7 +148,15 @@ class WdfResource implements ICallable
 			file_put_contents($css, $newCache['compiled']);
 		}
 		WdfResource::ValidatedCacheResponse($less);
-		readfile($css);
-		die();
+        die( $this->resolveUrls($css) );
 	}
+    
+    private function resolveUrls($file)
+    {
+        return preg_replace_callback("/url\s*\(['\"]*resfile\/(.*)['\"]*\)/siU",function($match)
+        {
+            $url = trim($match[1],"\"' ");
+            return "url('".resFile($url)."')";
+        }, file_get_contents($file));
+    }
 }

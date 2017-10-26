@@ -56,6 +56,10 @@ function globalcache_init()
 		$GLOBALS['globalcache_key_prefix'] = "K".md5($servername."-".$CONFIG['globalcache']['key_prefix']."-".getAppVersion('nc'));
 	else
 		$GLOBALS["globalcache_key_prefix"] = "K".md5($servername."-".session_name()."-".getAppVersion('nc'));
+    
+    if( $CONFIG['globalcache']['CACHE'] == globalcache_CACHE_APC && !function_exists('apc_store') )
+        $CONFIG['globalcache']['CACHE'] = globalcache_CACHE_OFF;
+    
     register_hook_function(HOOK_POST_INIT,'globalcache_initialize');
 }
 

@@ -172,6 +172,71 @@ class TranslationAdmin extends TranslationAdminBase
 		}
 		$this->_contentdiv->content("<div>Cleared the string cache</div>");
     }
+	
+    /**
+	 * @internal Fetch action handler
+     * @attribute[RequestParam('languages','array',false)]
+     * @attribute[RequestParam('clearbeforeimport','bool',false)]
+     */
+    function Import($languages = false, $clearbeforeimport = false)
+    {
+        global $CONFIG;
+        
+        $this->_contentdiv->content("<h1>Import strings</h1>");
+        
+        if( !$languages )
+        {
+            $this->_contentdiv->content("<p>Imports strings from XX.inc.php (in ".$CONFIG['translation']['data_path'].") into the database</p>");
+            $div = $this->_contentdiv->content(new Form());
+            foreach( glob($CONFIG['translation']['data_path'].'*.inc.php') as $filename )
+            {
+                $lang = str_replace('.inc.php', '', basename($filename));
+                $cb = $div->content( new CheckBox('languages[]') );
+                $cb->value = $lang;
+                $div->content($cb->CreateLabel(basename($filename)));
+                $div->content("<br/>");
+            }
+            $a = $div->content(new Anchor('#','Select all'));
+            $a->script("$('#{$a->id}').click(function(){ $('input[name=\"languages[]\"]','#{$div->id}').attr('checked',true); });");
+            $div->content("<br/>");
+            $div->content("<br/>");
+            $cb = $div->content( new CheckBox('clearbeforeimport') );
+            $cb->value = 1;
+            $div->content($cb->CreateLabel('Empty language before import'));
+            $div->content("<br/>");
+            $div->content("<br/>");
+            $div->AddSubmit("Import");
+            return;
+        }
+        
+        $ds = model_datasource($GLOBALS['CONFIG']['translation']['sync']['datasource']);
+        
+        foreach($languages as $lang)
+        {
+            unset($GLOBALS['translation']['strings']);
+            $filename = $CONFIG['translation']['data_path'].$lang.'.inc.php';
+            include($filename);
+            $cnt = count($GLOBALS['translation']['strings']);
+            if($cnt > 0)
+            {
+                if($clearbeforeimport)
+                    $ds->ExecuteSql("DELETE FROM wdf_translations WHERE lang=?", [$lang]);
+                foreach($GLOBALS['translation']['strings'] as $k => $v)
+                {
+                    $ds->ExecuteSql("REPLACE INTO wdf_translations SET lang=?, id=?, content=?", [$lang, $k, $v]);
+                }
+                $this->_contentdiv->content("<p>$cnt strings imported for ".$lang."</p>");
+            }
+            else
+                $this->_contentdiv->content("<p>No strings found in ".$filename."</p>");
+
+        }
+		
+		$ds->ExecuteSql("TRUNCATE TABLE wdf_unknown_strings");
+		$this->_contentdiv->content("<div>Cleared the unknown strings table</div>");
+		
+		$this->_contentdiv->content("<div>Done!</div>");
+    }
     
     /**
 	 * @internal Create new string handler
@@ -320,7 +385,7 @@ class TranslationAdmin extends TranslationAdminBase
 	 * @internal
 	 * @attribute[RequestParam('lang','string',false)]
 	 */
-	function Import($lang)
+	function ImportJSON($lang)
 	{
 		global $CONFIG;
 		$lang = $lang?$lang:$CONFIG['localization']['default_language'];

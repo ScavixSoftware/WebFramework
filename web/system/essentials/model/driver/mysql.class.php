@@ -48,10 +48,15 @@ class MySql implements IDatabaseDriver
 	 */
 	function initDriver($datasource,$pdo)
 	{
+        global $CONFIG;
 		$this->_ds = $datasource;
 		$this->_pdo = $pdo;
-		$this->_pdo->exec("SET CHARACTER SET utf8");
-		$this->_pdo->exec("SET NAMES utf8");
+        if(isset($CONFIG['model'][$datasource->_storage_id]) && isset($CONFIG['model'][$datasource->_storage_id]['bufferedquery']) && $CONFIG['model'][$datasource->_storage_id]['bufferedquery'])
+            $this->_pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true); 
+//        if(!isset($CONFIG['model'][$datasource->_storage_id]['forceutf8']) || (isset($CONFIG['model'][$datasource->_storage_id]['forceutf8']) && $CONFIG['model'][$datasource->_storage_id]['forceutf8']))
+        {
+            $this->_pdo->exec("SET CHARACTER SET utf8; SET NAMES utf8");
+        }
         $this->_pdo->Driver = $this;
 	}
 
@@ -62,7 +67,7 @@ class MySql implements IDatabaseDriver
 	{
 		$sql = 'SHOW TABLES';
 		$tables = array();
-		foreach($this->_pdo->query() as $row)
+		foreach($this->_pdo->query($sql) as $row)
 			$tables[] = $row[0];
 		return $tables;
 	}
@@ -74,12 +79,11 @@ class MySql implements IDatabaseDriver
 	{
 		$sql = 'SHOW CREATE TABLE `'.$tablename.'`';
 		$tableSql = $this->_pdo->query($sql);
-		
 		if( !$tableSql )
 			WdfDbException::Raise("Table `$tablename` not found!","PDO error info: ",$this->_pdo->errorInfo());
-		
-		$tableSql = $tableSql->fetch();
-		$tableSql = $tableSql[1];
+
+        $tableSql = $tableSql->fetch();
+        $tableSql = $tableSql[1];
 
 		$res = new TableSchema($this->_ds, $tablename);
 		$sql = "show columns from `$tablename`";
@@ -146,6 +150,7 @@ class MySql implements IDatabaseDriver
 	 */
 	function getSaveStatement($model,&$args,$columns_to_update=false)
 	{
+        $argnum = 0;
 		$cols = array();
 		$pks = $model->GetPrimaryColumns();
 		$all = array();
@@ -191,13 +196,14 @@ class MySql implements IDatabaseDriver
 			}
 			else
 			{
-				$cols[] = "`$col`=:$col";
+                $argn = ":arg".($argnum++);
+				$cols[] = "`$col`=$argn";
 				$all[] = "`$col`";
-				$vals[] = ":$col";
-				$args[":$col"] = $tv;
+				$vals[] = "$argn";
+				$args["$argn"] = $tv;
 			
-				if( $args[":$col"] instanceof DateTime )
-					$args[":$col"] = $args[":$col"]->format("c");
+				if( $args["$argn"] instanceof DateTime )
+					$args["$argn"] = $args["$argn"]->format("c");
 			}
 		}
 		
@@ -249,6 +255,8 @@ class MySql implements IDatabaseDriver
 	function getPagedStatement($sql,$page,$items_per_page)
 	{
 		$offset = ($page-1)*$items_per_page;
+        if(intval($offset) < 0)
+            $offset = 0;
 		$sql = preg_replace('/LIMIT\s+[\d\s,]+/', '', $sql);
 		$sql .= " LIMIT $offset,$items_per_page";
 		return new ResultSet($this->_ds, $this->_pdo->prepare($sql));
@@ -279,7 +287,7 @@ class MySql implements IDatabaseDriver
                 $sql = "SELECT 1 FROM".substr($sql,13);
             $sql = "SELECT count(*) FROM ($sql) AS x";
 
-            $ok = $this->_ds->ExecuteScalar($sql,is_null($input_arguments)?array():$input_arguments);
+            $ok = $this->_ds->ExecuteScalar($sql,is_null($input_arguments)?array():array_values($input_arguments));
             $total = intval($ok);
             if( $ok === false )
                 $this->_ds->LogLastStatement("Error querying paging info");

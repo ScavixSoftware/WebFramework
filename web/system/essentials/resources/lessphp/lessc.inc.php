@@ -36,6 +36,7 @@
  *
  * The `lessc_formatter` takes a CSS tree, and dumps it to a formatted string,
  * handling things like indentation.
+ * @internal This is http://leafo.net/lessphp
  */
 class lessc {
 	static public $VERSION = "v0.4.0";

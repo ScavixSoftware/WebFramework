@@ -220,7 +220,6 @@ function get_timezone_by_ip($ip = false)
 	if( $ret )
 		return $ret;
 	
-	/*
 	// new url with api key:
 	$url = "https://api.ipinfodb.com/v3/ip-city/?key=ae4dea477cd8a36cc678c582c3f990fb57a5aae696f878b4e0eee70afa53bf1e&ip=".$GLOBALS['current_ip_addr']."&format=xml";
 	try
@@ -236,8 +235,24 @@ function get_timezone_by_ip($ip = false)
 			return $zone[1];
 		}
 	}
-//	log_error("No timezone found for ".$GLOBALS['current_ip_addr']." via ipinfodb.com");
-	 */
+	log_error("No timezone found for ".$GLOBALS['current_ip_addr']." via ipinfodb.com");
+    
+	// try via freegeoip:
+	$url = "http://freegeoip.net/xml/".$GLOBALS['current_ip_addr'];
+	try
+	{
+		$xml = downloadData($url, false, false, 60 * 60, 2);
+	}catch(Exception $ex){ WdfException::Log("Unable to get Timezone for ".$ip." ($url)",$ex); return false; }
+	if( preg_match_all('/<TimeZone>([^<]*)<\/TimeZone>/', $xml, $zone, PREG_SET_ORDER) )
+	{
+		$zone = $zone[0];
+		if($zone[1] != "")
+		{
+            cache_set($key,$zone[1], 24 * 60 * 60);
+			return $zone[1];
+		}
+	}
+	log_error("No timezone found for ".$GLOBALS['current_ip_addr']." via freegeoip.net");
 	
 	$url = "http://ip-api.com/php/".$ip;
 	try
@@ -276,21 +291,21 @@ function get_timezone_by_ip($ip = false)
 	}
 	log_error("No timezone found for ".$ip." via geonames.org");
 
-	// ALTERNATIVE 2:
-	$url = "http://www.earthtools.org/timezone/".$coords['latitude'].'/'.$coords['longitude'];
-	try
-	{
-		$xml = downloadData($url, false, false, 60 * 60, 2);
-	}catch(Exception $ex){ WdfException::Log("Unable to get Timezone for ".$ip." ($url)",$ex); return false; }
-	if( preg_match_all('/<offset>([^<]*)<\/offset>/', $xml, $zone, PREG_SET_ORDER) )
-	{
-		$zone = $zone[0];
-		$zone[1] = round($zone[1], 0);
-		$ret = "Etc/GMT".($zone[1] < 0 ? $zone[1] : "+".$zone[1]);
-		cache_set($key,$ret, 24 * 60 * 60);
-		return $ret;
-	}
-	log_error("No timezone found for ".$ip." via earthtools.org");
+//	// ALTERNATIVE 2:
+//	$url = "http://www.earthtools.org/timezone/".$coords['latitude'].'/'.$coords['longitude'];
+//	try
+//	{
+//		$xml = downloadData($url, false, false, 60 * 60, 2);
+//	}catch(Exception $ex){ WdfException::Log("Unable to get Timezone for ".$ip." ($url)",$ex); return false; }
+//	if( preg_match_all('/<offset>([^<]*)<\/offset>/', $xml, $zone, PREG_SET_ORDER) )
+//	{
+//		$zone = $zone[0];
+//		$zone[1] = round($zone[1], 0);
+//		$ret = "Etc/GMT".($zone[1] < 0 ? $zone[1] : "+".$zone[1]);
+//		cache_set($key,$ret, 24 * 60 * 60);
+//		return $ret;
+//	}
+//	log_error("No timezone found for ".$ip." via earthtools.org");
 
 	// disaster-fallback: use our timezone:
 	return "Etc/GMT+2";

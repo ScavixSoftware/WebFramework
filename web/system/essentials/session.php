@@ -65,6 +65,9 @@ function session_init()
 	// Classname of the Session Handler
 	if( !isset($CONFIG['session']['handler']))
 		$CONFIG['session']['handler'] = 'PhpSession';
+    
+	if( !isset($CONFIG['session']['object_store']))
+		$CONFIG['session']['object_store'] = 'SessionStore';
 }
 
 /**
@@ -82,13 +85,15 @@ function session_run()
 	}
     
 	$CONFIG['session']['handler'] = fq_class_name($CONFIG['session']['handler']);
+	$CONFIG['session']['object_store'] = fq_class_name($CONFIG['session']['object_store']);
+    
 	$GLOBALS['fw_session_handler'] = new $CONFIG['session']['handler']();
+    $GLOBALS['fw_session_handler']->store = 
+        $GLOBALS['fw_object_store'] = 
+        new $CONFIG['session']['object_store']();
     
     if( !isset($_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"]) )
         $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"] = array();
-
-	if( isset($_SESSION['object_id_storage']) )
-		$GLOBALS['object_ids'] = $_SESSION['object_id_storage'];
 }
 
 /**
@@ -107,6 +112,7 @@ function unserializer_active()
  * Checks reference-equality or storage_id equality (if storage_id is set)
  * @param object $o1 First object to compare
  * @param object $o2 Second object to compare
+ * @param bool $compare_classes Seems to be deprecated
  * @return bool true if eual, else false
  */
 function equals(&$o1, &$o2, $compare_classes=true)
@@ -147,40 +153,27 @@ function session_sanitize()
 }
 
 /**
- * @shortcut <SessionBase::KillAll>
  */
 function session_kill_all()
 {
 	$GLOBALS['fw_session_handler']->KillAll();
 }
 
-/**
- * @shortcut <SessionBase::KeepAlive>
- */
 function session_keep_alive($request_key='PING')
 {
-    // increase object lifetime on PING
-    if( $request_key == 'PING' )
-        foreach( $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"] as $id=>$time )
-            $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$id] += 60;
 	return $GLOBALS['fw_session_handler']->KeepAlive($request_key);
 }
 
-/**
- * @shortcut <SessionBase::Update>
- */
-function session_update()
+function session_update($keep_alive=false)
 {
+    if( isset($GLOBALS['session_update_done']) )
+        return;
+    $GLOBALS['session_update_done'] = true;
+    
     if( !system_is_ajax_call() )
-    {
-        // after(!) real page loads check for old objects and remove them
-        foreach( $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"] as $id=>$time )
-        {
-            if( isset($GLOBALS['object_storage'][$id]) || $time + 60 > time() )
-                continue;
-            delete_object($id);
-        }
-    }
+        $GLOBALS['fw_object_store']->Cleanup();
+
+    $GLOBALS['fw_object_store']->Update($keep_alive);
     return $GLOBALS['fw_session_handler']->Update();
 }
 
@@ -197,9 +190,9 @@ function request_id()
  */
 function store_object(&$obj,$id="")
 {
-	$res = $GLOBALS['fw_session_handler']->Store($obj,$id);
-    // update objects last access
-    $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$obj->_storage_id] = time();
+    if( !isset($GLOBALS['fw_object_store']) )
+		return false;
+	$res = $GLOBALS['fw_object_store']->Store($obj,$id);
     return $res;
 }
 
@@ -208,13 +201,9 @@ function store_object(&$obj,$id="")
  */
 function delete_object($id)
 {
-    if( isset($_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$id]) )
-        unset($_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$id]);
-    if( isset($_SESSION['object_id_storage'][$id]) )
-        unset($_SESSION['object_id_storage'][$id]);
-    if( isset($GLOBALS['object_ids'][$id]) )
-        unset($GLOBALS['object_ids'][$id]);
-	return $GLOBALS['fw_session_handler']->Delete($id);
+    if( !isset($GLOBALS['fw_object_store']) )
+		return false;
+	return $GLOBALS['fw_object_store']->Delete($id);
 }
 
 /**
@@ -222,9 +211,9 @@ function delete_object($id)
  */
 function in_object_storage($id)
 {
-	if( !isset($GLOBALS['fw_session_handler']) )
+	if( !isset($GLOBALS['fw_object_store']) )
 		return false;
-	return $GLOBALS['fw_session_handler']->Exists($id);
+	return $GLOBALS['fw_object_store']->Exists($id);
 }
 
 /**
@@ -232,9 +221,7 @@ function in_object_storage($id)
  */
 function &restore_object($id)
 {
-	$res = $GLOBALS['fw_session_handler']->Restore($id);
-    if( $res )// update objects last access        
-        $_SESSION[$GLOBALS['CONFIG']['session']['prefix']."object_access"][$res->_storage_id] = time();
+	$res = $GLOBALS['fw_object_store']->Restore($id);
     return $res;
 }
 
@@ -243,8 +230,8 @@ function &restore_object($id)
  */
 function create_storage_id(&$obj)
 {
-	if( isset($GLOBALS['fw_session_handler']) && is_object($GLOBALS['fw_session_handler']) )
-		return $GLOBALS['fw_session_handler']->CreateId($obj);
+	if( isset($GLOBALS['fw_object_store']) && is_object($GLOBALS['fw_object_store']) )
+		return $GLOBALS['fw_object_store']->CreateId($obj);
 	return false;
 }
 

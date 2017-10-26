@@ -41,6 +41,7 @@ default_string('TXT_DP_NOW', 'Now');
  */
 class uiDatePicker extends uiControl
 {
+    static $DefaultCI = false;
 	protected $CultureInfo = false;
 
 	/**
@@ -66,6 +67,9 @@ class uiDatePicker extends uiControl
 			else
 				$this->Options['defaultDate'] = $value;
 		}
+        
+        if( self::$DefaultCI )
+            $this->SetCulture(self::$DefaultCI);
 	}
 
 	/**
@@ -132,12 +136,13 @@ class uiDatePicker extends uiControl
 		return $this;
 	}
     
-    public static function PromoteDefaults(\ScavixWDF\Base\HtmlPage $page, $cultureInfo)
+    public static function PromoteDefaults(\ScavixWDF\Base\HtmlPage $page, $cultureInfo, $options = [])
     {
         $cls = get_called_class();
         $temp = new $cls();
         $temp->SetCulture($cultureInfo);
-        $def = json_encode($temp->Options);
+        $def = json_encode(array_merge($temp->Options,$options));
         $page->addDocReady("$.datepicker.setDefaults($def);");
+        self::$DefaultCI = $cultureInfo;
     }
 }

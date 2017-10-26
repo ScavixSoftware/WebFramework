@@ -39,7 +39,7 @@ use ScavixWDF\Model\Driver\MySql;
  * There are some difficulties with PHPs PDOStatement class as it will not allow us to override all methods (Traversable hides Iterator).
  * So we cannot simply inherit from there, but must wrap it.
  */
-class ResultSet implements Iterator, ArrayAccess
+class ResultSet implements Iterator, ArrayAccess, \Serializable
 {
 	private $_stmt = null;
 	private $_ds = null;
@@ -94,7 +94,26 @@ class ResultSet implements Iterator, ArrayAccess
 	 */
 	public function ErrorOutput()
 	{
-		return $this->_sql_used."\n".render_var($this->_stmt->errorInfo());
+		return render_var($this->_stmt->errorInfo())."\n".$this->_sql_used;
+	}
+    
+    /**
+	 * Returns the error info
+	 * 
+	 * @return string ErrorInfo
+	 */
+	public function ErrorInfo()
+	{
+		return $this->_stmt->errorInfo();
+	}
+	
+	/**
+	 * Returns the last query error code
+	 * @return int The error code
+	 */
+	public function HadError()
+	{
+		return ($this->_stmt->errorCode() != '00000');
 	}
 	
 	/**
@@ -102,6 +121,7 @@ class ResultSet implements Iterator, ArrayAccess
 	 * 
 	 * Sometimes you will need to debug specific statements. This method will create a logentry with the SQL query, the arguments used
 	 * and try to combine it for easy copy+paste from log to your sql tool (for retry).
+     * @param string $label Optional label to use as prefix for the log entry
 	 * @return void
 	 */
 	public function LogDebug($label='')
@@ -161,6 +181,24 @@ class ResultSet implements Iterator, ArrayAccess
 		);		
 		return serialize($buf);
 	}
+    
+    function unserialize($data)
+	{
+        log_debug(__METHOD__,$data);
+		$buf = unserialize($data);
+		$this->_ds = model_datasource($buf['ds']);
+		$this->_sql_used = $buf['sql'];
+		$this->_arguments_used = $buf['args'];
+		$this->_paging_info = $buf['paging_info'];
+		$this->_field_types = $buf['field_types'];
+		$this->_index = $buf['index'];
+		$this->_rowbuffer = $buf['rows'];
+		$this->_rowCount = isset($buf['rowCount'])?$buf['rowCount']:false;
+		$this->_loaded_from_cache = true;
+		$this->_data_fetched = isset($buf['df'])?$buf['df']:false;
+		if( isset($this->_rowbuffer[$this->_index]) )
+			$this->_current = $this->_rowbuffer[$this->_index];
+	}
 	
 	/**
 	 * Creates a ResultSet from a serialized data string
@@ -169,7 +207,7 @@ class ResultSet implements Iterator, ArrayAccess
 	 * @param string $data serialized data string
 	 * @return ResultSet Restored ResultSet object
 	 */
-	static function &unserialize($data)
+	static function &restore($data)
 	{
 		$buf = unserialize($data);
 		$res = new ResultSet(model_datasource($buf['ds']),null);
@@ -431,6 +469,7 @@ class ResultSet implements Iterator, ArrayAccess
 	 * </code>
 	 * @param string|int $column_name Column to enumerate values for. If an integer is given will see that as zero-based index.
 	 * @param bool $distinct True to array_unique, false to keep duplicates
+	 * @param string $key_column_name If given uses this column as key for an associative resulting array
 	 * @return type
 	 */
 	function Enumerate($column_name, $distinct=true, $key_column_name=false)

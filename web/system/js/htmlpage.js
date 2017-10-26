@@ -77,22 +77,23 @@ $.ajaxSetup({cache:false});
 				:'?wdf_route='+encodeURIComponent(this.arg('wdf_route'));
 			settings.url_path = settings.site_root + settings.route;
 			settings.focus_first_input = (settings.focus_first_input === undefined)?true:settings.focus_first_input;
+			settings.ajax_include_credentials = (settings.ajax_include_credentials === undefined)?false:settings.ajax_include_credentials;
 			
 			// Init
 			this.settings = settings;
 			this.request_id = settings.request_id;
 			this.initLogging();
-			this.initAjax();
+            if( !settings.skip_ajax_handling )
+                this.initAjax(settings.skip_dependency_loading);
 			
-			// Add some methods
-			for(var method in {"get":1, "post":1})
-			{
-				this[ method ] = function( controller, data, callback )
+            var ajax_function = function(name)
+            {
+                return function( controller, data, callback )
 				{
 					var url = wdf.settings.site_root;
 					if( typeof controller === "string" )
                     {
-                        if( controller.match(/^https*:\/\//) )
+                        if( controller.match(/^(http:|https:|)\/\//) )
                             url = controller;
                         else
                             url += controller;
@@ -100,19 +101,24 @@ $.ajaxSetup({cache:false});
 					else
 						url += $(controller).attr('id')
 					url = wdf.validateHref(url);
-					return $[method](url, data, callback);
+					return $[name](url, data, callback);
 				};
-			};
+            };
+            wdf.get = ajax_function('get');
+            wdf.post = ajax_function('post');
 			
 			// Shortcuts for current controller 
-			this.controller = {};
-			for(var method in {"get":1, "post":1})
-			{
-				this.controller[ method ] = function( handler, data, callback )
+			this.controller = 
+            {
+                get: function( handler, data, callback )
 				{
-					return wdf[method](wdf.settings.controller+'/'+handler,data,callback);
-				};
-			};
+					return wdf.get(wdf.settings.controller+'/'+handler,data,callback);
+				},
+                post: function( handler, data, callback )
+				{
+					return wdf.post(wdf.settings.controller+'/'+handler,data,callback);
+				}
+            };
 
 			// Focus the first visible input on the page (or after the hash)
 			if( this.settings.focus_first_input )
@@ -144,7 +150,7 @@ $.ajaxSetup({cache:false});
 			if( wdf.ping_timer ) clearTimeout(wdf.ping_timer);
 			wdf.ping_timer = setTimeout(function()
 			{
-				wdf.post('',{PING:wdf.request_id}, function(){ wdf.resetPing(); });
+				wdf.get('',{PING:wdf.request_id}, function(){ wdf.resetPing(); });
 			},wdf.settings.ping_time || 60000);
 		},
 
@@ -177,16 +183,37 @@ $.ajaxSetup({cache:false});
 			if( location.href == href )
 				location.reload();
 			else
+            {
+                if(location.hash && (location.hash != '#'))
+                    location.hash = '';
 				location.href = href;
+                if(location.hash && (location.hash != '#'))
+                    location.reload();
+            }
 		},
 		
-		initAjax: function()
+		initAjax: function(skip_dependency_loading)
 		{
 			this.original_ajax = $.ajax;
 			$.extend({
 				ajax: function( s )
 				{
-					wdf.resetPing();
+                    try
+                    {
+                        if(s.url.indexOf(wdf.settings.site_root) === 0)         // only reset pinger if the ajax url is the page root, not if we ajax to other sites
+                            wdf.resetPing();
+                    }
+                    catch(ex)
+                    {
+                        wdf.resetPing();
+                    }
+                    if(wdf.settings.ajax_include_credentials)
+                    {
+                        s.xhrFields = { withCredentials: true };
+//                        s.beforeSend = function(jqXHR, settings) {
+//                            jqXHR.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+//                        };
+                    }
 					if( !s.data )
 						s.data = {};
 					else if( $.isArray(s.data) )
@@ -227,43 +254,51 @@ $.ajaxSetup({cache:false});
 						if( json_result )
 						{
 							var head = document.getElementsByTagName("head")[0];
-							if( json_result.dep_css )
+							if( !skip_dependency_loading && json_result.dep_css )
 							{
 								for( var i in json_result.dep_css )
 								{
 									var css = json_result.dep_css[i];
-									if( $('link[href=\''+css+'\']').length == 0 )
-									{
-										var fileref = document.createElement("link")
-										fileref.setAttribute("rel", "stylesheet");
-										fileref.setAttribute("type", "text/css");
-										fileref.setAttribute("href", css);
-										head.appendChild(fileref);
-									}
+                                    if(css)
+                                    {
+                                        var key = css.split("?")[0];
+                                        if( $('link[href^=\''+key+'\']').length == 0 )
+                                        {
+                                            var fileref = document.createElement("link")
+                                            fileref.setAttribute("rel", "stylesheet");
+                                            fileref.setAttribute("type", "text/css");
+                                            fileref.setAttribute("href", css);
+                                            head.appendChild(fileref);
+                                        }
+                                    }
 								}
 							}
 
-							if( json_result.dep_js )
+							if( !skip_dependency_loading && json_result.dep_js )
 							{
 								for( var i in json_result.dep_js )
 								{
 									var js = json_result.dep_js[i];
-									if( $('script[src=\''+js+'\']').length == 0 )
-									{
-										var script = document.createElement("script");
-										script.setAttribute("type", "text/javascript");
-										script.setAttribute("ajaxdelayload", "1");
-										script.src = js;
-										var jscallback = function() { this.setAttribute("ajaxdelayload", "0"); };
-										if (script.addEventListener)
-											script.addEventListener("load", jscallback, false);
-										else
-											script.onreadystatechange = function() {
-												if ((this.readyState == "complete") || (this.readyState == "loaded"))
-													jscallback.call(this);
-											}
-										head.appendChild(script);
-									}
+                                    if(js)
+                                    {
+                                        var key = js.split("?")[0];
+                                        if( $('script[src^=\''+key+'\']').length == 0 )
+                                        {
+                                            var script = document.createElement("script");
+                                            script.setAttribute("type", "text/javascript");
+                                            script.setAttribute("ajaxdelayload", "1");
+                                            script.src = js;
+                                            var jscallback = function() { this.setAttribute("ajaxdelayload", "0"); };
+                                            if (script.addEventListener)
+                                                script.addEventListener("load", jscallback, false);
+                                            else
+                                                script.onreadystatechange = function() {
+                                                    if ((this.readyState == "complete") || (this.readyState == "loaded"))
+                                                        jscallback.call(this);
+                                                }
+                                            head.appendChild(script);
+                                        }
+                                    }
 								}
 							
 							}
@@ -351,18 +386,6 @@ $.ajaxSetup({cache:false});
 			this.warn = function(){ perform_logging('warn',arguments); };
 			this.error = function(){ perform_logging('error',arguments); };
 			this.info = function(){ perform_logging('info',arguments); };
-
-//			wdf.server_logger_entries = [];
-//			wdf.server_logger = function()
-//			{
-//				if( wdf.server_logger_entries.length > 0 )
-//				{
-//					var entry = wdf.server_logger_entries.shift();
-//					wdf.post('',entry,function(){});
-//				}
-//				setTimeout(wdf.server_logger,100);
-//			}
-//			wdf.server_logger();
 		},
 		
 		showScrollListLoadAnim: function()
@@ -373,7 +396,6 @@ $.ajaxSetup({cache:false});
 		resetScrollListLoader: function()
 		{
 			wdf.initScrollListLoader();
-			//wdf.stopScrollListLoader();
 		},
 		
 		scrollListLoaderHref: false,
@@ -396,7 +418,7 @@ $.ajaxSetup({cache:false});
 				
 				wdf.showScrollListLoadAnim();
 				$(window).unbind('scroll.loadMoreContent', scroll_handler);
-				wdf.post(wdf.scrollListLoaderHref,{offset:wdf.scrollListLoaderOffset},function(result)
+				wdf.get(wdf.scrollListLoaderHref,{offset:wdf.scrollListLoaderOffset},function(result)
 				{
 					if( typeof(result) != 'string' || result == "" )
 						return;
@@ -414,7 +436,10 @@ $.ajaxSetup({cache:false});
 		
 		stopScrollListLoader: function()
 		{
-			$('.loadMoreContent_removable_trigger').fadeOut();
+			var trigger = $('#scrollloader_overlay_anim');
+			if( trigger.length === 0 )
+				trigger = $('.loadMoreContent_removable_trigger');
+			trigger.fadeOut();
 		},
         
         whenAvailable: function(name, callback)

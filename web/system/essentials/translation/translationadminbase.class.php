@@ -83,6 +83,14 @@ abstract class TranslationAdminBase extends SysAdmin
 	 * @return void
 	 */
 	abstract function Fetch($languages = false);
+    
+    /**
+	 * Import strings from the XX.inc.php translation system into the database
+	 * 
+	 * @param array $languages Array of language codes to be fetched
+	 * @return void
+	 */
+	abstract function Import($languages = false, $clearbeforeimport = false);
 	
 	/**
 	 * Creates a new string from unknowns table.

@@ -60,6 +60,8 @@ class DateTimeEx extends DateTime
 	{
 		if( $source )
 		{
+            if( $source === "now()" )
+                return new DateTimeEx();
             if( $format )
             {
                 $source = \DateTime::createFromFormat($format,$source);

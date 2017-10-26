@@ -51,15 +51,17 @@ class GoogleControl extends Control
 		parent::__initialize($tag);
 		$this->frozen = $frozen;
         $this->gchartsversion = $gchartsversion;
-		$page = current_controller(false);
-		if( $page instanceof HtmlPage )
-		{
-			if( $this->frozen )
-				$page->addJs('//www.gstatic.com/charts/loader.js');
-			else
-				$page->addJs('//www.google.com/jsapi');
-		}
 	}
+    
+    protected function __collectResourcesInternal($template, &$static_stack = array())
+    {
+        $res = parent::__collectResourcesInternal($template, $static_stack);
+        if( $this->frozen )
+            $res[] = '//www.gstatic.com/charts/loader.js';
+        else
+            $res[] = '//www.google.com/jsapi';
+        return $res;
+    }
 	
 	function __dispose()
 	{

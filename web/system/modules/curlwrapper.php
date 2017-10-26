@@ -26,11 +26,25 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
+/**
+ * Sets a proxy for all subsequent downloads.
+ * 
+ * @param string $ip Hostname/IP Address
+ * @param string|int $port Port
+ * @param int $type CURLPROXY_HTTP or CURLPROXY_SOCKS5
+ * @return void
+ */
 function setDownloadProxy($ip,$port,$type=CURLPROXY_SOCKS5)
 {
 	$GLOBALS['download']['proxy'] = "$ip:$port";
 	$GLOBALS['download']['proxy_type'] = $type;
 }
+
+/**
+ * Removes the Proxy specification set with <setDownloadProxy>
+ * 
+ * @return void
+ */
 function releaseDownloadProxy()
 {
 	unset($GLOBALS['download']['proxy']);
@@ -53,7 +67,7 @@ function sendHTTPRequest($url, $postdata = false, $cacheTTLsec = false, &$respon
  * @param array $request_header Headers to send along with the request (one entry per header)
  * @param int $cacheTTLsec If set: time to life in cache
  * @param int $request_timeout Timeout in seconds
- * @param array $response_header <b>OUT</b> Will contain the reponse headers
+ * @param array $response_header <b>OUT</b> Will contain the response headers
  * @param string $cookie_file Name of the cookie file to use
  * @return string The downloaded data
  */
@@ -61,10 +75,9 @@ function downloadData($url, $postdata = false, $request_header = array(), $cache
 {
 	if( starts_with($url, '//') )
 		$url = urlScheme().':'.$url;
-	
 	if( $cacheTTLsec )
 	{
-		$hash = md5($url."|".($postdata ? serialize($postdata) : ""));
+		$hash = md5($url."|".($postdata ? serialize($postdata) : "").'|'.serialize($request_header));
 		$ret = cache_get("CURL_$hash");
 		if($ret !== false)
 			return $ret;

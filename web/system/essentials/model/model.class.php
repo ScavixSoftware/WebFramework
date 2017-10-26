@@ -549,6 +549,8 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * 
 	 * @param array $data Associative array with data
 	 * @param DataSource $datasource Optional datasource to assign to the created <Model>
+	 * @param bool $allFields If true, all data is taken to the result, not only that one that are present in the columns of the type
+	 * @param bool $className Optional classname to allow anonymous calls like `Model::MakeFromData`
 	 * @return subclass_of_Model The newly created typed <Model>
 	 */
 	public static function MakeFromData($data,$datasource=null,$allFields=false,$className=false)
@@ -588,6 +590,8 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * $entry = MyTableModel::CastFrom($entry);                // now it is type of MyTableModel
 	 * </code>
 	 * @param Model $model Object of (sub-)type <Model>
+	 * @param bool $allFields If true, all data is taken to the result, not only that one that are present in the columns of the type
+	 * @param bool $className Optional classname to allow anonymous calls like `Model::MakeFromData`
 	 * @return subclass_of_Model The typed object
 	 */
 	public static function CastFrom($model,$allFields=false,$className=false)
@@ -705,11 +709,11 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 					$res[] = $col;
 				else
 				{
-					$v1 = $this->$col;
+					$v1 = $this->__typedValue($col);
 					if( $v1 instanceof DateTime )
 						$v1 = $v1->format('U');
 					
-					$v2 = $this->_dbValues[$col];
+					$v2 = $this->__toTypedValue($col,$this->_dbValues[$col]);
 					if( $v2 instanceof DateTime )
 						$v2 = $v2->format('U');
 					
@@ -725,7 +729,49 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 		}
 		return $res;
 		//return array_keys($this->_changedColumns);
-	}
+    }
+    
+    public function GetChanges()
+	{
+		$res = array();
+		foreach( $this->GetColumnNames(true) as $col )
+		{
+            $v1 = $this->__typedValue($col);
+            if( $v1 instanceof DateTime )
+                $v1 = $v1->format('U');
+
+            if( isset($this->_dbValues[$col]) )
+            {
+                $v2 = $this->__toTypedValue($col,$this->_dbValues[$col]);
+                if( $v2 instanceof DateTime )
+                    $v2 = $v2->format('U');
+            }
+            else
+                $v2 = null;
+            $res[$col] = [$v2,$v1];
+		}
+		return $res;
+    }
+    
+    public function HasChanged($col)
+    {
+        if( isset($this->$col) )
+        {
+            if( !isset($this->_dbValues[$col]) )
+                return true;
+         
+            $v1 = $this->$col;
+            if( $v1 instanceof DateTime )
+                $v1 = $v1->format('U');
+
+            $v2 = $this->_dbValues[$col];
+            if( $v2 instanceof DateTime )
+                $v2 = $v2->format('U');
+
+            return $v1 != $v2;
+        }
+        return isset($this->_dbValues[$col]);
+    }
 
 	/**
 	 * Checks if this <Model> has a column $name.
@@ -997,6 +1043,7 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * 
 	 * @param string $property Property-/Fieldname
 	 * @param mixed $value Value to check against
+     * @param bool $value_is_sql if true, $value is treaded as SQL keyword/function/... and will fremain unescaped (sample: now())
 	 * @return Model `clone $this`
 	 */
 	public function greaterThan($property,$value,$value_is_sql=false)
@@ -1094,7 +1141,10 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->notIn($this->__ensureFieldname($property),$values);
+        if( $values !== null && count($values)>0 )
+            $res->_query->notIn($this->__ensureFieldname($property),$values);
+        else
+			$res->_query->sql("1=1"); // true condition if there's nothing in the values
 		return $res;
 	}
 
@@ -1133,11 +1183,11 @@ abstract class Model implements Iterator, Countable, ArrayAccess
 	 * @param string $direction 'ASC' or 'DESC'
 	 * @return Model `clone $this`
 	 */
-	public function orderBy($property,$direction = "ASC")
+	public function orderBy($property,$direction = "ASC",$checkfieldname=true)
 	{
 		$res = clone $this;
 		$res->__ensureSelect();
-		$res->_query->orderBy((starts_with($property, 'FIELD(') ? $property : $this->__ensureFieldname($property)),$direction);
+		$res->_query->orderBy(((starts_iwith($property, 'FIELD(') || !$checkfieldname) ? $property : $this->__ensureFieldname($property)),$direction);
 		return $res;
 	}
 	

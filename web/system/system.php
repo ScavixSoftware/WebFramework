@@ -39,6 +39,7 @@ use ScavixWDF\Model\DataSource;
 use ScavixWDF\Reflection\WdfReflector;
 use ScavixWDF\WdfException;
 use ScavixWDF\WdfResource;
+use ScavixWDF\CacheEntry;
 
 // Config handling
 system_config_default( !defined("NO_DEFAULT_CONFIG") );
@@ -231,9 +232,7 @@ function system_init($application_name, $skip_header = false, $logging_category=
 	}
     
 	if( isset($_REQUEST['request_id']) )
-	{
-		session_keep_alive('request_id');
-	}
+		session_keep_alive();
 
 	// attach more headers here if required
 	if( !$skip_header )
@@ -364,7 +363,7 @@ function system_execute()
 	// respond to PING requests that are sended to keep the session alive
 	if( Args::request('ping',false) )
 	{
-		session_keep_alive();
+        session_update(true);
 		execute_hooks(HOOK_PING_RECIEVED);
 		die("PONG");
 	}
@@ -469,6 +468,11 @@ function system_exit($result=null,$die=true)
 	{
 		if( $result instanceof AjaxResponse )
 			$response = $result->Render();
+        elseif( $result instanceof ScavixWDF\Base\HtmlPage )
+        {
+            log_error("Cannot deliver HtmlPage via AJAX.",$GLOBALS['wdf_route'],"Triggered from page:",system_current_request());
+            $response = AjaxResponse::None()->Render();
+        }
 		elseif( $result instanceof Renderable )
 			$response = AjaxResponse::Renderable($result)->Render();
 		else
@@ -532,25 +536,26 @@ function system_die($reason,$additional_message='')
 		));
 	}
 
+    $errid = uniqid();
+    log_error('Fatal system error', $errid, $reason, $additional_message, $stacktrace);
+    
     if( system_is_ajax_call() )
 	{
-		$res = AjaxResponse::Error($reason."\n".$additional_message,true);
+        if(isDev())
+            $res = AjaxResponse::Error('Fatal system error (ErrorID: '.$errid.')'."\n".$reason."\n".$additional_message."\n".system_stacktrace_to_string($stacktrace),true);
+        else
+            $res = AjaxResponse::Error('Oh no! A fatal system error occured. Please try again. Contact our technical support if this problem occurs again (ErrorID: '.$errid.')',true);
 		die($res->Render());
-//		$code = "alert(unescape(".json_encode($reason."\n".$additional_message)."));";
-//		$res = new stdClass();
-//		$res->html = "<script>$code</script>";
-//		die(system_to_json($res));
 	}
 	else
 	{
-		$stacktrace = system_stacktrace_to_string($stacktrace);
-		$res  = "<html><head><title>Fatal system error</title></head>";
+		$res  = "<html><head><style> * { font-family: Arial,sans-serif; } body { margin: 20px; } </style><title>Fatal system error</title></head>";
 		$res .= "<body>";
-		$res .= "<h1>Fatal system error occured</h1>";
+		$res .= "<h1>Oh no! A fatal system error occured...</h1>";
 		if(isDev())
-			$res .= "<pre>$reason</pre><pre>$additional_message</pre><pre>".$stacktrace."</pre>";
+			$res .= "ErrorID: {$errid}<br/><pre>$reason</pre><pre>$additional_message</pre><pre>".system_stacktrace_to_string($stacktrace)."</pre>";
 		else
-			$res .= "Fatal System Error occured.<br/>Please try again.<br/>Contact our technical support if this problem occurs again.<br/><br/>Apologies for any inconveniences this may have caused you.";
+            $res .= "<br/>Please try again.<br/>Contact our technical support if this problem occurs again (ErrorID: {$errid}).<br/><br/>Apologies for any inconveniences this may have caused you.";
 		$res .= "</body></html>";
         die($res);
 	}
@@ -596,7 +601,7 @@ function register_hook($type,&$handler_obj,$handler_method)
  * This is automatically called when content is removed from <Renderable> objects to avoid performing actions on objects that are not part
  * of the DOM anymore.
  * @param object $handler_obj The object taht shall be removed from the hanlder stack
- * @retunr void
+ * @return void
  */
 function release_hooks($handler_obj)
 {
@@ -641,7 +646,7 @@ function execute_hooks($type,$arguments = array())
 		{
 			if( $loghooks )
 				log_debug( "Executing ".get_class($hook[0])."->".$hook[1]."(...)",hook_type_to_string($type) );
-			$res = $hook[0]->$hook[1]($arguments);
+            $res = $hook[0]->$hook[1]($arguments);
 			if( $loghooks )
 				log_debug( "result:",$res);
 		}
@@ -819,7 +824,8 @@ function system_spl_autoload($class_name)
 		if( strpos($class_name, '\\') !== false )
 		{
 			$orig = $class_name;
-			$class_name = array_pop(explode('\\',$class_name));
+			$array = explode('\\',$class_name);
+			$class_name = $array[count($array)-1]; ;
 		}
         $file = __search_file_for_class($class_name);
         if( $file && is_readable($file) )
@@ -1117,6 +1123,8 @@ function redirect($controller,$event="",$data="",$url_root=false)
  * 
  * Can be used as password, sessionid, ticket....
  * @param int $len The length of the return string
+ * @param int $case_sensitive If FALSE, only upper case chars are used. Applies only if $chars is not given
+ * @param int $chars Chars to generate password from
  * @return string The generated string sequence
  */
 function generatePW($len = 8, $case_sensitive=true, $chars='')
@@ -1229,9 +1237,13 @@ function is_host($host_or_ip)
  */
 function cache_get($key,$default=false,$use_global_cache=true,$use_session_cache=true)
 {
-	if( $use_session_cache && isset($_SESSION["system_internal_cache"][$key]) )
+    if( $use_session_cache && isset($_SESSION["system_internal_cache"][$key]) )
 		return session_unserialize($_SESSION["system_internal_cache"][$key]);
-    
+//	if( $use_session_cache )
+//    {
+//        if( CacheEntry::Exists($key) )
+//            return CacheEntry::Load($key);
+//    }
 	if( $use_global_cache && system_is_module_loaded('globalcache') )
     {
         $res = globalcache_get($key,$default);
@@ -1262,8 +1274,10 @@ function cache_set($key,$value,$ttl=false,$use_global_cache=true,$use_session_ca
 	if( $use_global_cache && system_is_module_loaded('globalcache') )
 		globalcache_set($key, $value, $ttl);
 
-	if( $use_session_cache )
-		$_SESSION["system_internal_cache"][$key] = session_serialize($value);	
+    if( $use_session_cache )
+		$_SESSION["system_internal_cache"][$key] = session_serialize($value);
+//	if( $use_session_cache )
+//        CacheEntry::Create ($key, $value);
 }
 
 /**
@@ -1275,8 +1289,9 @@ function cache_set($key,$value,$ttl=false,$use_global_cache=true,$use_session_ca
  */
 function cache_del($key)
 {
-	if( isset($_SESSION["system_internal_cache"][$key]) )
+    if( isset($_SESSION["system_internal_cache"][$key]) )
 		unset($_SESSION["system_internal_cache"][$key]);
+	//CacheEntry::Delete($key);
 	if( system_is_module_loaded('globalcache') )
 		globalcache_delete($key);
 }
@@ -1292,8 +1307,11 @@ function cache_del($key)
  */
 function cache_clear($global_cache=true, $session_cache=true)
 {
-	if( $session_cache )
+    if( $session_cache )
 		$_SESSION["system_internal_cache"] = array();
+//	if( $session_cache && isset($GLOBALS['fw_object_store']) && is_object($GLOBALS['fw_object_store']) )
+//        return $GLOBALS['fw_object_store']->Cleanup('cacheentry');
+    
     if( $global_cache && system_is_module_loaded('globalcache') )
 		globalcache_clear();
     clear_less_cache();
@@ -1310,7 +1328,9 @@ function cache_clear($global_cache=true, $session_cache=true)
  */
 function cache_list_keys($global_cache=true, $session_cache=true)
 {
-	$res = $session_cache?array_keys($_SESSION["system_internal_cache"]):array();
+    $res = $session_cache?array_keys($_SESSION["system_internal_cache"]):array();
+//	$res = $session_cache && isset($GLOBALS['fw_object_store']) && is_object($GLOBALS['fw_object_store'])
+//        ?$GLOBALS['fw_object_store']->ListKeys('cacheentry'):array();
 	
 	if( $global_cache && system_is_module_loaded('globalcache') )
 		$res = array_merge($res, globalcache_list_keys() );
@@ -1347,14 +1367,31 @@ function current_event()
 	return isset($GLOBALS['current_event'])?strtolower($GLOBALS['current_event']):'';
 }
 
-function system_current_request()
+/**
+ * Returns information about the current request.
+ * 
+ * If the current request is an AJAX request, it returns info about the last 'normal' call.
+ * @return array Array with (string)controller,(string)method,(array)get and (array)post
+ */
+function system_current_request($as_url=false)
 {
     if( system_is_ajax_call() )
     {
         $rid = \ScavixWDF\Base\Args::request('request_id');
         if( $rid && isset($_SESSION['latest_requests'][$rid]) )
-            return $_SESSION['latest_requests'][$rid];
+        {
+            if( !$as_url )
+                return $_SESSION['latest_requests'][$rid];
+            return buildQuery
+            (
+                $_SESSION['latest_requests'][$rid][0],
+                $_SESSION['latest_requests'][$rid][1],
+                $_SESSION['latest_requests'][$rid][2]
+            );
+        }
     }
+    if( $as_url )
+        return samePage($_GET);
     return [current_controller(),current_event(),$_GET,$_POST];
 }
 
@@ -1639,7 +1676,12 @@ function fq_class_name($classname)
 		case 'minifyadmin':               return '\\ScavixWDF\\Admin\\MinifyAdmin';
 		case 'tracelogger':               return '\\ScavixWDF\\Logging\\TraceLogger';
 		case 'phpsession':                return '\\ScavixWDF\\Session\\PhpSession';
-		case 'dbsession':                return '\\ScavixWDF\\Session\\DbSession';
+        case 'dbsession':                 return '\\ScavixWDF\\Session\\DbSession';
+		case 'sessionstore':              return '\\ScavixWDF\\Session\\SessionStore';
+        case 'dbstore':                   return '\\ScavixWDF\\Session\\DbStore';
+        case 'apcstore':                  return '\\ScavixWDF\\Session\\APCStore';
+        case 'redisstore':                return '\\ScavixWDF\\Session\\RedisStore';
+        case 'filesstore':                return '\\ScavixWDF\\Session\\FilesStore';
 	}
 	
 	if( isset($GLOBALS['system_class_alias'][$cnl]) )
@@ -1705,8 +1747,15 @@ function system_get_lock($name,$datasource='internal',$timeout=10)
 			if( !system_process_running($pid) )
 				$ds->ExecuteSql("DELETE FROM wdf_locks WHERE pid=?",$pid);
 		}
-		$ds->ExecuteSql("INSERT OR IGNORE INTO wdf_locks(lockname,pid)VALUES(?,?)",$args);
-		$cnt = $ds->getAffectedRowsCount();
+		try
+        {
+            $ds->ExecuteSql("INSERT OR IGNORE INTO wdf_locks(lockname,pid)VALUES(?,?)",$args);
+            $cnt = $ds->getAffectedRowsCount();
+        }
+        catch (Exception $ex)
+        {
+            $cnt = 0;
+        }
 		
 		if( $cnt == 0 && $timeout <= 0 )
 			return false;

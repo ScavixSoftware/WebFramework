@@ -83,11 +83,14 @@ function minify_pre_render_handler($args)
  */
 function minify_forbidden($classname)
 {
-	if( is_string($classname) && strpos($classname, '.') !== false )
+if( is_string($classname) && strpos($classname, '.') !== false )
 	{
 		$classname = explode('.',$classname);
 		$classname = $classname[0];
 	}
+    if( in_array($classname, cfg_getd('minify','ignores',[])) )
+        return true;
+    
 	try
 	{
 		$ref = WdfReflector::GetInstance($classname);		

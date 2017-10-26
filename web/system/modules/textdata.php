@@ -111,7 +111,11 @@ function csv_detect_delimiter($csv)
 }
 
 /**
+ * Removes the BOM header from a string.
+ * 
  * @see http://stackoverflow.com/a/15423899
+ * @param string $text Text, potentially with leading BOM
+ * @return string Clean string
  */
 function remove_utf8_bom($text)
 {
