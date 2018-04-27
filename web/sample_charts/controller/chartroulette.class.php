@@ -26,7 +26,7 @@
 use ScavixWDF\Base\HtmlPage;
 use ScavixWDF\Google\GoogleVisualization;
 use ScavixWDF\Google\gvBarChart;
-use ScavixWDF\Google\gvComboChart;
+//use ScavixWDF\Google\gvComboChart;
 use ScavixWDF\Google\gvGeoChart;
 use ScavixWDF\Google\gvPieChart;
 use ScavixWDF\JQueryUI\uiTabs;
@@ -79,40 +79,11 @@ class ChartRoulette extends HtmlPage
 	function Index($type,$data)
 	{
 		$tabs = new uiTabs();
-		$tabs->AddTab("Number frequency", $this->NumbersFrequency());
 		$tabs->AddTab("Participants by game count", $this->ParticipantsGames());
 		$tabs->AddTab("Participants by age", $this->ParticipantsAge());
 		$tabs->AddTab("Participants countries", $this->ParticipantsCountries());
-		$tabs->AddTab("Data tables", $this->Tables());
 		
 		$this->content($tabs);
-	}
-	
-	function Tables()
-	{
-		return array(
-			gvTable::Make("Paricipants")->setDbQuery('participants','SELECT *'),
-			gvTable::Make("Numbers")->setDbQuery('numbers','SELECT *'),
-		);
-	}
-	
-	function NumbersFrequency()
-	{
-		$chart = new gvComboChart();
-		$chart->setTitle("Number frequency")
-			->setDataHeader("Number","Count","Half Count")
-			->setSize(800, 400)
-			->opt('is3D',true)
-			->opt('seriesType','bars')
-			->opt('series',array(1=>array('type'=>'area')))
-			;
-		
-		foreach( model_datasource('system')->ExecuteSql("SELECT number, hit_count FROM numbers ORDER BY number ASC") as $row )
-		{
-			$chart->addDataRow("Number {$row['number']}",intval($row['hit_count']),intval($row['hit_count'])/2);
-
-		}
-		return $chart;
 	}
 	
 	function ParticipantsAge()
