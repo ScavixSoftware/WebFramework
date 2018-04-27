@@ -13,8 +13,12 @@ Folders
 `/web/documentor/` An app, we use this to create the [API reference documentation](https://github.com/ScavixSoftware/WebFramework/wiki)        
 `/web/sample_blog/` A sample blog application using the WebFramework    
 `/web/sample_shop/` A sample shop application using the WebFramework    
-`/web/sample_chart/` A sample on how to show charts in your application based on the WebFramework
-`/web/system/` The framework code        
+`/web/sample_chart/` A sample on how to show charts in your application based on the WebFramework    
+`/web/system/` The framework code (as submodule)        
+
+Installation
+------------
+Just clone the scavix-wdf code from https://github.com/ScavixSoftware/scavix-wdf or directly add it as submodule to your git repo.
 
 Resources
 ---------
