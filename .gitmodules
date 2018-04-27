@@ -1,0 +1,3 @@
+[submodule "web/system"]
+	path = web/system
+	url = https://github.com/ScavixSoftware/scavix-wdf.git
