@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -30,6 +30,6 @@
 		<a href="<?=buildQuery('Admin')?>">Administration (normally hidden)</a>
 	</div>
 	<div id="content">
-		<? foreach( $content as $c ) echo $c; ?>	
+		<?php foreach( $content as $c ) echo $c; ?>	
 	</div>
 </div>

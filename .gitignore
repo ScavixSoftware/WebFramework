@@ -176,3 +176,8 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+/web/documentor/controller/out
+/web/documentor/controller/quick.ref
+/web/documentor/controller/wdf_docs.zip
+/web/documentor/doc.db
+/web/logs/*.trace

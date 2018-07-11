@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Scavix Web Development Framework
  *
@@ -42,5 +42,5 @@
 	<a href="<?=buildQuery('Preview','Linked','f=namespacetree')?>">Namespace tree</a>
 </div>
 <div class="markdown-body">
-<? foreach($content as $c)echo$c;?>
+<?php foreach($content as $c)echo$c;?>
 </div>

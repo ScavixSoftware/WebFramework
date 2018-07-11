@@ -1,4 +1,4 @@
-<?
+<?php
 
 // Defaults
 $CONFIG['system']['default_page']  = "DocMain";
