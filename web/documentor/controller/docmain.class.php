@@ -144,8 +144,8 @@ class DocMain extends HtmlPage
 			}
 			
 			$title = str_replace($path.'/','',$file);
-			$fn_cls = __DIR__.'/out/classes_'.str_replace('.php.md','.md',str_replace('/', '_', $title).'.md');
-			$fn_fnc = __DIR__.'/out/functions_'.str_replace('.php.md','.md',str_replace('/', '_', $title).'.md');
+			$fn_cls = __DIR__.'/out/classes_'.str_replace('.php.md','.md',str_replace(['/',"\\",'__'], ['_','_','_'], $title).'.md');
+			$fn_fnc = __DIR__.'/out/functions_'.str_replace('.php.md','.md',str_replace(['/',"\\",'__'], ['_','_','_'], $title).'.md');
 			
 			$this->_startSection("FILE: $file");
 			$data = $this->process($file);
