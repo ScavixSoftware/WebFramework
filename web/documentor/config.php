@@ -42,7 +42,7 @@ $CONFIG['resources_system_url_root'] = false;
 //$CONFIG['resources_system_url_root'] = 'http://wdf.domain.com/'; // <- sample
 
 // some essentials
-$CONFIG['system']['modules'] = array();
+$CONFIG['system']['modules'] = array('curlwrapper');
 date_default_timezone_set("Europe/Berlin");
 
 $CONFIG['system']['admin']['enabled']  = true;

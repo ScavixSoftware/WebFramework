@@ -52,9 +52,10 @@ class Preview extends HtmlPage
 - [Namespace tree](namespacetree)";
 		
 		$q = buildQuery('Preview','Linked');
+        $q .= strpos($q,"?")===false?"?":"&";
 		$s  = "$('.markdown-body').html(marked(".json_encode($md)."));";
 		$s .= "$('.markdown-body a[id]').each(function(){ $(this).attr('id','wiki-'+$(this).attr('id')); });";
-		$s .= "$('.markdown-body a[href]').each(function(){ if( $(this).attr('href').match(/^http/)) return; $(this).attr('href','$q?f='+$(this).attr('href')); });";
+		$s .= "$('.markdown-body a[href]').each(function(){ if( $(this).attr('href').match(/^http/)) return; $(this).attr('href','{$q}f='+$(this).attr('href')); });";
 		$s .= "$('.markdown-body a[id='+location.hash.substr(1)+']').get(0).scrollIntoView();";
 		
 		$this->addDocReady("$s");

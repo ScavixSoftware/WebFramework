@@ -234,27 +234,19 @@ class DocMain extends HtmlPage
 	{
 		global $home;
 		
-		$quickref = @file_get_contents(file_exists(__DIR__.'/quick.ref')?__DIR__.'/quick.ref':"http://php.net/quickref.php");
-		if( $quickref && preg_match_all('|<li><a href="([^"]+)">([^<]+)</a></li>|', $quickref, $documented) )
-		{
-			file_put_contents(__DIR__.'/quick.ref', $quickref);
-			list(,$doc_links,$doc_names) = $documented;
-			$documented = array_combine($doc_names, $doc_links);
-			$home['funcs'] = array_merge($documented,$home['funcs']);
+        // add PHP predefined functions
+        $def_funcs = get_defined_functions();
+        foreach( $def_funcs['internal'] as $f )
+        {
+            if( isset($home['funcs'][$f]) )
+                continue;
+            $home['funcs'][$f] = "https://www.php.net/manual/en/function.".strtolower(str_replace('_', '-', $f)).".php";
+        }
 
-			// add PHP predefined functions
-			$def_funcs = get_defined_functions();
-			foreach( $def_funcs['internal'] as $f )
-				if( isset($documented[$f]) )
-					$home['funcs'][$f] = strtolower("http://www.php.net".$documented[$f]);
-		
-			// add PHP predefined classes
-			foreach( array_merge(get_declared_classes(),get_declared_interfaces()) as $c )
-				if( isset($documented[strtolower($c)]) )
-					$home['classes'][$c] = strtolower("http://www.php.net".$documented[strtolower($c)]);
-		}
-		else
-			$this->errors[] = "Could not create PHP internal functions/classes links";
+        // add PHP predefined classes
+        foreach( array_merge(get_declared_classes(),get_declared_interfaces()) as $c )
+            if( !isset($home['classes'][$c]) )
+                $home['classes'][$c] = "https://www.php.net/manual/en/class.". strtolower($c).".php";
 		
 		// sorting the found information
 		foreach( array_keys($home) as $key )
@@ -288,7 +280,7 @@ class DocMain extends HtmlPage
 				$class = $p[1];
 				do{
 					$class = DocMain::getParent($class);
-					if( $class ) $parents[] = DocMain::linkCls($class);
+					if( $class ) $parents[] = DocMain::linkCls($class,"PARENT_{$p[1]}");
 				}while( $class );
 				if( count($parents) == 0 )
 					return "";
@@ -322,7 +314,7 @@ class DocMain extends HtmlPage
 			{
 				if( !in_array($match[0], DocMain::$known_token) )
 				{
-					$lnk = DocMain::linkCls($p);
+					$lnk = DocMain::linkCls($p,"METHODS_{$match[0]}_{$match[1]}");
 					if( $lnk ) return $lnk;
 					log_debug("NO match",$match[0],"in $current_link_file",$p);
 				}
@@ -392,9 +384,9 @@ class DocMain extends HtmlPage
 		{
 			if( !isset($home['classes'][$name]) )
 				continue;
-			$lines[] = "* ".self::linkCls($name);
+			$lines[] = "* ".self::linkCls($name,"INTERFACE");
 			foreach( $implementors as $impl )
-				$lines[] = "\t* ".self::linkCls($impl);
+				$lines[] = "\t* ".self::linkCls($impl,"IMPLEMENT");
 		}
 		file_put_contents(__DIR__.'/out/interfaces.md', $this->escapeMd(implode("\n",$lines)));
 		
@@ -432,7 +424,7 @@ class DocMain extends HtmlPage
 				if( isset($home['funcs'][$cls]) )
 					$lines[] = "$pre* [$cls]({$home['funcs'][$cls]})";
 				else
-					$lines[] = "$pre* ".self::linkCls($cls);
+					$lines[] = "$pre* ".self::linkCls($cls,"foldertree");
 		}
 		file_put_contents(__DIR__.'/out/foldertree.md', $this->escapeMd(implode("\n",$lines)));
 		
@@ -443,7 +435,7 @@ class DocMain extends HtmlPage
 			$pad = str_pad("", count(explode(":",$ns))-1 ,"\t");
 			$lines[] = "$pad* <a id='{$def['hash']}'/>**".str_replace(":","\\",$ns)."**";
 			foreach( $def['classes'] as $cls )
-				$lines[] = "$pad\t* ".DocMain::linkCls($cls);
+				$lines[] = "$pad\t* ".DocMain::linkCls($cls,"namespacetree");
 		}
 		file_put_contents(__DIR__.'/out/namespacetree.md', $this->escapeMd(implode("\n",$lines)));
 //		log_debug("namespaces",$home['namespaces']);
@@ -475,7 +467,7 @@ class DocMain extends HtmlPage
 		return false;
 	}
 	
-	static function linkCls($name)
+	static function linkCls($name,$origin='')
 	{
 		global $home;
 		
@@ -495,7 +487,7 @@ class DocMain extends HtmlPage
 			return "[$name]({$home['classes'][$name]})";
 		if( starts_with($name,'Zend_') )
 			return "[{$name}](http://framework.zend.com/)";
-		log_debug("No classlink found: $name");
+		log_debug("[$origin] No classlink found: $name");
 		return $name;
 	}
 	
@@ -533,6 +525,7 @@ class DocMain extends HtmlPage
 
 		$lines = array($tpl);
 		$home['classes'][$class['name']] = "$link#wiki-$hash";
+        
 		if( !$dc || !$dc->hasOne('internal','deprecated') )
 		{
 			natksort($class['methods']);
@@ -614,7 +607,7 @@ class DocMain extends HtmlPage
 				if( count($p->typeArray)>1 )
 				{
 					foreach( $p->typeArray as $t )
-						if( !is_in($t,'string','int','integer','bool','boolean','float','double','array','mixed','object') )
+						if( !is_in($t,'string','int','integer','bool','boolean','float','double','array','mixed','object','callable') )
 							$this->_warn("$what{$func['name']} PARAM {$arg['name']} part of mixed type is unlinkable: $t",'param');
 				}
 			}
@@ -637,6 +630,8 @@ class DocMain extends HtmlPage
 //		if( stripos($fn,'ajaxaction') !== false )
 //			return false;
 //		return true;
+        
+        $fn = str_replace("\\/", "/", $fn);
 		
 		if( fnmatch('*.tpl.php', $fn) )
 			return true;
@@ -657,7 +652,11 @@ class DocMain extends HtmlPage
 		
 		if( stripos($fn,'modules/zend/pdf/Cell.php') !== false )
 			return true;
-		
+		if( stripos($fn,'sqlformatter.class.php') !== false )
+			return true;
+		if( stripos($fn,'lessphp/lessc.inc.php') !== false )
+			return true;
+
 		if( fnmatch('*.class.php', $fn) )
 			return false;
 		if( stripos($fn,'/modules/') !== false )
@@ -685,14 +684,16 @@ class DocMain extends HtmlPage
 		$functions = array(); $cur_func = false;
 		$cur_arg = false;
 		$block = $brackets = 0;
+        $skip_next_class = false; 
 		
 		foreach( $token as $tok )
 		{
 			if( is_array($tok) )
 			{
 				list($type,$value,$line) = $tok;
-//				if( $type != T_WHITESPACE )
-//					log_debug("Line $line, Token ".token_name($type)."[$type], Value $value");
+				if( $type != T_CLASS )
+					$skip_next_class = false;
+                
 				switch( $type )
 				{
 					case T_DOC_COMMENT:
@@ -731,6 +732,11 @@ class DocMain extends HtmlPage
 						}
 						break;
 					case T_CLASS:
+                        if( $skip_next_class )
+                        {
+                            $skip_next_class = false;
+                            break;
+                        }
 					case T_INTERFACE:
 						$cur_cls = array(
 							'type'=>($type==T_CLASS)?'class':'interface',
@@ -773,11 +779,15 @@ class DocMain extends HtmlPage
 						$catch_ns = true;
 						$cur_ns = array();
 						break;
+                    case T_DOUBLE_COLON:
+                        $skip_next_class = true; 
+                        break;
 				}
 			}
 			
 			if( is_string($tok) )
 			{
+                $skip_next_class = false;
 //				log_debug("String Token $tok");
 				switch( $tok )
 				{
@@ -833,7 +843,8 @@ class DocMain extends HtmlPage
 								$cur_ns = implode(":", $cur_ns);
 						}
 						$last_modifiers = array();
-					break;
+                        break;
+//                    default: log_debug("TOKEN $tok"); break;
 				}
 				continue;
 			}
