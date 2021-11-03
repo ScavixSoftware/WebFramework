@@ -57,21 +57,27 @@ namespace WdfTracer
             {
                 if (IsReady())
                 {
-                    string iconfile = Path.Combine(Application.UserAppDataPath, Alias + ".ico");
-                    if (!File.Exists(iconfile))
+                    try
                     {
-                        FileStream icon = File.Create(iconfile);
-                        MultiIcon mIcon = new MultiIcon();
-                        mIcon.Load(Executable);
-                        foreach (SingleIcon si in mIcon)
+                        string iconfile = Path.Combine(Application.UserAppDataPath, Alias + ".ico");
+                        if (!File.Exists(iconfile))
                         {
-                            si.Icon.Save(icon);
+                            FileStream icon = File.Create(iconfile);
+                            MultiIcon mIcon = new MultiIcon();
+                            mIcon.Load(Executable);
+                            foreach (SingleIcon si in mIcon)
+                            {
+                                si.Icon.Save(icon);
+                            }
+                            icon.Flush();
+                            icon.Close();
                         }
-                        icon.Flush();
-                        icon.Close();
+                        Icon i = new Icon(iconfile);
+                        return i.ToBitmap();
+                    } catch (Exception e)
+                    {
+                        return null;
                     }
-                    Icon i = new Icon(iconfile);
-                    return i.ToBitmap();
                 }
                 return null;
             }
