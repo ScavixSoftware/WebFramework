@@ -595,11 +595,11 @@ class DocMain extends HtmlPage
 
 			if( $is_private )
 				continue;
-			if( !$p )
-				$this->_warn("$what{$func['name']} MISSING @param {$arg['name']}",'param');
+            if (!$p)
+                $this->_warn("$what{$func['name']} MISSING @param {$arg['name']}", 'param');
 			else
 			{
-				if( preg_match('/[^a-z0-9_|]/i',$p->type) )
+				if( preg_match('/[^a-z0-9_|\\\\]/i',$p->type) )
 					$this->_warn("$what{$func['name']} PARAM {$arg['name']} weird TYPE {$p->type}",'param');
 				if( !$p->desc )
 					$this->_warn("$what{$func['name']} PARAM {$arg['name']} missing DESC",'param');
@@ -607,7 +607,7 @@ class DocMain extends HtmlPage
 				if( count($p->typeArray)>1 )
 				{
 					foreach( $p->typeArray as $t )
-						if( !is_in($t,'string','int','integer','bool','boolean','float','double','array','mixed','object','callable') )
+						if( !is_in($t,'static','string','int','integer','bool','false','float','double','array','mixed','object','callable','\Closure') )
 							$this->_warn("$what{$func['name']} PARAM {$arg['name']} part of mixed type is unlinkable: $t",'param');
 				}
 			}
@@ -655,6 +655,8 @@ class DocMain extends HtmlPage
 		if( stripos($fn,'sqlformatter.class.php') !== false )
 			return true;
 		if( stripos($fn,'lessphp/lessc.inc.php') !== false )
+			return true;
+        if( stripos($fn,'browser/Browscap.php') !== false )
 			return true;
 
 		if( fnmatch('*.class.php', $fn) )
