@@ -57,34 +57,27 @@ namespace WdfTracer
             {
                 if (IsReady())
                 {
-                    Icon i;
-                    string iconfile = Path.Combine(Application.UserAppDataPath, Alias + ".ico");
-                    if (File.Exists(iconfile))
+                    try
                     {
-                        try
+                        string iconfile = Path.Combine(Application.UserAppDataPath, Alias + ".ico");
+                        if (!File.Exists(iconfile))
                         {
-                            i = new Icon(iconfile);
-                            return i.ToBitmap();
+                            FileStream icon = File.Create(iconfile);
+                            MultiIcon mIcon = new MultiIcon();
+                            mIcon.Load(Executable);
+                            foreach (SingleIcon si in mIcon)
+                            {
+                                si.Icon.Save(icon);
+                            }
+                            icon.Flush();
+                            icon.Close();
                         }
-                        catch { }
-                        File.Delete(iconfile);
-                    }
-                    if (!File.Exists(iconfile))
+                        Icon i = new Icon(iconfile);
+                        return i.ToBitmap();
+                    } catch (Exception e)
                     {
-                        FileStream icon = File.Create(iconfile);
-                        MultiIcon mIcon = new MultiIcon();
-                        mIcon.Load(Executable);
-                        foreach (SingleIcon si in mIcon)
-                        {
-                            si.Icon.Save(icon);
-                        }
-                        icon.Flush();
-                        icon.Close();
-                        if (mIcon.Count == 0)
-                            return null;
+                        return null;
                     }
-                    i = new Icon(iconfile);
-                    return i.ToBitmap();
                 }
                 return null;
             }
