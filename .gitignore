@@ -8,8 +8,12 @@
 /tools/PhpTracer/bin/Release/PhpTracer.vshost.exe.manifest
 /tools/PhpTracer/bin/Release/PhpTracer.vshost.exe.config
 /tools/PhpTracer/bin/Release/PhpTracer.vshost.exe
-
+/tools/*.zip
+/tools/*.phar
+/web/documentor/controller/_quick.ref
 /web/app/sample.db
+/web/testing
+/web/logs/*.*
 /netbeans/Scavix WDF Tools/nbproject/private/
 /netbeans/Scavix WebFramework/nbproject/private/
 

@@ -18,12 +18,12 @@ $pharname .= '.phar';
 
 echo "Building '$pharname'...\n";
 
-$conf = strtolower(array_pop($argv));
+$conf = strtolower(array_pop($argv)?:'');
 @mkdir($conf);
 
 class StripFilesFilter extends RecursiveFilterIterator 
 {
-	public function accept()
+	public function accept():bool
 	{
 		return stripos($this->current()->getPathname(),'.git') === false;
     }
