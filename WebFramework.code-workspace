@@ -4,5 +4,10 @@
 			"path": "web"
 		}
     ],
-    "settings": {}
+    "settings": {
+        "php.stubs": [
+            "*",
+            "posix"
+        ]
+    }
 }

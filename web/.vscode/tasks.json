@@ -8,6 +8,10 @@
             "type": "shell",
             "group": "build",
             "command": "php -c ${workspaceFolder}/../tools/build/php.ini ${workspaceFolder}/../tools/build/build.php",
+            "presentation": {
+                "reveal": "silent",
+                "close": true
+            }
         }
     ]
 }
