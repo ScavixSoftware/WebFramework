@@ -23,7 +23,7 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
-// Pages are PHP classes extending HtmlPage 
+// Pages are PHP classes extending HtmlPage
 $CONFIG['system']['default_page']  = "Products";
 // Events are mapped to PHP class methods
 $CONFIG['system']['default_event'] = "Index";
@@ -35,6 +35,7 @@ classpath_add(__DIR__.'/model');
 
 // Database connection, a DSN passed to the PDO constructor
 $CONFIG['model']['system']['connection_string'] = "sqlite:../shop.db";
+$CONFIG['model']['system']['default'] = true;
 
 // Logger Config
 ini_set("error_log", __DIR__.'/../logs/shop_php_error.log');
@@ -70,7 +71,7 @@ $CONFIG['resources'][] = array
 	'append_nc' => true,
 );
 
-// this is products image folder. 
+// this is products image folder.
 // setting it up as resource folder allows us to simply use resFile() to reference a products image.
 $CONFIG['resources'][] = array
 (

@@ -39,13 +39,13 @@ class Admin extends ShopBase
 	private function _login()
 	{
 		// check only the fact that somebody logged in
-		if( $_SESSION['logged_in'] ) 
+		if( avail($_SESSION,'logged_in') )
 			return true;
-		
+
 		// redirect to login. this terminates the script execution.
 		redirect('Admin','Login');
 	}
-	
+
 	/**
 	 * @attribute[RequestParam('username','string',false)]
 	 * @attribute[RequestParam('password','string',false)]
@@ -63,7 +63,7 @@ class Admin extends ShopBase
 			}
 			$this->content(uiMessage::Error("Unknown username/passsword"));
 		}
-		// putting it together as control here. other ways would be to create a new class 
+		// putting it together as control here. other ways would be to create a new class
 		// derived from Control or a Template (anonymous or with an own class)
 		$form = $this->content(new Form());
 		$form->content("Username:");
@@ -72,31 +72,31 @@ class Admin extends ShopBase
 		$form->AddPassword('password', '');
 		$form->AddSubmit("Login");
 	}
-	
+
 	function Index()
 	{
 		$this->_login(); // require admin to be logged in
-		
+
 		// add products table and a button to create a new product
 		$this->content("<h1>Products</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'products'))
 			->AddPager(10)
 			->AddRowAction('trash', 'Delete', $this, 'DelProduct');
-		$this->content(uiButton::Make('Add product'))->onclick = AjaxAction::Post('Admin', 'AddProduct');
-		
+		$this->content(uiButton::Textual('Add product'))->onclick = AjaxAction::Post('Admin', 'AddProduct');
+
 		// add orders table
 		$this->content("<h1>Orders</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'orders'))
 			->AddPager(10)
 			->OrderBy = 'id DESC';
-		
+
 		// add customers table
 		$this->content("<h1>Customers</h1>");
 		$this->content(new uiDatabaseTable(model_datasource('system'),false,'customers'))
 			->AddPager(10)
 			->OrderBy = 'id DESC';
 	}
-	
+
 	/**
 	 * @attribute[RequestParam('title','string',false)]
 	 * @attribute[RequestParam('tagline','string',false)]
@@ -106,7 +106,7 @@ class Admin extends ShopBase
 	function AddProduct($title,$tagline,$body,$price)
 	{
 		$this->_login(); // require admin to be logged in
-		
+
 		// This is a quite simple condition: You MUST provide each of the variables
 		if( $title && $tagline && $body && $price )
 		{
@@ -119,14 +119,14 @@ class Admin extends ShopBase
 				move_uploaded_file($_FILES['image']['tmp_name'], $image);
 				$image = basename($image);
 			}
-			else 
+			else
 				$image = '';
-			
+
 			// store the new product into the database
 			$ds = model_datasource('system');
 			$ds->ExecuteSql("INSERT INTO products(title,tagline,body,image,price)VALUES(?,?,?,?,?)",
 				array($title,$tagline,$body,$image,$price));
-			
+
 			redirect('Admin');
 		}
 		// create a dialog and put a template on it.
@@ -136,7 +136,7 @@ class Admin extends ShopBase
 		$dlg->AddCloseButton("Cancel");
 		return $dlg;
 	}
-	
+
 	/**
 	 * @attribute[RequestParam('table','string',false)]
 	 * @attribute[RequestParam('action','string',false)]
@@ -146,7 +146,7 @@ class Admin extends ShopBase
 	function DelProduct($table,$action,$model,$row)
 	{
 		$this->_login(); // require admin to be logged in
-		
+
 		// we use the ajax confirm features of the framework which require some translated string, so we set them up here
 		// normally we would start the sysadmin and create some, but for this sample we ignore that.
 		default_string('TITLE_DELPRODUCT','Delete Product');
@@ -158,7 +158,7 @@ class Admin extends ShopBase
 		$ds = model_datasource('system');
 		$prod = $ds->Query('products')->eq('id',$model['id'])->current();
 		$prod->Delete();
-		
+
 		// delete the image too if present
 		if( $prod->image )
 		{

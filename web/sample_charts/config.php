@@ -23,19 +23,19 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
-// Pages are PHP classes extending HtmlPage 
+// Pages are PHP classes extending HtmlPage
 $CONFIG['system']['default_page']  = "ChartRoulette";
 // Events are mapped to PHP class methods
 $CONFIG['system']['default_event'] = "Index";
 
 // Application specific classpath
 classpath_add(__DIR__.'/controller');
-classpath_add(__DIR__.'/templates');
 
 // Database connection, a DSN passed to the PDO constructor
 $CONFIG['model']['system']['connection_string'] = "sqlite:../chartroulette.db";
-$CREATE_DATA = !file_exists("../chartroulette.db");
-	
+$CONFIG['model']['system']['default'] = true;
+$GLOBALS['CREATE_DATA'] = !file_exists("../chartroulette.db");
+
 
 // Logger Config
 ini_set("error_log", __DIR__.'/../logs/chartroulette_php_error.log');

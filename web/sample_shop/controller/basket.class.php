@@ -37,11 +37,11 @@ class Basket extends ShopBase
 		// display any given error message
 		if( $error )
 			$this->content(uiMessage::Error($error));
-		
+
 		// prepare basket variable
 		if( !isset($_SESSION['basket']) )
 			$_SESSION['basket'] = array();
-		
+
 		if( count($_SESSION['basket']) == 0 )
 			$this->content(uiMessage::Hint('Basket is empty'));
 		else
@@ -52,7 +52,7 @@ class Basket extends ShopBase
 			foreach( $_SESSION['basket'] as $id=>$amount )
 			{
 				$prod = $ds->Query('products')->eq('id',$id)->current();
-				
+
 				//... each using a template
 				$this->content( Template::Make('product_basket') )
 					->set('title',$prod->title)
@@ -66,10 +66,10 @@ class Basket extends ShopBase
 			}
 			// display total price and the button to go on
 			$this->content("<div class='basket_total'>Total price: $price_total</div>");
-			$this->content( uiButton::Make("Buy now") )->onclick = "location.href = '".buildQuery('Basket','BuyNow')."'";
+			$this->content( uiButton::Textual("Buy now") )->onclick = "location.href = '".buildQuery('Basket','BuyNow')."'";
 		}
 	}
-	
+
 	/**
 	 * Adds a product to the basket.
 	 * @attribute[RequestParam('id','int')]
@@ -88,7 +88,7 @@ class Basket extends ShopBase
 		$_SESSION['basket'][$id]++;
 		redirect('Basket','Index');
 	}
-	
+
 	/**
 	 * Removes an item from the basket.
 	 * @attribute[RequestParam('id','int')]
@@ -100,7 +100,7 @@ class Basket extends ShopBase
 		$prod = $ds->Query('products')->eq('id',$id)->current();
 		if( !$prod )
 			redirect('Basket','Index',array('error'=>'Product not found'));
-		
+
 		// decrease the counter for this product
 		if( isset($_SESSION['basket'][$id]) )
 			$_SESSION['basket'][$id]--;
@@ -112,7 +112,7 @@ class Basket extends ShopBase
 
 	/**
 	 * Entrypoint for the checkout process.
-	 * 
+	 *
 	 * Requests customers address details and asks for payment processor.
 	 */
 	function BuyNow()
@@ -120,7 +120,7 @@ class Basket extends ShopBase
 		// displays the chechout form, which has all inputs for address on it
 		$this->content( Template::Make('checkout_form') );
 	}
-	
+
 	/**
 	 * Persists current basket to the database and starts checkout process.
 	 * @attribute[RequestParam('fname','string')]
@@ -134,10 +134,10 @@ class Basket extends ShopBase
 	function StartCheckout($fname,$lname,$street,$zip,$city,$email,$provider)
 	{
 		log_debug("StartCheckout($fname,$lname,$street,$zip,$city,$email,$provider)");
-		
+
 		if( !$fname || !$lname || !$street || !$zip || !$city || !$email )
 			redirect('Basket','Index',array('error'=>'Missing some data'));
-		
+
 		// create a new customer. note that we do not check for existance or stuff.
 		// this should be part of a real shop system!
 		$cust = new SampleCustomer();
@@ -155,7 +155,7 @@ class Basket extends ShopBase
 		$order->customer_id = $cust->id;
 		$order->created = 'now()';
 		$order->Save();
-		
+
 		// now loop thru the basket-items and add them to the order...
 		$ds = model_datasource('system');
 		foreach( $_SESSION['basket'] as $id=>$amount )
@@ -170,22 +170,22 @@ class Basket extends ShopBase
 			$item->tagline = $prod->tagline;
 			$item->body = $prod->body;
 			$item->Save();
-			
+
 			$order->price_total += $amount * $prod->price;
 		}
 		// save the order again to persist the total amount
 		$order->Save();
 		$_SESSION['basket'] = array();
-		
+
 		// finally start the checkout process using the given payment provider
 		log_debug("Handing control over to payment provider '$provider'");
 		$p = new $provider();
 		$p->StartCheckout($order,buildQuery('Basket','PostPayment'));
 	}
-	
+
 	/**
 	 * This is the return URL for the payment provider.
-	 * Will be called when payment raches a final state, so control is handed over to our 
+	 * Will be called when payment raches a final state, so control is handed over to our
 	 * app again from the payment processor.
 	 */
 	function PostPayment()
@@ -196,7 +196,7 @@ class Basket extends ShopBase
 		$this->content("<h1>Payment processed</h1>");
 		$this->content("Provider returned this data:<br/><pre>".render_var($_REQUEST)."</pre>");
 	}
-	
+
 	/**
 	 * This is a special handler method for PayPal.
 	 * It will be called asynchronously from PayPal backend so user will never see results of it.

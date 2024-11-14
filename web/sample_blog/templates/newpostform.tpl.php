@@ -24,7 +24,7 @@
  */
 ?>
 <form action="<?=buildQuery('blog','addpost')?>" method="post">
-	Title: <input type="text" name="title"/><br/>
-	Text: <textarea name="body"></textarea><br/>
-	<input type="submit" value="Create post"/>
+	<div><span>Title:</span><input type="text" name="title"/></div>
+	<div><span>Text:</span><textarea name="body"></textarea></div>
+    <div><input type="submit" value="Create post"/></div>
 </form>

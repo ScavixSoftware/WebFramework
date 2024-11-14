@@ -24,6 +24,7 @@
  */
 
 use ScavixWDF\Base\HtmlPage;
+use ScavixWDF\Controls\ChartJS3;
 use ScavixWDF\Google\GoogleVisualization;
 use ScavixWDF\Google\gvBarChart;
 //use ScavixWDF\Google\gvComboChart;
@@ -31,16 +32,17 @@ use ScavixWDF\Google\gvGeoChart;
 use ScavixWDF\Google\gvPieChart;
 use ScavixWDF\JQueryUI\uiTabs;
 use ScavixWDF\Localization\Localization;
+use ScavixWDF\Model\DataSource;
 
 class ChartRoulette extends HtmlPage
 {
-	function __initialize()
+	function __construct()
 	{
-		parent::__initialize();
+		parent::__construct();
 		if( $GLOBALS['CREATE_DATA'] )
 		{
 			$ds = model_datasource('system');
-			
+
 			$fn = array('John','Jane','Thomas','Marc','Jamie','Bob','Marie');
 			$ln = array('Doe','Murphy','Anderson','Smith');
 			$country_codes = array('DE','US','RU','FR','IT','SE');
@@ -53,7 +55,7 @@ class ChartRoulette extends HtmlPage
 					$ds->ExecuteSql("INSERT INTO participants(name,country,age,game_count)VALUES(?,?,?,?)",array("$f $l",$cc,rand(18,70),rand(0,100)));
 				}
 			}
-			
+
 			$nums = array();
 			$ds->ExecuteSql("CREATE TABLE numbers(number INTEGER,hit_count INTEGER,PRIMARY KEY(number))");
 			for($i=0; $i<=36; $i++)
@@ -71,7 +73,7 @@ class ChartRoulette extends HtmlPage
 		}
 		GoogleVisualization::$DefaultDatasource = model_datasource('system');
 	}
-	
+
 	/**
 	 * @attribute[RequestParam('type','string',false)]
 	 * @attribute[RequestParam('data','string',false)]
@@ -82,36 +84,31 @@ class ChartRoulette extends HtmlPage
 		$tabs->AddTab("Participants by game count", $this->ParticipantsGames());
 		$tabs->AddTab("Participants by age", $this->ParticipantsAge());
 		$tabs->AddTab("Participants countries", $this->ParticipantsCountries());
-		
+
 		$this->content($tabs);
 	}
-	
+
 	function ParticipantsAge()
 	{
-		$chart = new gvPieChart();
-		$chart->setTitle("Participants by age")
-			->setDataHeader("Age","Count")
-			->setSize(800, 400)
-			->opt('is3D',true);;
-		foreach( model_datasource('system')->ExecuteSql("SELECT age, count(*) as cnt FROM participants GROUP BY age ORDER BY cnt DESC") as $row )
-			$chart->addDataRow("{$row['age']} years",intval($row['cnt']));
-			
-		return $chart;
+        $data = DataSource::Get()->ExecuteSql("SELECT age, count(*) as cnt FROM participants GROUP BY age ORDER BY cnt DESC")
+            ->Enumerate('cnt', false, 'age');
+        $labels = array_map(function ($a) { return "$a years";},array_keys($data));
+        $data = array_combine($labels, array_values($data));
+        return ChartJS3::Pie("Participants by age", 400)
+            ->setSeries(['age'=>"Age",'cnt'=>"Count"])
+            ->setPieData($data);
 	}
-	
+
 	function ParticipantsGames()
 	{
-		$chart = new gvBarChart();
-		$chart->setTitle("Participants by game count")
-			->setDataHeader("Age","Games played")
-			->setSize(800, 700)
-			->opt('is3D',true);
-		foreach( model_datasource('system')->ExecuteSql("SELECT name, game_count FROM participants ORDER BY game_count DESC") as $row )
-			$chart->addDataRow("{$row['name']}",intval($row['game_count']));
-			
-		return $chart;
+        $data = DataSource::Get()->ExecuteSql("SELECT name, game_count FROM participants ORDER BY game_count DESC")
+            ->Enumerate('game_count', false, 'name');
+        return ChartJS3::Bar("Participants by game count", 400)
+            ->setPieData($data)
+            ->legend('display',false)
+            ->opt('indexAxis','y');
 	}
-	
+
 	function ParticipantsCountries()
 	{
 		$chart = new gvGeoChart();
@@ -120,9 +117,9 @@ class ChartRoulette extends HtmlPage
 			->setSize(800, 400)
 			->opt('is3D',true);
 		$country_names = Localization::get_country_names();
-		foreach( model_datasource('system')->ExecuteSql("SELECT country, count(*) as cnt FROM participants GROUP BY country ORDER BY cnt DESC") as $row )
+		foreach( DataSource::Get()->ExecuteSql("SELECT country, count(*) as cnt FROM participants GROUP BY country ORDER BY cnt DESC") as $row )
 			$chart->addDataRow($country_names[$row['country']],intval($row['cnt']));
-			
+
 		return $chart;
 	}
 }

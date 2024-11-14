@@ -23,7 +23,7 @@
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 
-// Pages are PHP classes extending HtmlPage 
+// Pages are PHP classes extending HtmlPage
 $CONFIG['system']['default_page']  = "Blog";
 // Events are mapped to PHP class methods
 $CONFIG['system']['default_event'] = "Index";
@@ -34,6 +34,7 @@ classpath_add(__DIR__.'/templates');
 
 // Database connection, a DSN passed to the PDO constructor
 $CONFIG['model']['system']['connection_string'] = "sqlite:../blog.db";
+$CONFIG['model']['system']['default'] = true;
 
 // Logger Config
 ini_set("error_log", __DIR__.'/../logs/blog_php_error.log');
@@ -63,7 +64,7 @@ $CONFIG['system']['logging'] = array
 // Resources config
 $CONFIG['resources'][] = array
 (
-	'ext' => 'js|css|png|jpg|jpeg|gif|htc|ico',
+	'ext' => 'js|css|less|png|jpg|jpeg|gif|htc|ico',
 	'path' => realpath(__DIR__.'/res/'),
 	'url' => 'res/',
 	'append_nc' => true,

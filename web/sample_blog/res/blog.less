@@ -1,7 +1,7 @@
 /**
  * Scavix Web Development Framework
  *
- * Copyright (c) since 2012 Scavix Software Ltd. & Co. KG
+ * Copyright (c) since 2024 Scavix Software GmbH & Co. KG
  *
  * This library is free software; you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General
@@ -17,16 +17,44 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>
  *
- * @author Scavix Software Ltd. & Co. KG http://www.scavix.com <info@scavix.com>
- * @copyright since 2012 Scavix Software Ltd. & Co. KG
+ * @author Scavix Software GmbH & Co. KG https://www.scavix.com <info@scavix.com>
+ * @copyright since 2024 Scavix Software GmbH & Co. KG
  * @license http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
-h1
+body
 {
-	color: red;
-}
+    padding: 1em 25%;
 
-p
-{
-	color: darkgray;
+    h1
+    {
+        color: red;
+    }
+
+    p
+    {
+        color: black;
+        border-bottom: 1px dotted black;
+        padding: 0 1em 1em 1em;
+    }
+
+    form
+    {
+        display: flex;
+        flex-direction: column;
+
+        > div
+        {
+            display: flex;
+
+            span
+            {
+                flex: 1;
+                min-width: 150px;
+            }
+            input, textarea
+            {
+                flex: 5;
+            }
+        }
+    }
 }
