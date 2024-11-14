@@ -36,7 +36,7 @@ class DocMain extends HtmlPage
 	var $errors = array();
 	var $curSection = false;
 	static $known_token = array('`string`','`int`','`integer`','`bool`','`boolean`','`mixed`','`object`','`array`','`DIRECTORY_SEPARATOR`');
-	
+
 	private function _endSection()
 	{
 		if( !$this->curSection )
@@ -45,35 +45,35 @@ class DocMain extends HtmlPage
 			$this->content($this->curSection->WdfRender());
 		$this->curSection = false;
 	}
-	
+
 	private function _startSection($text)
 	{
 		if( $this->curSection )
 			$this->_endSection();
-		
+
 		$this->curSection = new Control('div');
 		$this->curSection->content($text);
 		return $this->curSection;
 	}
-	
+
 	private function _warn($text,$section=false)
 	{
 		if( !$this->curSection )
-			$this->_section('BLANK'); 
+			$this->_section('BLANK');
 		$this->curSection->content("<div class='warn'>".htmlspecialchars($text)."</div>\n");
 		$this->curSection->class = 'file';
 		if( $section )
 			$this->sums[$section]++;
 	}
-	
+
 	private function _getDc($data,$type='function')
 	{
 		$prefix = is_in($type,'function','class')?"$type {$data['name']}":"$type{$data['name']}";
 		$dc = PhpDocComment::Parse($data['comment']);
-		$is_private = starts_with($data['name'],'_') 
+		$is_private = starts_with($data['name'],'_')
 			|| contains($data['modifiers'],'private','protected')
 			|| ($dc && $dc->has('private'));
-		
+
 		if( !$dc )
 		{
 			if( !$is_private )
@@ -82,28 +82,28 @@ class DocMain extends HtmlPage
 		}
 		if( $dc->hasOne('internal','override','deprecated','shortcut','implements') )
 			return array($dc,$is_private);
-		
+
 		if( !$is_private )
 		{
-			if( !$dc->ShortDesc ) 
+			if( !$dc->ShortDesc )
 				$this->_warn("$prefix MISSING ShortDesc",'short');
 			if( $dc->LongDesc === false  )
 				$this->_warn("$prefix MISSING LongDesc",'long');
 		}
-		
+
 		if( $type == 'class' )
 			return array($dc,$is_private);
-		
-		if( !$is_private && !$dc->has('return') ) 
+
+		if( !$is_private && !$dc->has('return') )
 			$this->_warn("$prefix MISSING @return",'return');
 		return array($dc,$is_private);
 	}
-	
+
 	function Init()
 	{
 		$this->content(Template::Make('intro'))->set("run",new Anchor(buildQuery('DocMain','Run'),'Run'));
 	}
-	
+
 	function Download()
 	{
 		header("Content-Type: application/zip");
@@ -111,7 +111,7 @@ class DocMain extends HtmlPage
 		readfile(__DIR__.'/wdf_docs.zip');
 		die();
 	}
-	
+
 	function Run()
 	{
 		$summary = $this->content(new Control('div'));
@@ -121,13 +121,13 @@ class DocMain extends HtmlPage
 		$this->content('<div style="text-align: center; font-size: 18px; font-weight: bold">');
 		$this->content($run->WdfRender()."&nbsp;&nbsp;".$down->WdfRender()."&nbsp;&nbsp;".$preview->WdfRender());
 		$this->content('</div>');
-		
+
 		if( !file_exists(__DIR__.'/out') )
 			mkdir(__DIR__.'/out');
 		foreach( system_glob_rec(__DIR__.'/out','*') as $file )
 			unlink($file);
 		cache_clear();
-		
+
 		$path = realpath(__DIR__.'/../../system/');
 		$i = 1;
 		global $home, $processed_files;
@@ -142,11 +142,11 @@ class DocMain extends HtmlPage
 				$cnt_all_files--;
 				continue;
 			}
-			
+
 			$title = str_replace($path.'/','',$file);
 			$fn_cls = __DIR__.'/out/classes_'.str_replace('.php.md','.md',str_replace(['/',"\\",'__'], ['_','_','_'], $title).'.md');
 			$fn_fnc = __DIR__.'/out/functions_'.str_replace('.php.md','.md',str_replace(['/',"\\",'__'], ['_','_','_'], $title).'.md');
-			
+
 			$this->_startSection("FILE: $file");
 			$data = $this->process($file);
 			if( $i++ > self::MAX_FILES )
@@ -195,11 +195,11 @@ class DocMain extends HtmlPage
 				file_put_contents($fn_cls, $this->escapeMd("# Classes in file $title\n".implode("\n",$lines)));
 		}
 		$this->_endSection();
-		
+
 		$this->writeIndexes();
 		$this->createLinks();
 		$this->writeZip();
-		
+
 		if( array_sum($this->sums) > 0 || count($this->errors)>0 )
 		{
 			$summary->addClass('summary');
@@ -214,12 +214,12 @@ class DocMain extends HtmlPage
 				$summary->content("Missing param descriptions: {$this->sums['param']}<br/>");
 			if( $this->sums['return'] > 0 )
 				$summary->content("Missing return value descriptions: {$this->sums['return']}<br/>");
-			
+
 			foreach( $this->errors as $err )
 				$summary->content("$err<br/>");
 		}
 	}
-	
+
 	function writeZip()
 	{
 		unlink(__DIR__.'/wdf_docs.zip');
@@ -229,11 +229,11 @@ class DocMain extends HtmlPage
 			$zip->addFile($md,basename($md));
 		$zip->close();
 	}
-	
+
 	function createLinks()
 	{
 		global $home;
-		
+
         // add PHP predefined functions
         $def_funcs = get_defined_functions();
         foreach( $def_funcs['internal'] as $f )
@@ -247,15 +247,15 @@ class DocMain extends HtmlPage
         foreach( array_merge(get_declared_classes(),get_declared_interfaces()) as $c )
             if( !isset($home['classes'][$c]) )
                 $home['classes'][$c] = "https://www.php.net/manual/en/class.". strtolower($c).".php";
-		
+
 		// sorting the found information
 		foreach( array_keys($home) as $key )
 			natksort($home[$key]);
-		
+
 		$linking = function($match)
 		{
-			global $home, $current_link_file; 
-			
+			global $home, $current_link_file;
+
 			if( $match[1] != 'array' )
 			{
 				if( isset($home['funcs'][$match[1]]) )
@@ -263,17 +263,17 @@ class DocMain extends HtmlPage
 				if( isset($home['classes'][$match[1]]) )
 					return "[{$match[1]}]({$home['classes'][$match[1]]})";
 			}
-			
+
 			$p = explode("::",$match[1]);
 			if( count($p) < 2 )
 				return $match[0];
-			
+
 			if( $p[0] == "NAMESPACE" )
 			{
 //				log_debug("NS link found: {$p[1]}",$home['namespaces'][$p[1]]);
 				return "[".str_replace(":","\\",$p[1])."](namespacetree#wiki-{$home['namespaces'][$p[1]]['hash']})";
 			}
-			
+
 			if( $p[0] == "PARENTCLASSES" )
 			{
 				$parents = array();
@@ -295,7 +295,7 @@ class DocMain extends HtmlPage
 					return "";
 				return "\n\n**Subclasses**: ".implode(", ",$subs);
 			}
-			
+
 			if( $p[0] == "OVERRIDE" )
 			{
 				if( count($p) != 3 )
@@ -320,10 +320,10 @@ class DocMain extends HtmlPage
 				}
 				return $match[0];
 			}
-			
+
 			return "[{$match[1]}]({$home['methods'][$p[0]][$p[1]]})";
 		};
-		
+
 		$regex1 = '/<([a-zA-Z0-9_:]+)>/';
 		$regex2 = '/`([a-zA-Z0-9_:]+)`/';
 		global $current_link_file;
@@ -336,15 +336,15 @@ class DocMain extends HtmlPage
 			file_put_contents($md,$cont);
 		}
 	}
-	
+
 	function writeIndexes()
 	{
 		global $home, $processed_files;
-		
+
 		// sorting the found information
 		foreach( array_keys($home) as $key )
 			natksort($home[$key]);
-		
+
 		// write functions index
 		$last_letter = false; $lines = array("# Function listing:");
 		foreach( $home['funcs'] as $name=>$file )
@@ -372,12 +372,12 @@ class DocMain extends HtmlPage
 			$lines[] = "* [$name]($file)";
 		}
 		file_put_contents(__DIR__.'/out/classes.md', $this->escapeMd(implode("\n",$lines)));
-		
+
 		// write inheritance tree
 		$lines = array("# Class inheritance:");
 		DocMain::getSubclasses(false,$lines);
 		file_put_contents(__DIR__.'/out/inheritance.md', $this->escapeMd(implode("\n",$lines)));
-		
+
 		// write interface listing
 		$lines = array("# Interfaces:");
 		foreach( $home['interfaces'] as $name=>$implementors )
@@ -389,7 +389,7 @@ class DocMain extends HtmlPage
 				$lines[] = "\t* ".self::linkCls($impl,"IMPLEMENT");
 		}
 		file_put_contents(__DIR__.'/out/interfaces.md', $this->escapeMd(implode("\n",$lines)));
-		
+
 		// write folder structure
 //		log_debug("Tree",$processed_files);
 		$lines = array("# Folder tree:");
@@ -427,7 +427,7 @@ class DocMain extends HtmlPage
 					$lines[] = "$pre* ".self::linkCls($cls,"foldertree");
 		}
 		file_put_contents(__DIR__.'/out/foldertree.md', $this->escapeMd(implode("\n",$lines)));
-		
+
 		// write namespace tree
 		$lines = array("# Namespace tree:");
 		foreach( $home['namespaces'] as $ns=>$def )
@@ -440,7 +440,7 @@ class DocMain extends HtmlPage
 		file_put_contents(__DIR__.'/out/namespacetree.md', $this->escapeMd(implode("\n",$lines)));
 //		log_debug("namespaces",$home['namespaces']);
 	}
-	
+
 	static function getSubclasses($parent,&$res,$pre='* ')
 	{
 		global $home;
@@ -457,7 +457,7 @@ class DocMain extends HtmlPage
 			}
 		}
 	}
-	
+
 	static function getParent($class)
 	{
 		global $home;
@@ -466,11 +466,11 @@ class DocMain extends HtmlPage
 				return $name;
 		return false;
 	}
-	
+
 	static function linkCls($name,$origin='')
 	{
 		global $home;
-		
+
 		if( is_array($name) )
 		{
 			list($name,$meth) = $name;
@@ -482,7 +482,7 @@ class DocMain extends HtmlPage
 				return "[$name::$meth](".str_replace("$fn.php",$nn,$home['classes'][$name]).")";
 			}
 		}
-		
+
 		if( isset($home['classes'][$name]) )
 			return "[$name]({$home['classes'][$name]})";
 		if( starts_with($name,'Zend_') )
@@ -490,17 +490,17 @@ class DocMain extends HtmlPage
 		log_debug("[$origin] No classlink found: $name");
 		return $name;
 	}
-	
+
 	function classToMd($class,$link)
 	{
 		global $home;
-		
+
 		list($dc,$is_private) = $this->_getDc($class,'class');
 
 		$mod = implode(" ",$class['modifiers']);
 		$hash = md5($class['name']);
 		$tpl  = "\n## $mod {$class['type']} <a id='{$hash}'/>{$class['name']}\n".($dc?$dc->RenderAsMD():"NOT DOCUMENTED");
-		
+
 		if( $class['ns'] )
 		{
 			$tpl .= "\n\n**Namespace**: <NAMESPACE::{$class['ns']}>";
@@ -508,7 +508,7 @@ class DocMain extends HtmlPage
 				$home['namespaces'][$class['ns']] = array('hash'=>md5($class['ns']),'classes'=>array());
 			$home['namespaces'][$class['ns']]['classes'][] = $class['name'];
 		}
-		
+
 		if( isset($class['extends']) )
 		{
 			//$tpl .= "\n\nExtends: <{$class['extends']}>";
@@ -525,7 +525,7 @@ class DocMain extends HtmlPage
 
 		$lines = array($tpl);
 		$home['classes'][$class['name']] = "$link#wiki-$hash";
-        
+
 		if( !$dc || !$dc->hasOne('internal','deprecated') )
 		{
 			natksort($class['methods']);
@@ -541,7 +541,7 @@ class DocMain extends HtmlPage
 		}
 		return implode("\n",$lines);
 	}
-	
+
 	function funcToMd($func,$heading='##',$what='function',$class=false)
 	{
 		list($dc,$is_private) = $this->_getDc($func,$what);
@@ -549,10 +549,10 @@ class DocMain extends HtmlPage
 			return false;
 		if( $dc && $dc->has('private') ) // skip private functions that are explicitely marked private
 			return false;
-		
+
 		if( !contains($func['modifiers'],'public','protected','private') )
 			array_unshift($func['modifiers'], 'public');
-		
+
 		$mod = implode(" ",$func['modifiers']);
 		$args = array();
 		$hash = md5($func['name']);
@@ -562,19 +562,19 @@ class DocMain extends HtmlPage
 
 		foreach( $func['parameter'] as $arg )
 			$args[$arg['name']] = (isset($arg['type'])?"{$arg['type']} ":"").$arg['name'].(isset($arg['default'])?"={$arg['default']}":"");
-		
+
 		if( $func['name'] == '__initialize' )
 			$dc->EnsureDescription("This is WDF constructor equivalent");
-		
+
 		if( $class )
 		{
 			$dc->EnsureTagDescription('override',"<OVERRIDE::{$class['name']}::{$func['name']}>");
 			//log_if($func['name']=='WdfRender',"WdfRender",$dc,$class['name'],$func['name']);
 		}
-			
+
 		$ret = $dc->getReturn();
 		$comment = $dc->RenderAsMD();
-		
+
 		if( $dc->hasOne('internal','override','deprecated','shortcut','implements') )
 			return "$head$comment";
 
@@ -606,16 +606,19 @@ class DocMain extends HtmlPage
 
 				if( count($p->typeArray)>1 )
 				{
-					foreach( $p->typeArray as $t )
-						if( !is_in($t,'static','string','int','integer','bool','false','float','double','array','mixed','object','callable','\Closure') )
-							$this->_warn("$what{$func['name']} PARAM {$arg['name']} part of mixed type is unlinkable: $t",'param');
+                    foreach ($p->typeArray as $t)
+                        if (!is_in($t, 'static', 'string', 'int', 'integer', 'bool', 'false', 'float', 'double', 'array', 'mixed', 'object', 'callable', '\Closure', '\DateTime'))
+                        {
+                            if( !class_exists($t) )
+                                $this->_warn("$what{$func['name']} PARAM {$arg['name']} part of mixed type is unlinkable: $t", 'param');
+                        }
 				}
 			}
 		}
 		$arguments = (count($arguments)>0)?"\n\nParameters:\n\n".implode("\n\n",$arguments):'';
 		return "$head$comment$definition$return$arguments";
 	}
-	
+
 	function escapeMd($c)
 	{
 		return $c; // GitHub allows underscores in words, so just return for now
@@ -624,15 +627,15 @@ class DocMain extends HtmlPage
 			$parts[$i] = str_replace('_','\_',$parts[$i]);
 		return implode("`",$parts);
 	}
-	
+
 	function skip($fn)
 	{
 //		if( stripos($fn,'ajaxaction') !== false )
 //			return false;
 //		return true;
-        
+
         $fn = str_replace("\\/", "/", $fn);
-		
+
 		if( fnmatch('*.tpl.php', $fn) )
 			return true;
 		if( stripos($fn,'modules/oauth_php/') !== false )
@@ -649,7 +652,7 @@ class DocMain extends HtmlPage
 			return true;
 		if( stripos($fn,'modules/minify/') !== false )
 			return true;
-		
+
 		if( stripos($fn,'modules/zend/pdf/Cell.php') !== false )
 			return true;
 		if( stripos($fn,'sqlformatter.class.php') !== false )
@@ -667,10 +670,10 @@ class DocMain extends HtmlPage
 			return false;
 		if( starts_with(basename($fn),'system') )
 			return false;
-		
+
 		return true;
 	}
-	
+
 	function process($fn)
 	{
 		gc_collect_cycles();
@@ -680,14 +683,14 @@ class DocMain extends HtmlPage
 		$last_comment = '';
 		$last_str = '';
 		$last_modifiers = array();
-		
+
 		$catch_ns = $cur_ns = false;
 		$classes = array(); $cur_cls = false;
 		$functions = array(); $cur_func = false;
 		$cur_arg = false;
 		$block = $brackets = 0;
-        $skip_next_class = false; 
-		
+        $skip_next_class = false;
+
 		foreach( $token as $tok )
 		{
 			if( is_array($tok) )
@@ -695,7 +698,7 @@ class DocMain extends HtmlPage
 				list($type,$value,$line) = $tok;
 				if( $type != T_CLASS )
 					$skip_next_class = false;
-                
+
 				switch( $type )
 				{
 					case T_DOC_COMMENT:
@@ -782,11 +785,11 @@ class DocMain extends HtmlPage
 						$cur_ns = array();
 						break;
                     case T_DOUBLE_COLON:
-                        $skip_next_class = true; 
+                        $skip_next_class = true;
                         break;
 				}
 			}
-			
+
 			if( is_string($tok) )
 			{
                 $skip_next_class = false;
@@ -794,9 +797,9 @@ class DocMain extends HtmlPage
 				switch( $tok )
 				{
 					case '{': $block++; if( $cur_cls && !isset($cur_cls['def_done']) ) $cur_cls['def_done'] = true; break;
-					case '}': 
+					case '}':
 						$block--;
-						
+
 						if( $cur_cls && $block == $cur_cls['block_val'] )
 						{
 							unset($cur_cls['block_val']);
@@ -807,8 +810,8 @@ class DocMain extends HtmlPage
 						}
 						break;
 					case '(': $brackets++;  break;
-					case ')': 
-						$brackets--; 						
+					case ')':
+						$brackets--;
 						if( $cur_func && isset($cur_func['bracket_val']) && $brackets == $cur_func['bracket_val'] )
 						{
 							unset($cur_func['bracket_val']);
@@ -817,7 +820,7 @@ class DocMain extends HtmlPage
 								$cur_func['parameter'][] = $cur_arg;
 								$cur_arg = false;
 							}
-							
+
 							if( isset($cur_func['name']) ) // if not it's a closure
 							{
 //								if( $cur_func['name']=='__initialize' || !starts_with($cur_func['name'], '_') )
