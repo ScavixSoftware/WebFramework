@@ -1,6 +1,14 @@
 Scavix Software Web Development Framework
 =========================================
 
+Deprecation notice
+------------------
+We're finally moving to a composer based setup, so this repository will be subject to change in the near future.
+The submodule/phar based use is now deprecated and the repository [ScavixSoftware/scavix-wdf](https://github.com/ScavixSoftware/scavix-wdf) will
+not receive updates anymore. Please browse the [packagist](https://packagist.org/explore/?query=scavix%2Fwdf-) for new deployement instructions.    
+
+Description
+-----------
 The Scavix Software Web Development Framework has been build to assist developers in creating rich web applications.      
 It's the foundation of all functionalities we need in our daily work so that we don't need to reinvent the wheel for each new customer project. It provides you with everything you need from the database access layer to the UI development so that you can focus on the business logic of the application without loosing yourself in the thousands of baby-steps that need to be implemented for every project.        
 To give you a quick start, here's a nice article over at codeproject describing how to use this framework: 
