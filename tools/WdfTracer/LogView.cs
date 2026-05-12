@@ -107,7 +107,7 @@ namespace WdfTracer
             [JsonProperty("location")]
             public string Location { get; set; }
             [JsonProperty("args")]
-            public List<object> Args { get; set; }
+            public object Args { get; set; }
 
             public string Details { get; set; }
 
@@ -117,8 +117,12 @@ namespace WdfTracer
                 if (Args == null)
                     return;
                 int i = 0;
-                foreach (object a in Args)
-                    Details += "Argument " + i++ + " = " + (a == null ? "NULL" : a.ToString()) + Environment.NewLine;
+                if(Args is JArray objList)
+                    foreach (object a in objList)
+                        Details += "Argument " + i++ + " = " + (a == null ? "NULL" : a.ToString()) + Environment.NewLine;
+                else if (Args is JObject obj)
+                    Details += "Arguments = " + obj + Environment.NewLine;
+
             }
         }
 
@@ -345,6 +349,17 @@ namespace WdfTracer
             Entry test = null;
 
             StreamReader reader = PrepareReader();
+            var settings = new JsonSerializerSettings
+            {
+                Error = (sender, args) =>
+                {
+                    if (args.CurrentObject is StackEntry)
+                    {
+                        args.ErrorContext.Handled = true;
+                        Program.Log($"Error unserializing StackEntry.{args.ErrorContext.Member}: {args.ErrorContext.Error.Message} in line "+line);
+                    }
+                }
+            };
 
             while (!reader.EndOfStream)
             {
@@ -356,7 +371,7 @@ namespace WdfTracer
                     line = reader.ReadLine();
                     
                     if( AsJson )
-                        test = JsonConvert.DeserializeObject<Entry>(line);
+                        test = JsonConvert.DeserializeObject<Entry>(line, settings);
                     else
                     {
                         Entry parsed = ParseTextLine(line, test, test==null);
