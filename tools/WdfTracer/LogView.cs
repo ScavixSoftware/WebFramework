@@ -612,15 +612,20 @@ namespace WdfTracer
                 Invoke(new AddEntryDelegate(AddToBuffer), new object[] { o });
                 return;
             }
+            if (o == null || buffer == null)
+                return;
             o.PostCreation();
             buffer.Add(o);
-            foreach (string c in o.Categories)
+            if (o.Categories != null)
             {
-                if (!knownCategories.Contains(c))
-                    knownCategories.Add(c);
+                foreach (string c in o.Categories)
+                {
+                    if (!knownCategories.Contains(c))
+                        knownCategories.Add(c);
+                }
             }
 
-            if (!knownSeverities.Contains(o.Severity))
+            if (o.Severity != null && !knownSeverities.Contains(o.Severity))
                 knownSeverities.Add(o.Severity);
 
             if (parser != null || IsVisibleItem(o))
